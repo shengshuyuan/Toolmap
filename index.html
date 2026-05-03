@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>树园工具导航 - 本地在线工具箱</title>
+    <meta name="description" content="树园工具导航：在线文本差异比对、图片压缩等个人工具，全程浏览器本地处理。" />
+    <link rel="stylesheet" href="./assets/app.css" data-app-style />
+    <script>
+      // 本页面使用 ES Module（import/export）。如果你直接双击打开（file://），多数浏览器会拦截模块加载，
+      // 造成“点按钮没反应”。所以在 file:// 场景提前给出提示（不影响正常 http(s) 访问）。
+      (function () {
+        try {
+          if (location.protocol === "file:") {
+            document.documentElement.classList.add("is-file-protocol");
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="bg">
+      <canvas id="bgCanvas" class="bg__canvas" aria-hidden="true"></canvas>
+      <div class="bg__radial bg__radial--a"></div>
+      <div class="bg__radial bg__radial--b"></div>
+      <div class="bg__noise" aria-hidden="true"></div>
+    </div>
+
+    <header class="site-header">
+      <div class="container">
+        <div class="file-warning" role="alert" aria-live="polite">
+          检测到你正在用 <code>file://</code> 直接打开本页面。由于浏览器安全策略，模块脚本会被拦截，导致按钮无响应。
+          请在该目录运行：<code>python3 -m http.server 5173</code>，然后访问 <code>http://localhost:5173</code>。
+        </div>
+        <div class="site-header__row">
+          <div>
+            <div class="kicker">Shuyuan</div>
+            <h1 id="shellTitle" class="title">在线文本差异比对</h1>
+            <p id="shellSubtitle" class="subtitle">
+              支持中文、英文、代码和大文本粘贴。<span class="badge">隐私优先</span> 全程在浏览器本地完成。
+            </p>
+          </div>
+
+          <div class="site-header__meta">
+            <div class="meta-card">
+              <div class="meta-card__label">当前工具</div>
+              <div id="shellToolName" class="meta-card__value">在线文本差异比对</div>
+              <div id="shellToolHint" class="meta-card__hint">中文/英文/代码 · 大文本 · 本地比对</div>
+            </div>
+          </div>
+        </div>
+
+        <nav id="toolSwitch" class="tool-switch" aria-label="工具切换"></nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <div id="toolMounts"></div>
+
+      <footer class="footer">
+        <div class="footer__left">© <span id="year"></span> 树园</div>
+        <div class="footer__right"><span id="appVersionLabel"></span> · 本地运行 · 不上传文件</div>
+      </footer>
+    </main>
+
+    <script type="module">
+      import { APP_VERSION } from "./src/config/app-meta.js";
+
+      const style = document.querySelector("[data-app-style]");
+      if (style) style.href = `./assets/app.css?v=${APP_VERSION}`;
+
+      await Promise.all([
+        import(`./src/bg-art.js?v=${APP_VERSION}`),
+        import(`./src/app.js?v=${APP_VERSION}`),
+      ]);
+    </script>
+  </body>
+</html>
