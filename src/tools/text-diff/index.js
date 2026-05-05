@@ -3,7 +3,9 @@ import { removeBlankLines, normalizeNewlines } from "./sanitize.js";
 import { diffLines } from "./diff.js";
 import { renderDiff, focusAnchor } from "./render.js";
 import { summarizeDiffLines } from "./summary.js";
-import { writeClipboard } from "./clipboard.js";
+import { writeClipboard } from "../../shared/clipboard.js";
+import { escapeHtml } from "../../shared/escape.js";
+import { formatBytes } from "../../shared/format.js";
 import { createEditorController, syncEditorPairScroll } from "./editor.js";
 import { createComparisonState } from "./state.js";
 import { buildLocateStatus, collectComparisonHints, shouldWarnLineMismatch } from "./diagnostics.js";
@@ -636,19 +638,3 @@ export function mountTextDiffTool(mount) {
   loadTextHistory({ silent: true });
 }
 
-function formatBytes(bytes) {
-  const n = Number(bytes) || 0;
-  if (n < 1024) return `${n} B`;
-  const value = n / 1024;
-  if (value < 1024) return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)} KB`;
-  const mb = value / 1024;
-  return `${mb >= 10 ? mb.toFixed(1) : mb.toFixed(2)} MB`;
-}
-
-function escapeHtml(text) {
-  return String(text ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

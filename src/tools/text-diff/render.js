@@ -1,6 +1,8 @@
 /**
- * 结果渲染：把 diffLines 输出渲染成“双栏对照表”
+ * 结果渲染：把 diffLines 输出渲染成”双栏对照表”
  */
+
+import { charDiffHtml } from "./char-diff.js";
 
 /**
  * @typedef {"equal" | "insert" | "delete" | "replace"} DiffOp
@@ -72,6 +74,9 @@ export function renderDiff(mount, result) {
     if (row.op === "insert") {
       tdL.classList.add("diff-side--empty");
       tdL.textContent = "—";
+    } else if (row.op === "replace") {
+      const { leftHtml } = charDiffHtml(row.left ?? "", row.right ?? "");
+      tdL.innerHTML = leftHtml;
     } else {
       tdL.textContent = row.left ?? "";
     }
@@ -88,6 +93,9 @@ export function renderDiff(mount, result) {
     if (row.op === "delete") {
       tdR.classList.add("diff-side--empty");
       tdR.textContent = "—";
+    } else if (row.op === "replace") {
+      const { rightHtml } = charDiffHtml(row.left ?? "", row.right ?? "");
+      tdR.innerHTML = rightHtml;
     } else {
       tdR.textContent = row.right ?? "";
     }

@@ -12,6 +12,7 @@ import {
   listHistory,
   saveHistoryRecord,
 } from "./history-store.js";
+import { escapeHtml, escapeAttr } from "../../shared/escape.js";
 
 export function getImageCompressTemplate() {
   return `
@@ -279,8 +280,11 @@ export function mountImageCompressTool(mount) {
     busy = true;
     els.compress.disabled = true;
     const settings = getSettings();
+    const total = items.length;
     try {
-      for (const item of items) {
+      for (let idx = 0; idx < items.length; idx++) {
+        const item = items[idx];
+        els.compress.textContent = `压缩中 ${idx + 1}/${total}`;
         item.status = "processing";
         item.error = "";
         render();
@@ -299,6 +303,7 @@ export function mountImageCompressTool(mount) {
       showToast("压缩完成了，可以下载啦。");
     } finally {
       busy = false;
+      els.compress.textContent = "开始压缩";
       render();
     }
   }
@@ -564,14 +569,3 @@ export function mountImageCompressTool(mount) {
   loadHistory({ silent: true });
 }
 
-function escapeHtml(text) {
-  return String(text ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function escapeAttr(text) {
-  return escapeHtml(text).replace(/'/g, "&#39;");
-}

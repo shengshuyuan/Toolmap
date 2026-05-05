@@ -1,6 +1,7 @@
 import { APP_TITLE, APP_VERSION, BUILD_LABEL } from "./config/app-meta.js";
 import { renderToolMountMarkup, renderToolSwitchMarkup } from "./app-shell.js";
 import { TOOL_REGISTRY, getToolById, getToolIds } from "./tool-registry.js";
+import { escapeHtml } from "./shared/escape.js";
 
 const mountedTools = new Set();
 const mountingTools = new Map();
@@ -69,7 +70,14 @@ async function mountTool(toolKey) {
     const mod = await loadToolModule(tool);
     const mountFn = mod?.[tool.exportName];
     if (typeof mountFn !== "function") throw new Error(`工具 ${tool.id} 缺少挂载函数 ${tool.exportName}`);
-    await mountFn(mount);
+    try {
+      await mountFn(mount);
+    } catch (err) {
+      console.error(`[mount] ${tool.id} failed:`, err);
+      mount.innerHTML = `<div class="tool-error">工具加载失败：${escapeHtml(err.message)}</div>`;
+      mount.hidden = false;
+      return;
+    }
     mountedTools.add(toolKey);
   })();
   mountingTools.set(toolKey, mounting);

@@ -1,5 +1,7 @@
 const encoder = new TextEncoder();
 
+const MAX_ZIP_TOTAL = 500 * 1024 * 1024;
+
 export function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -12,6 +14,14 @@ export function downloadBlob(blob, fileName) {
 }
 
 export async function buildZip(files) {
+  let totalSize = 0;
+  for (const file of files) {
+    totalSize += file.blob.size;
+    if (totalSize > MAX_ZIP_TOTAL) {
+      throw new Error(`打包失败：总大小超过 ${Math.round(MAX_ZIP_TOTAL / 1024 / 1024)} MB 限制，请减少图片数量。`);
+    }
+  }
+
   const localParts = [];
   const centralParts = [];
   let offset = 0;
