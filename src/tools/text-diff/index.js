@@ -27,7 +27,7 @@ export function getTextDiffTemplate() {
   <div class="text-diff-tool panel panel--enter" aria-labelledby="diff-title">
     <div class="panel__head">
       <h2 id="diff-title" class="panel__title">在线文本差异比对</h2>
-      <div class="panel__hint">提示：先点「一键清空空行」，再点「开始比对」，效果更好哦。</div>
+      <div class="panel__hint">提示：先点「一键清空空行」，再点「开始比对」，效果更好。快捷键 ⌘/Ctrl + Enter。</div>
     </div>
 
     <div class="capability-strip" aria-label="文本比对能力">
@@ -355,6 +355,8 @@ export function mountTextDiffTool(mount) {
   }
 
   function onClear() {
+    const hasContent = elLeft.value.trim() || elRight.value.trim();
+    if (hasContent && !window.confirm("确定要清空两侧文本吗？")) return;
     elLeft.value = "";
     elRight.value = "";
     resetBothEditorScrolls();
@@ -535,6 +537,9 @@ export function mountTextDiffTool(mount) {
           `比对完成：内容差异 ${result.contentDiffCount}，排版差异 ${result.formatDiffCount}${hints.isLargeTextMode ? "，已按大文本模式处理" : ""}。`
         );
       }
+
+      // 比对完成后滚动到结果区
+      elDiffView.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       console.error("[compare] failed:", err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -553,6 +558,15 @@ export function mountTextDiffTool(mount) {
     btnCopy.addEventListener("click", onCopyResult);
     btnPrev.addEventListener("click", () => goto(comparison.nav.activeIndex - 1));
     btnNext.addEventListener("click", () => goto(comparison.nav.activeIndex + 1));
+
+    // Ctrl/Cmd + Enter 快捷键触发比对
+    mount.addEventListener("keydown", (ev) => {
+      if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+        ev.preventDefault();
+        onCompare();
+      }
+    });
+
     btnRefreshTextHistory.addEventListener("click", () => loadTextHistory());
     btnExportTextHistory.addEventListener("click", async () => {
       if (!textHistoryRecords.length) { showToast("没有可导出的历史记录。"); return; }

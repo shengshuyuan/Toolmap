@@ -1138,6 +1138,13 @@ body{
   background:rgba(255,255,255,0.58);
 }
 
+.footer__link{
+  color: var(--muted2);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+.footer__link:hover{color: var(--accent)}
+
 .footer{
   display:flex;
   justify-content:space-between;

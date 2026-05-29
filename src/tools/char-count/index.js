@@ -129,6 +129,7 @@ export function mountCharCountTool(mount) {
 
   els.text.addEventListener("input", render);
   els.clearText.addEventListener("click", () => {
+    if (els.text.value.trim() && !window.confirm("确定要清空文本吗？")) return;
     els.text.value = "";
     render();
     showToast("已清空文本。");

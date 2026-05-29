@@ -63,7 +63,7 @@ function drawBackground(canvas) {
   // Anthropic accents（极淡）：蓝 / 绿 / 橙
   g.addColorStop(0, "rgba(106,155,204,0.035)");
   g.addColorStop(0.55, "rgba(120,140,93,0.022)");
-  g.addColorStop(1, "rgba(217,119,87,0.018)");
+  g.addColorStop(1, "rgba(255,100,43,0.018)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
 
@@ -102,7 +102,7 @@ function drawBackground(canvas) {
         ? `rgba(106,155,204,${alpha})` // 蓝
         : pick < 0.67
           ? `rgba(120,140,93,${alpha})` // 绿
-          : `rgba(217,119,87,${alpha})`; // 橙
+          : `rgba(255,100,43,${alpha})`; // 橙
     ctx.strokeStyle = col;
     ctx.lineWidth = baseW;
 
