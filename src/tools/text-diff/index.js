@@ -7,6 +7,7 @@ import { writeClipboard } from "./clipboard.js";
 import { createEditorController, syncEditorPairScroll } from "./editor.js";
 import { createComparisonState } from "./state.js";
 import { buildLocateStatus, collectComparisonHints, shouldWarnLineMismatch } from "./diagnostics.js";
+import { createToast } from "../../shared/toast.js";
 import {
   TEXT_HISTORY_LIMIT,
   clearTextHistory,
@@ -17,6 +18,7 @@ import {
   listTextHistory,
   saveTextHistoryRecord,
 } from "./history-store.js";
+import { exportTextHistory } from "../../shared/history-export.js";
 
 export function getTextDiffTemplate() {
   return `
@@ -150,6 +152,7 @@ export function getTextDiffTemplate() {
         </div>
         <div class="text-history__actions">
           <button id="btnRefreshTextHistory" class="history-mini-btn" type="button">刷新</button>
+          <button id="btnExportTextHistory" class="history-mini-btn" type="button">导出</button>
           <button id="btnClearTextHistory" class="history-mini-btn history-mini-btn--danger" type="button" disabled>清空历史</button>
         </div>
       </div>
@@ -222,6 +225,7 @@ export function mountTextDiffTool(mount) {
   const btnClear = /** @type {HTMLButtonElement} */ ($("btnClear"));
   const btnCopy = /** @type {HTMLButtonElement} */ ($("btnCopy"));
   const btnRefreshTextHistory = /** @type {HTMLButtonElement} */ ($("btnRefreshTextHistory"));
+  const btnExportTextHistory = /** @type {HTMLButtonElement} */ ($("btnExportTextHistory"));
   const btnClearTextHistory = /** @type {HTMLButtonElement} */ ($("btnClearTextHistory"));
   const elTextHistoryMeta = $("textHistoryMeta");
   const elTextHistoryList = $("textHistoryList");
@@ -246,20 +250,12 @@ export function mountTextDiffTool(mount) {
 
   let compareLock = false;
   let toastTimer = 0;
+  const showToast = createToast(elToast, { showClass: "toast--show", duration: 3500 });
   let textHistoryRecords = [];
 
   function setStatus(text, tone = "muted") {
     elStatus.textContent = text;
     elStatus.style.color = tone === "danger" ? "rgba(255,59,48,.88)" : "";
-  }
-
-  function showToast(text) {
-    window.clearTimeout(toastTimer);
-    elToast.textContent = text;
-    elToast.classList.add("toast--show");
-    toastTimer = window.setTimeout(() => {
-      elToast.classList.remove("toast--show");
-    }, 3500);
   }
 
   function renderCompareHints(messages = []) {
@@ -374,8 +370,8 @@ export function mountTextDiffTool(mount) {
     }
 
     try {
-      await writeClipboard(summarizeDiffLines(comparison.latestCompareLines));
-      showToast("复制完成了，粘贴看看吧");
+      const ok = await writeClipboard(summarizeDiffLines(comparison.latestCompareLines));
+      showToast(ok ? "复制完成了，粘贴看看吧" : "复制失败了，请手动选择文本复制。");
     } catch (err) {
       console.error("[copy] failed:", err);
       showToast("复制失败了，请稍后再试。");
@@ -388,8 +384,12 @@ export function mountTextDiffTool(mount) {
       await saveTextHistoryRecord(createTextHistoryRecord({ leftText, rightText, result }));
       await loadTextHistory({ silent: true });
     } catch (err) {
-      console.warn("[text-history] save failed:", err);
-      showToast("比对完成了，但历史记录保存失败。");
+      if (err.message === "HISTORY_QUOTA_EXCEEDED") {
+        showToast("存储空间不足，历史记录保存失败，请清理一些历史记录。");
+      } else {
+        console.warn("[text-history] save failed:", err);
+        showToast("比对完成了，但历史记录保存失败。");
+      }
     }
   }
 
@@ -455,6 +455,7 @@ export function mountTextDiffTool(mount) {
       ? `已保存 ${textHistoryRecords.length}/${TEXT_HISTORY_LIMIT} 条，占用 ${formatBytes(usage)}。仅当前浏览器本地可见。`
       : "保存两侧文本和比对摘要，仅当前浏览器本地可见。";
     btnClearTextHistory.disabled = textHistoryRecords.length === 0;
+    btnExportTextHistory.disabled = textHistoryRecords.length === 0;
 
     if (!textHistoryRecords.length) {
       elTextHistoryList.innerHTML = `<div class="diff-empty">比对完成后会自动保存到这里。</div>`;
@@ -551,6 +552,16 @@ export function mountTextDiffTool(mount) {
     btnPrev.addEventListener("click", () => goto(comparison.nav.activeIndex - 1));
     btnNext.addEventListener("click", () => goto(comparison.nav.activeIndex + 1));
     btnRefreshTextHistory.addEventListener("click", () => loadTextHistory());
+    btnExportTextHistory.addEventListener("click", async () => {
+      if (!textHistoryRecords.length) { showToast("没有可导出的历史记录。"); return; }
+      try {
+        await exportTextHistory(textHistoryRecords);
+        showToast("文本比对历史已导出。");
+      } catch (err) {
+        console.error("[text-history] export failed:", err);
+        showToast("导出失败，请稍后再试。");
+      }
+    });
     btnClearTextHistory.addEventListener("click", removeAllTextHistory);
   }
 
@@ -650,5 +661,6 @@ function escapeHtml(text) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }

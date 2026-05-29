@@ -1,5 +1,10 @@
 # operateLog.md
 
+- **[2026-05-03 17:35]** 🟡修改
+  - **影响范围**：`CHANGELOG.md` `CONTRIBUTING.md` `.gitignore` `README.md`
+  - **变更摘要**：补齐长期维护所需的发布与协作基础文档：新增 `CHANGELOG.md` 作为版本发布记录，新增 `CONTRIBUTING.md` 作为 Git 提交/分支/发布规范，并补强 `.gitignore` 以覆盖常见依赖、环境变量、缓存与日志文件
+  - **回滚指南**：如已使用 Git：恢复 `CHANGELOG.md`、`CONTRIBUTING.md`、`.gitignore`、`README.md` 和 `operateLog.md` 到上一次版本
+
 - **[2026-05-03 17:25]** 🟡修改
   - **影响范围**：`vercel.json` `src/config/app-meta.js` `README.md` `tests/vercel-config.test.mjs` `operateLog.md`
   - **变更摘要**：修正 Vercel 静态资源缓存策略：`assets/` 继续长期缓存，`src/` 模块改为重新校验，避免内部未带版本号的 ES module import 在用户浏览器里长期命中旧代码；补充 Vercel 缓存策略回归测试，版本升级到 `v0.4.1`

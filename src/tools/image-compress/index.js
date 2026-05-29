@@ -2,14 +2,17 @@ import { compressImageFile } from "./compressor.js";
 import { readImageMeta } from "./image-meta.js";
 import { buildZip, downloadBlob } from "./download.js";
 import { formatBytes, formatPercent, getModeSettings, isSupportedImage, mimeToLabel } from "./utils.js";
+import { createToast } from "../../shared/toast.js";
+import { exportImageHistory } from "../../shared/history-export.js";
 import {
   HISTORY_LIMIT,
   clearHistory,
   createHistoryRecord,
   deleteHistoryRecord,
+  getHistoryRecord,
   getHistoryUsage,
   isHistoryAvailable,
-  listHistory,
+  listHistoryMeta,
   saveHistoryRecord,
 } from "./history-store.js";
 
@@ -144,6 +147,7 @@ export function getImageCompressTemplate() {
         </div>
         <div class="image-history__actions">
           <button id="icRefreshHistory" class="image-mini-btn" type="button">刷新</button>
+          <button id="icExportHistory" class="image-mini-btn" type="button">导出</button>
           <button id="icClearHistory" class="image-mini-btn image-mini-btn--danger" type="button" disabled>清空历史</button>
         </div>
       </div>
@@ -188,6 +192,7 @@ export function mountImageCompressTool(mount) {
     historyMeta: find("icHistoryMeta"),
     historyList: find("icHistoryList"),
     refreshHistory: find("icRefreshHistory"),
+    exportHistory: find("icExportHistory"),
     clearHistory: find("icClearHistory"),
   };
 
@@ -197,6 +202,7 @@ export function mountImageCompressTool(mount) {
   let busy = false;
   let toastTimer = 0;
   let customQuality = false;
+  const showToast = createToast(els.toast, { showClass: "image-toast--show", duration: 3200 });
   let historyRecords = [];
 
   function getSettings() {
@@ -207,13 +213,6 @@ export function mountImageCompressTool(mount) {
       outputFormat: els.outputFormat.value,
       maxEdge: Number(els.maxEdge.value),
     };
-  }
-
-  function showToast(text) {
-    window.clearTimeout(toastTimer);
-    els.toast.textContent = text;
-    els.toast.classList.add("image-toast--show");
-    toastTimer = window.setTimeout(() => els.toast.classList.remove("image-toast--show"), 3200);
   }
 
   function updateSettingsState() {
@@ -332,8 +331,12 @@ export function mountImageCompressTool(mount) {
       await saveHistoryRecord(record);
       await loadHistory({ silent: true });
     } catch (err) {
-      console.warn("[image-history] save failed:", err);
-      showToast("压缩完成了，但历史记录保存失败。");
+      if (err.message === "HISTORY_QUOTA_EXCEEDED") {
+        showToast("存储空间不足，历史记录保存失败，请清理一些历史记录。");
+      } else {
+        console.warn("[image-history] save failed:", err);
+        showToast("压缩完成了，但历史记录保存失败。");
+      }
     }
   }
 
@@ -345,7 +348,7 @@ export function mountImageCompressTool(mount) {
       return;
     }
     try {
-      historyRecords = await listHistory();
+      historyRecords = await listHistoryMeta();
       renderHistory();
     } catch (err) {
       console.warn("[image-history] load failed:", err);
@@ -459,6 +462,7 @@ export function mountImageCompressTool(mount) {
       ? `已保存 ${historyRecords.length}/${HISTORY_LIMIT} 条，占用 ${formatBytes(usage)}。仅保存压缩后结果。`
       : "仅保存压缩后的图片，最多保留最近 30 条。";
     els.clearHistory.disabled = historyRecords.length === 0;
+    els.exportHistory.disabled = historyRecords.length === 0;
 
     if (!historyRecords.length) {
       els.historyList.innerHTML = `<div class="image-empty">压缩完成后会自动保存到这里。</div>`;
@@ -508,6 +512,20 @@ export function mountImageCompressTool(mount) {
   els.downloadAll.addEventListener("click", downloadAll);
   els.clear.addEventListener("click", clearAll);
   els.refreshHistory.addEventListener("click", () => loadHistory());
+  els.exportHistory.addEventListener("click", async () => {
+    if (!historyRecords.length) { showToast("没有可导出的历史记录。"); return; }
+    try {
+      showToast("正在导出...");
+      const fullRecords = await Promise.all(
+        historyRecords.map((meta) => getHistoryRecord(meta.id).then((r) => r || meta))
+      );
+      await exportImageHistory(fullRecords);
+      showToast("图片压缩历史已导出。");
+    } catch (err) {
+      console.error("[image-history] export failed:", err);
+      showToast("导出失败，请稍后再试。");
+    }
+  });
   els.clearHistory.addEventListener("click", removeAllHistory);
   els.quality.addEventListener("input", () => {
     customQuality = true;
@@ -551,8 +569,12 @@ export function mountImageCompressTool(mount) {
     if (!(target instanceof HTMLElement)) return;
     const downloadId = target.getAttribute("data-history-download");
     if (downloadId) {
-      const record = historyRecords.find((candidate) => candidate.id === downloadId);
-      if (record?.blob) downloadBlob(record.blob, record.outputName);
+      getHistoryRecord(downloadId)
+        .then((record) => {
+          if (record?.blob) downloadBlob(record.blob, record.outputName);
+          else showToast("记录读取失败，请刷新历史后再试。");
+        })
+        .catch(() => showToast("记录读取失败，请刷新历史后再试。"));
       return;
     }
     const deleteId = target.getAttribute("data-history-delete");
@@ -569,9 +591,10 @@ function escapeHtml(text) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function escapeAttr(text) {
-  return escapeHtml(text).replace(/'/g, "&#39;");
+  return escapeHtml(text);
 }

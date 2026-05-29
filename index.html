@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>树园工具导航 - 本地在线工具箱</title>
     <meta name="description" content="树园工具导航：在线文本差异比对、图片压缩等个人工具，全程浏览器本地处理。" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://toolmap.shuyuan.me/" />
+    <meta property="og:title" content="树园工具导航 - 本地在线工具箱" />
+    <meta property="og:description" content="在线文本差异比对、图片压缩等个人工具，全程浏览器本地处理，隐私优先。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://toolmap.shuyuan.me/" />
+    <meta property="og:image" content="https://toolmap.shuyuan.me/assets/og-image.png" />
+    <link rel="icon" href="./assets/favicon.ico" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./assets/app.css" data-app-style />
     <script>
       // 本页面使用 ES Module（import/export）。如果你直接双击打开（file://），多数浏览器会拦截模块加载，
@@ -73,6 +83,14 @@
         import(`./src/bg-art.js?v=${APP_VERSION}`),
         import(`./src/app.js?v=${APP_VERSION}`),
       ]);
+    </script>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./sw.js").catch(() => {});
+        });
+      }
     </script>
   </body>
 </html>

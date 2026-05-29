@@ -1,3 +1,17 @@
+/**
+ * @typedef {Object} ToolConfig
+ * @property {string} id
+ * @property {string} mountId
+ * @property {string} buttonLabel
+ * @property {string} title
+ * @property {string} subtitle
+ * @property {string} name
+ * @property {string} hint
+ * @property {string} importPath
+ * @property {string} exportName
+ */
+
+/** @type {ToolConfig[]} */
 export const TOOL_REGISTRY = [
   {
     id: "text-diff",
@@ -34,10 +48,12 @@ export const TOOL_REGISTRY = [
   },
 ];
 
+/** @returns {string[]} */
 export function getToolIds() {
   return TOOL_REGISTRY.map((tool) => tool.id);
 }
 
+/** @param {string} id @returns {ToolConfig|null} */
 export function getToolById(id) {
   return TOOL_REGISTRY.find((tool) => tool.id === id) ?? null;
 }

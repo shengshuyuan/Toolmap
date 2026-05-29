@@ -1,3 +1,14 @@
 .DS_Store
 .vercel
+.claude/
 dogfood-output/screenshots/
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+*.log
+.npm/
+.cache/
+.temp/
+.tmp/

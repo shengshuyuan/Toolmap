@@ -1,4 +1,4 @@
-import { getModeSettings, getOutputMime, buildOutputName } from "./utils.js";
+import { getModeSettings, getOutputMime, buildOutputName, createBitmap } from "./utils.js";
 
 export function calculateTargetSize(width, height, maxEdge) {
   const limit = Number(maxEdge) || 0;
@@ -49,7 +49,8 @@ export async function compressImageFile(file, settings) {
   const blob = shouldKeepOriginal ? file : best.blob;
   const type = shouldKeepOriginal ? file.type : best.blob.type || outputMime;
   const fileName = shouldKeepOriginal ? file.name : buildOutputName(file.name, type);
-  const url = URL.createObjectURL(blob);
+  // 保留原图时不创建新 URL，index.js 已有 originalUrl
+  const url = shouldKeepOriginal ? null : URL.createObjectURL(blob);
 
   return {
     blob,
@@ -110,24 +111,6 @@ async function encodeCandidate(bitmap, outputMime, candidate) {
     target,
     adaptive: candidate.adaptive,
   };
-}
-
-async function createBitmap(file) {
-  if ("createImageBitmap" in window) {
-    return createImageBitmap(file, { imageOrientation: "from-image" });
-  }
-
-  const url = URL.createObjectURL(file);
-  try {
-    return await new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("图片读取失败"));
-      img.src = url;
-    });
-  } finally {
-    URL.revokeObjectURL(url);
-  }
 }
 
 function canvasToBlob(canvas, type, quality) {

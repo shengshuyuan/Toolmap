@@ -1,4 +1,5 @@
 import { analyzeTextStats } from "./stats.js";
+import { createToast } from "../../shared/toast.js";
 
 export function getCharCountTemplate() {
   return `
@@ -105,6 +106,7 @@ async function writeClipboard(text) {
   helper.style.left = "-9999px";
   document.body.appendChild(helper);
   helper.select();
+  // NOTE: execCommand("copy") 已废弃，仅作为 Clipboard API 不可用时的降级方案
   document.execCommand("copy");
   helper.remove();
 }
@@ -129,16 +131,7 @@ export function mountCharCountTool(mount) {
     spaces: $(mount, "ccSpaces"),
   };
 
-  let toastTimer = 0;
-
-  function showToast(text) {
-    window.clearTimeout(toastTimer);
-    els.toast.textContent = text;
-    els.toast.classList.add("char-toast--show");
-    toastTimer = window.setTimeout(() => {
-      els.toast.classList.remove("char-toast--show");
-    }, 2600);
-  }
+  const showToast = createToast(els.toast, { showClass: "char-toast--show", duration: 2600 });
 
   function render() {
     const stats = analyzeTextStats(els.text.value ?? "");

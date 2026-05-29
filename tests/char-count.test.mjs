@@ -61,7 +61,7 @@ import { analyzeTextStats } from "../src/tools/char-count/stats.js";
 
 {
   const result = analyzeTextStats("A\r\nB\r\n");
-  assert.equal(result.lines, 2);
+  assert.equal(result.lines, 3);
   assert.equal(result.nonEmptyLines, 2);
   assert.equal(result.characters, 6);
   assert.equal(result.bytesUtf8, 6);

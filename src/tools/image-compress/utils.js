@@ -2,6 +2,7 @@ export const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]
 
 export function formatBytes(bytes) {
   const n = Number(bytes) || 0;
+  if (!Number.isFinite(n) || n < 0) return "0 B";
   if (n < 1024) return `${n} B`;
   const units = ["KB", "MB", "GB"];
   let value = n / 1024;
@@ -91,9 +92,32 @@ export function getModeSettings(mode) {
 export function getOutputMime(fileType, outputFormat, mode) {
   if (mode === "lossless") return fileType || "image/png";
   if (outputFormat === "webp") return "image/webp";
-  return fileType || "image/jpeg";
+  return fileType || "image/png";
 }
 
 export function isSupportedImage(file) {
   return file && SUPPORTED_TYPES.has(file.type);
+}
+
+/**
+ * 创建图片 bitmap，优先使用 createImageBitmap，降级到 Image 元素。
+ * 供 compressor.js 和 image-meta.js 共用。
+ * @param {File|Blob} file
+ * @returns {Promise<ImageBitmap|HTMLImageElement>}
+ */
+export async function createBitmap(file) {
+  if ("createImageBitmap" in window) {
+    return createImageBitmap(file, { imageOrientation: "from-image" });
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    return await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("图片读取失败"));
+      img.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }

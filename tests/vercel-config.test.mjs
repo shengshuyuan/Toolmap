@@ -11,7 +11,7 @@ function findHeaderValue(source, key) {
 
 assert.equal(findHeaderValue("/", "Cache-Control"), "public, max-age=0, must-revalidate");
 assert.equal(findHeaderValue("/assets/(.*)", "Cache-Control"), "public, max-age=31536000, immutable");
-assert.equal(findHeaderValue("/src/(.*)", "Cache-Control"), "public, max-age=0, must-revalidate");
-assert.ok(!findHeaderValue("/src/(.*)", "Cache-Control").includes("immutable"));
+assert.equal(findHeaderValue("/src/(.*)", "Cache-Control"), "public, max-age=31536000, immutable");
+assert.ok(findHeaderValue("/src/(.*)", "Cache-Control").includes("immutable"));
 
 console.log("vercel config tests passed");

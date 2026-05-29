@@ -25,9 +25,11 @@ assert.ok(mountMarkup.includes('id="charCountTool"'));
 
 assert.ok(templateMap["text-diff"].includes("btnCompare"));
 assert.ok(templateMap["text-diff"].includes("btnCopy"));
+assert.ok(templateMap["text-diff"].includes("btnExportTextHistory"));
 
 assert.ok(templateMap["image-compress"].includes("icFileInput"));
 assert.ok(templateMap["image-compress"].includes("选择图片"));
+assert.ok(templateMap["image-compress"].includes("icExportHistory"));
 
 assert.ok(templateMap["char-count"].includes("ccText"));
 assert.ok(templateMap["char-count"].includes("ccCopyText"));

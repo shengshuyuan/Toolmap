@@ -17,7 +17,7 @@
 export function toLines(text) {
   const s = String(text ?? "");
   if (s === "") return [];
-  // 重要：不把“末尾换行”视为新增一行。
+  // 重要：不把"末尾换行"视为新增一行。
   // String.split("\n") 在 s 以 \n 结尾时会产生一个额外的 ""（空行），
   // 这会导致：输入框行号/用户感知行号 与 diff 结果行号在末尾附近出现 +1 偏移。
   const out = s.split("\n");
@@ -33,48 +33,48 @@ function myersDiff(a, b) {
   const N = a.length;
   const M = b.length;
   const max = N + M;
-  /** @type {Map<number, number>} */
-  const v = new Map();
-  v.set(1, 0);
-  /** @type {Array<Map<number, number>>} */
+  // 数组存 v：下标 k+max 映射到 k（比 Map 快 5-10 倍）
+  const offset = max;
+  const size = 2 * max + 1;
+  const v = new Int32Array(size); // 初始化为 0，无需 set(1,0)（v[offset+1] = 0 已满足）
+  v[offset + 1] = 0;
+  /** @type {Array<Int32Array>} */
   const trace = [];
 
   for (let d = 0; d <= max; d++) {
-    const vCopy = new Map(v);
-    trace.push(vCopy);
+    trace.push(new Int32Array(v)); // 快照
 
     for (let k = -d; k <= d; k += 2) {
+      const ki = k + offset;
       const down = k === -d;
       const up = k === d;
 
-      const kPlus = v.get(k + 1) ?? 0;
-      const kMinus = v.get(k - 1) ?? 0;
+      const kPlus = v[ki + 1];
+      const kMinus = v[ki - 1];
 
-      // 选择走“删除”(down) 还是 “插入”(right)
       let x;
       if (down || (!up && kMinus < kPlus)) {
-        x = kPlus; // down：来自 k+1
+        x = kPlus;
       } else {
-        x = kMinus + 1; // right：来自 k-1
+        x = kMinus + 1;
       }
       let y = x - k;
 
-      // snake：尽可能走 equal
       while (x < N && y < M && a[x] === b[y]) {
         x++;
         y++;
       }
-      v.set(k, x);
+      v[ki] = x;
 
       if (x >= N && y >= M) {
-        return { trace, d };
+        return { trace, d, offset };
       }
     }
   }
-  return { trace, d: max };
+  return { trace, d: max, offset };
 }
 
-function backtrack(trace, a, b) {
+function backtrack(trace, a, b, offset) {
   const N = a.length;
   const M = b.length;
   let x = N;
@@ -85,11 +85,12 @@ function backtrack(trace, a, b) {
   for (let d = trace.length - 1; d >= 0; d--) {
     const v = trace[d];
     const k = x - y;
+    const ki = k + offset;
 
     const down = k === -d;
     const up = k === d;
-    const kPlus = v.get(k + 1) ?? 0;
-    const kMinus = v.get(k - 1) ?? 0;
+    const kPlus = v[ki + 1];
+    const kMinus = v[ki - 1];
 
     let prevK;
     if (down || (!up && kMinus < kPlus)) {
@@ -98,11 +99,10 @@ function backtrack(trace, a, b) {
       prevK = k - 1;
     }
 
-    const prevX = v.get(prevK) ?? 0;
+    const prevX = v[prevK + offset];
     const prevY = prevX - prevK;
 
     while (x > prevX && y > prevY) {
-      // equal
       script.push({ op: "equal", left: a[x - 1], right: b[y - 1] });
       x--;
       y--;
@@ -111,11 +111,9 @@ function backtrack(trace, a, b) {
     if (d === 0) break;
 
     if (x === prevX) {
-      // insert
       script.push({ op: "insert", right: b[y - 1] });
       y--;
     } else {
-      // delete
       script.push({ op: "delete", left: a[x - 1] });
       x--;
     }
@@ -126,8 +124,8 @@ function backtrack(trace, a, b) {
 }
 
 /**
- * 把 insert/delete 邻接对合并成 replace（更符合“修改”的直觉）
- * 为什么这么写：用户想看到“修改”而不是一堆 delete+insert。
+ * 把 insert/delete 邻接对合并成 replace（更符合"修改"的直觉）
+ * 为什么这么写：用户想看到"修改"而不是一堆 delete+insert。
  * @param {ReturnType<typeof backtrack>} script
  * @returns {DiffLine[]}
  */
@@ -189,14 +187,14 @@ export function diffLines(leftText, rightText) {
   const left = toLines(leftText);
   const right = toLines(rightText);
 
-  // 保护浏览器主线程：不限制字符数，但对“行数”保留上限，避免极端差异文本卡死。
+  // 保护浏览器主线程：不限制字符数，但对"行数"保留上限，避免极端差异文本卡死。
   const HARD_MAX = 20000;
   if (left.length > HARD_MAX || right.length > HARD_MAX) {
     throw new Error(`文本行数过多（>${HARD_MAX} 行），建议分段比对。`);
   }
 
-  const { trace } = myersDiff(left, right);
-  const script = backtrack(trace, left, right);
+  const { trace, offset } = myersDiff(left, right);
+  const script = backtrack(trace, left, right, offset);
   const lines = annotateDiffTypes(coalesceReplace(script));
 
   let diffCount = 0;
