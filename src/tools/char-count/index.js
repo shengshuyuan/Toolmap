@@ -1,5 +1,6 @@
 import { analyzeTextStats } from "./stats.js";
 import { createToast } from "../../shared/toast.js";
+import { writeClipboard } from "../../shared/clipboard.js";
 
 export function getCharCountTemplate() {
   return `
@@ -89,27 +90,7 @@ function $(root, id) {
   return el;
 }
 
-async function writeClipboard(text) {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return;
-    } catch (_) {
-      // ignore
-    }
-  }
 
-  const helper = document.createElement("textarea");
-  helper.value = text;
-  helper.setAttribute("readonly", "");
-  helper.style.position = "fixed";
-  helper.style.left = "-9999px";
-  document.body.appendChild(helper);
-  helper.select();
-  // NOTE: execCommand("copy") 已废弃，仅作为 Clipboard API 不可用时的降级方案
-  document.execCommand("copy");
-  helper.remove();
-}
 
 export function mountCharCountTool(mount) {
   if (!(mount instanceof HTMLElement)) return;

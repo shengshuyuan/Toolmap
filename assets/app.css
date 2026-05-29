@@ -176,6 +176,17 @@ body{
 .tool-mount{display:block}
 .tool-mount[hidden]{display:none !important}
 
+.tool-error{
+  padding: 20px 18px;
+  border-radius: var(--r);
+  border: 1px solid rgba(255,59,48,0.25);
+  background: rgba(255,59,48,0.06);
+  color: rgba(190,38,30,0.92);
+  font-size: 14px;
+  line-height: 1.55;
+  text-align: center;
+}
+
 .text-diff-tool.panel{
   border-radius: calc(var(--r) + 6px);
   border: 1px solid var(--line);
@@ -534,6 +545,18 @@ body{
 .text-diff-tool .diff-row--replace td{background: rgba(255,100,43,.12)}
 .text-diff-tool .diff-row--format td{background: rgba(106,155,204,.10)}
 .text-diff-tool .diff-row--content td{background: rgba(255,100,43,.13)}
+.text-diff-tool .diff-char--del{
+  background: rgba(255,59,48,.22);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,59,48,.55);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.text-diff-tool .diff-char--ins{
+  background: rgba(120,140,93,.28);
+  border-radius: 2px;
+  padding: 0 1px;
+}
 .text-diff-tool .diff-row--focus td{
   outline: 2px solid rgba(106,155,204,.38);
   outline-offset: -2px;

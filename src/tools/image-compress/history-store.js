@@ -27,6 +27,11 @@ export function getHistoryUsage(records) {
   return records.reduce((sum, item) => sum + (item.outputSize || 0), 0);
 }
 
+function stripBlob(record) {
+  const { blob, ...meta } = record;
+  return meta;
+}
+
 /** @param {Object} item @returns {Object|null} */
 export function createHistoryRecord(item) {
   const result = item.result;
@@ -47,9 +52,4 @@ export function createHistoryRecord(item) {
     outputHeight: result.height,
     blob: result.blob,
   };
-}
-
-function stripBlob(record) {
-  const { blob, ...meta } = record;
-  return meta;
 }
