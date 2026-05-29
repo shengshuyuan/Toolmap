@@ -46,6 +46,28 @@ export const TOOL_REGISTRY = [
     importPath: "./tools/char-count/index.js",
     exportName: "mountCharCountTool",
   },
+  {
+    id: "qrcode",
+    mountId: "qrcodeTool",
+    buttonLabel: "二维码",
+    title: "在线二维码生成与解析",
+    subtitle: '支持文本、WiFi、vCard 名片生成。<span class="badge">本地处理</span> 全程在浏览器完成。',
+    name: "在线二维码生成与解析",
+    hint: "文本/WiFi/名片 · 实时预览 · 本地生成",
+    importPath: "./tools/qrcode/index.js",
+    exportName: "mountQrcodeTool",
+  },
+  {
+    id: "pdf-tools",
+    mountId: "pdfToolsTool",
+    buttonLabel: "PDF 工具",
+    title: "在线 PDF 工具",
+    subtitle: '支持 PDF 合并、拆分、加水印。<span class="badge">本地处理</span> 文件不离开你的设备。',
+    name: "在线 PDF 合并拆分加水印",
+    hint: "合并/拆分/水印 · 本地处理 · 隐私安全",
+    importPath: "./tools/pdf-tools/index.js",
+    exportName: "mountPdfToolsTool",
+  },
 ];
 
 /** @returns {string[]} */

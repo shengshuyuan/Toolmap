@@ -10,7 +10,7 @@ const JS_TARGET = "es2020";
 const JS_DIRS = ["src"];
 const CSS_FILES = ["assets/app.css"];
 const STATIC_FILES = ["index.html", "sw.js", "manifest.json"];
-const STATIC_DIRS = ["assets"];
+const STATIC_DIRS = ["assets", "vendor"];
 
 async function ensureDir(dir) {
   await mkdir(dir, { recursive: true });
