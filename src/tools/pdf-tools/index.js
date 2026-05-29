@@ -2,7 +2,7 @@ import { mergePDFs, getPDFPageCount } from "./pdf-merge.js";
 import { splitPDF, splitPDFEveryPage, parsePageRanges } from "./pdf-split.js";
 import { addWatermark } from "./pdf-watermark.js";
 import { createToast } from "../../shared/toast.js";
-import { escapeHtml, escapeAttr } from "../../shared/escape.js";
+import { escapeHtml } from "../../shared/escape.js";
 
 /* ── 模板 ─────────────────────────────────────────────── */
 
@@ -505,6 +505,10 @@ export function mountPdfToolsTool(mount) {
     const text = els.wmText.value.trim();
     if (!text) {
       showToast("请输入水印文字");
+      return;
+    }
+    if (text.length > 200) {
+      showToast("水印文字不能超过 200 个字符");
       return;
     }
     els.wmBtn.disabled = true;

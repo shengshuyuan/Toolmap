@@ -21,10 +21,14 @@ export async function loadPdfLib() {
       if (pdfLibModule) {
         resolve(pdfLibModule);
       } else {
+        loadPromise = null; // 允许重试
         reject(new Error("pdf-lib 加载失败"));
       }
     };
-    script.onerror = () => reject(new Error("pdf-lib 加载失败"));
+    script.onerror = () => {
+      loadPromise = null; // 允许重试
+      reject(new Error("pdf-lib 加载失败，请检查网络连接"));
+    };
     document.head.appendChild(script);
   });
 
