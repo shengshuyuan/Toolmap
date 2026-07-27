@@ -54,15 +54,39 @@
 
 .qrcode-tool .qr-preview-section{display:flex; flex-direction:column; align-items:center; gap:10px; min-width:200px}
 .qrcode-tool .qr-preview-frame{
+  position:relative;
   width:200px; height:200px; border:1px solid var(--line); border-radius:var(--r2);
   display:flex; align-items:center; justify-content:center; background:#fff; overflow:hidden;
 }
-.qrcode-tool .qr-canvas{max-width:100%; max-height:100%; image-rendering:pixelated}
-.qrcode-tool .qr-placeholder{color:var(--muted2); font-size:13px; text-align:center; padding:16px}
-.qrcode-tool .qr-version-info{font-size:11px; color:var(--muted2)}
+.qrcode-tool .qr-canvas{
+  display:none;
+  max-width:100%; max-height:100%;
+  image-rendering:pixelated;
+}
+.qrcode-tool .qr-canvas.is-visible{display:block}
+.qrcode-tool .qr-placeholder{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0;
+  padding:16px;
+  color:var(--muted2);
+  font-size:13px;
+  line-height:1.5;
+  text-align:center;
+  white-space:normal;
+  writing-mode:horizontal-tb;
+  pointer-events:none;
+}
+.qrcode-tool .qr-version-info{font-size:11px; color:var(--muted2); min-height:16px; text-align:center}
 .qrcode-tool .qr-download-group{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
 .qrcode-tool .qr-size-select{display:flex; align-items:center; gap:8px}
 .qrcode-tool .qr-select--sm{padding:4px 8px; font-size:12px; min-width:0}
+
+/* 防止工具内 display:flex/grid 覆盖 HTML hidden 语义 */
+.qrcode-tool [hidden]{display:none !important}
 
 .qrcode-tool .qr-btn{
   padding:8px 16px; border:1px solid var(--line); border-radius:var(--r2);
@@ -98,8 +122,29 @@
 .qrcode-tool .qr-upload-hint{margin:6px 0 0; font-size:12px; color:var(--muted2)}
 
 .qrcode-tool .qr-scan-result{display:grid; grid-template-columns:auto 1fr; gap:20px; align-items:start; margin-top:16px}
-.qrcode-tool .qr-scan-preview{max-width:200px}
-.qrcode-tool .qr-scan-img{max-width:100%; border-radius:var(--r2); border:1px solid var(--line)}
+.qrcode-tool .qr-scan-preview{
+  width:160px;
+  min-height:120px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:var(--bg);
+  overflow:hidden;
+}
+.qrcode-tool .qr-scan-img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:200px;
+  object-fit:contain;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+.qrcode-tool .qr-scan-img:not([src]),
+.qrcode-tool .qr-scan-img[src=""]{display:none}
 .qrcode-tool .qr-scan-title{margin:0 0 8px; font-size:16px; font-weight:700}
 .qrcode-tool .qr-scan-text{
   padding:12px; border:1px solid var(--line); border-radius:var(--r2); background:var(--bg);

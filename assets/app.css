@@ -173,6 +173,8 @@ body{
 }
 
 .tool-mount{display:block}
+/* 全局保证 hidden 不被后续 display:flex/grid 规则覆盖 */
+[hidden]{display:none !important}
 .tool-mount[hidden]{display:none !important}
 
 .tool-error{

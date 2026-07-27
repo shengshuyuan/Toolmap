@@ -266,15 +266,22 @@ export function mountQrcodeTool(mount) {
     generateTimer = setTimeout(generate, 120);
   }
 
+  function setPreviewEmpty() {
+    currentModules = null;
+    if (els.placeholder) els.placeholder.hidden = false;
+    if (els.canvas) {
+      els.canvas.classList.remove("is-visible");
+      els.canvas.style.display = "";
+    }
+    if (els.downloadPng) els.downloadPng.disabled = true;
+    if (els.downloadSvg) els.downloadSvg.disabled = true;
+    if (els.versionInfo) els.versionInfo.textContent = "";
+  }
+
   function generate() {
     const content = buildContent();
     if (!content) {
-      currentModules = null;
-      els.placeholder.hidden = false;
-      els.canvas.style.display = "none";
-      els.downloadPng.disabled = true;
-      els.downloadSvg.disabled = true;
-      els.versionInfo.textContent = "";
+      setPreviewEmpty();
       return;
     }
 
@@ -287,13 +294,14 @@ export function mountQrcodeTool(mount) {
         background: els.bgColor.value,
       });
       els.placeholder.hidden = true;
-      els.canvas.style.display = "block";
+      els.canvas.classList.add("is-visible");
+      els.canvas.style.display = "";
       els.downloadPng.disabled = false;
       els.downloadSvg.disabled = false;
       els.versionInfo.textContent = `Version ${qr.version} · ${qr.size}×${qr.size} · ${currentEc}`;
     } catch (err) {
       showToast(err.message || "生成失败");
-      currentModules = null;
+      setPreviewEmpty();
     }
   }
 
@@ -324,20 +332,45 @@ export function mountQrcodeTool(mount) {
 
   let currentPreviewUrl = null;
 
+  function clearScanPreview() {
+    if (currentPreviewUrl) {
+      if (currentPreviewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(currentPreviewUrl);
+      }
+      currentPreviewUrl = null;
+    }
+    if (els.scanImage) {
+      els.scanImage.removeAttribute("src");
+      els.scanImage.alt = "上传的图片";
+    }
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("图片读取失败"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleScan(file) {
     if (!file || !file.type.startsWith("image/")) return;
 
     els.uploadZone.hidden = true;
     els.scanResult.hidden = true;
     els.scanError.hidden = true;
+    clearScanPreview();
 
-    // 释放之前的预览 URL
-    if (currentPreviewUrl) { URL.revokeObjectURL(currentPreviewUrl); currentPreviewUrl = null; }
-
-    // 显示预览
-    const previewUrl = URL.createObjectURL(file);
-    currentPreviewUrl = previewUrl;
-    els.scanImage.src = previewUrl;
+    // data URL 预览更稳妥：避免 blob URL 被解码流程/浏览器策略提前失效
+    try {
+      const previewUrl = await readFileAsDataURL(file);
+      currentPreviewUrl = previewUrl;
+      els.scanImage.alt = file.name || "上传的图片";
+      els.scanImage.src = previewUrl;
+    } catch {
+      // 预览失败时仍尝试解码
+    }
 
     try {
       const result = await decodeFromImage(file);
@@ -362,7 +395,7 @@ export function mountQrcodeTool(mount) {
   }
 
   function resetScan() {
-    if (currentPreviewUrl) { URL.revokeObjectURL(currentPreviewUrl); currentPreviewUrl = null; }
+    clearScanPreview();
     els.uploadZone.hidden = false;
     els.scanResult.hidden = true;
     els.scanError.hidden = true;
@@ -573,7 +606,8 @@ export function mountQrcodeTool(mount) {
     }
   });
 
-  // 初始加载
+  // 初始加载：预览占位 + 历史
+  setPreviewEmpty();
   loadHistory();
 
   mount._cleanup = () => {
@@ -581,10 +615,7 @@ export function mountQrcodeTool(mount) {
       clearTimeout(generateTimer);
       generateTimer = null;
     }
-    if (currentPreviewUrl) {
-      URL.revokeObjectURL(currentPreviewUrl);
-      currentPreviewUrl = null;
-    }
+    clearScanPreview();
   };
   currentQrcodeCleanup = mount._cleanup;
 }
