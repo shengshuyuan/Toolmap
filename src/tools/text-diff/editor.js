@@ -164,6 +164,17 @@ export function createEditorController({ textarea, gutter, highlight }) {
     }, 750);
   }
 
+  function destroy() {
+    if (overlayRAF) {
+      cancelAnimationFrame(overlayRAF);
+      overlayRAF = 0;
+    }
+    if (overlayTimer) {
+      clearTimeout(overlayTimer);
+      overlayTimer = 0;
+    }
+  }
+
   return {
     textarea,
     gutter,
@@ -176,6 +187,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     flashLine,
     scheduleRender,
     syncOverlayScroll,
+    destroy,
   };
 }
 

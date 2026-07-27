@@ -14,25 +14,25 @@ export function getQrcodeTemplate() {
   <div class="qr-head">
     <h2 class="qr-title">二维码生成与解析</h2>
     <p class="qr-lead">输入内容实时生成二维码，或上传图片识别二维码内容。</p>
-    <div class="qr-privacy"><strong>本地处理</strong><span>所有操作在浏览器完成，不上传任何数据</span></div>
+    <div class="privacy-badge"><strong>本地处理</strong><span>所有操作在浏览器完成，不上传任何数据</span></div>
   </div>
 
-  <div class="qr-capability-strip">
-    <span class="qr-capability-pill">文本 / URL</span>
-    <span class="qr-capability-pill">WiFi 连接</span>
-    <span class="qr-capability-pill">vCard 名片</span>
-    <span class="qr-capability-pill">图片识别</span>
-    <span class="qr-capability-pill qr-capability-pill--safe">本地处理</span>
+  <div class="capability-strip">
+    <span class="capability-pill">文本 / URL</span>
+    <span class="capability-pill">WiFi 连接</span>
+    <span class="capability-pill">vCard 名片</span>
+    <span class="capability-pill">图片识别</span>
+    <span class="capability-pill capability-pill--safe">本地处理</span>
   </div>
 
   <!-- Tab 切换 -->
   <div class="qr-tabs" role="tablist">
-    <button class="qr-tab qr-tab--active" data-tab="generate" role="tab" aria-selected="true">生成二维码</button>
-    <button class="qr-tab" data-tab="scan" role="tab" aria-selected="false">识别二维码</button>
+    <button class="qr-tab qr-tab--active" data-tab="generate" id="qrGenerateTab" role="tab" aria-selected="true" aria-controls="qrGeneratePane">生成二维码</button>
+    <button class="qr-tab" data-tab="scan" id="qrScanTab" role="tab" aria-selected="false" aria-controls="qrScanPane">识别二维码</button>
   </div>
 
   <!-- 生成面板 -->
-  <div class="qr-generate-pane" data-pane="generate">
+  <div class="qr-generate-pane" data-pane="generate" id="qrGeneratePane" role="tabpanel" aria-labelledby="qrGenerateTab">
     <!-- 内容类型选择 -->
     <div class="qr-type-tabs" role="tablist">
       <button class="qr-type-tab qr-type-tab--active" data-type="text" role="tab">文本 / URL</button>
@@ -120,7 +120,7 @@ export function getQrcodeTemplate() {
   </div>
 
   <!-- 识别面板 -->
-  <div class="qr-scan-pane" data-pane="scan" hidden>
+  <div class="qr-scan-pane" data-pane="scan" id="qrScanPane" role="tabpanel" aria-labelledby="qrScanTab" hidden>
     <div class="qr-upload-zone" id="qrUploadZone">
       <div class="qr-upload-icon">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -490,6 +490,16 @@ export function mountQrcodeTool(mount) {
   els.downloadSvg.addEventListener("click", () => { handleDownloadSvg(); saveHistory(); });
 
   // 识别
+  els.uploadZone.setAttribute("tabindex", "0");
+  els.uploadZone.setAttribute("role", "button");
+  els.uploadZone.setAttribute("aria-label", "点击或拖拽上传二维码图片");
+  els.uploadZone.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      els.fileInput.click();
+    }
+  });
+
   els.uploadZone.addEventListener("click", () => els.fileInput.click());
   els.fileInput.addEventListener("change", (e) => {
     if (e.target.files[0]) handleScan(e.target.files[0]);
@@ -540,7 +550,7 @@ export function mountQrcodeTool(mount) {
   });
 
   els.clearHistory.addEventListener("click", async () => {
-    if (!mount._qrStore) return;
+    if (!mount._qrStore || historyRecords.length === 0) return;
     if (!confirm("确定要清空所有生成历史吗？")) return;
     await mount._qrStore.clear();
     historyRecords = [];
@@ -565,4 +575,26 @@ export function mountQrcodeTool(mount) {
 
   // 初始加载
   loadHistory();
+
+  mount._cleanup = () => {
+    if (generateTimer) {
+      clearTimeout(generateTimer);
+      generateTimer = null;
+    }
+    if (currentPreviewUrl) {
+      URL.revokeObjectURL(currentPreviewUrl);
+      currentPreviewUrl = null;
+    }
+  };
+  currentQrcodeCleanup = mount._cleanup;
 }
+
+let currentQrcodeCleanup = null;
+
+export function unmountQrcodeTool() {
+  if (typeof currentQrcodeCleanup === "function") {
+    currentQrcodeCleanup();
+    currentQrcodeCleanup = null;
+  }
+}
+export { unmountQrcodeTool as unmount };

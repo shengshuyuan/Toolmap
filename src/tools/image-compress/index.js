@@ -25,7 +25,7 @@ export function getImageCompressTemplate() {
         <h2 id="image-compress-title" class="image-title">在线图片压缩</h2>
         <p class="image-lead">拖入或选择图片，在浏览器本地完成压缩。智能推荐会自动转 WebP、收敛尺寸，并在省得少时自动增强压缩。</p>
       </div>
-      <div class="image-privacy">
+      <div class="privacy-badge">
         <strong>本地处理</strong>
         <span>图片不会上传服务器</span>
       </div>
@@ -266,7 +266,10 @@ export function mountImageCompressTool(mount) {
           item.meta = meta;
           render();
         })
-        .catch(() => {});
+        .catch(() => {
+          item.meta = { width: 0, height: 0, error: true };
+          render();
+        });
     }
 
     items = [...items, ...nextItems];
@@ -544,6 +547,16 @@ export function mountImageCompressTool(mount) {
     });
   });
 
+  els.drop.setAttribute("tabindex", "0");
+  els.drop.setAttribute("role", "button");
+  els.drop.setAttribute("aria-label", "点击或拖拽上传图片");
+  els.drop.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " ") {
+      ev.preventDefault();
+      els.fileInput.click();
+    }
+  });
+
   els.drop.addEventListener("dragover", (ev) => {
     ev.preventDefault();
     els.drop.classList.add("image-drop--over");
@@ -589,7 +602,26 @@ export function mountImageCompressTool(mount) {
   applyModePreset();
   render();
   loadHistory({ silent: true });
+
+  mount._cleanup = () => {
+    items.forEach((item) => {
+      if (item.originalUrl) URL.revokeObjectURL(item.originalUrl);
+      if (item.result?.url) URL.revokeObjectURL(item.result.url);
+    });
+    items = [];
+  };
+  currentImageCompressCleanup = mount._cleanup;
 }
+
+let currentImageCompressCleanup = null;
+
+export function unmountImageCompressTool() {
+  if (typeof currentImageCompressCleanup === "function") {
+    currentImageCompressCleanup();
+    currentImageCompressCleanup = null;
+  }
+}
+export { unmountImageCompressTool as unmount };
 
 
 

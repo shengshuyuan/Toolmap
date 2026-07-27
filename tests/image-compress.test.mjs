@@ -76,10 +76,11 @@ assert.equal(historyRecord.outputName, "原图-compressed.webp");
 assert.equal(historyRecord.outputWidth, 2560);
 assert.equal(getHistoryUsage([historyRecord]), historyBlob.size);
 
-const css = await readFile(new URL("../assets/app.css", import.meta.url), "utf8");
+const appCss = await readFile(new URL("../assets/app.css", import.meta.url), "utf8");
+const toolCss = await readFile(new URL("../src/tools/image-compress/image-compress.css", import.meta.url), "utf8");
 const imageTool = await readFile(new URL("../src/tools/image-compress/index.js", import.meta.url), "utf8");
-assert.match(css, /\.tool-mount\[hidden\]\{display:none !important\}/);
-assert.match(css, /\.image-compress-tool \.image-history/);
+assert.match(appCss, /\.tool-mount\[hidden\]\{display:none !important\}/);
+assert.match(toolCss, /\.image-compress-tool \.image-history/);
 assert.match(imageTool, /<label class="image-btn image-btn--primary image-pick-label" for="icFileInput">选择图片<\/label>/);
 assert.match(imageTool, /<option value="webp" selected>转为 WebP（推荐）<\/option>/);
 assert.match(imageTool, /<option value="1920" selected>最长边 1920px<\/option>/);

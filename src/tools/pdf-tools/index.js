@@ -3,6 +3,7 @@ import { splitPDF, splitPDFEveryPage, parsePageRanges } from "./pdf-split.js";
 import { addWatermark } from "./pdf-watermark.js";
 import { createToast } from "../../shared/toast.js";
 import { escapeHtml } from "../../shared/escape.js";
+import { formatBytes } from "../../shared/format.js";
 
 /* ── 模板 ─────────────────────────────────────────────── */
 
@@ -13,25 +14,25 @@ export function getPdfToolsTemplate() {
   <div class="pdf-head">
     <h2 class="pdf-title">PDF 工具</h2>
     <p class="pdf-lead">合并、拆分、加水印 — 全部在浏览器本地完成，文件不离开你的设备。</p>
-    <div class="pdf-privacy"><strong>本地处理</strong><span>所有操作在浏览器完成，不上传任何文件</span></div>
+    <div class="privacy-badge"><strong>本地处理</strong><span>所有操作在浏览器完成，不上传任何文件</span></div>
   </div>
 
-  <div class="pdf-capability-strip">
-    <span class="pdf-capability-pill">合并</span>
-    <span class="pdf-capability-pill">拆分</span>
-    <span class="pdf-capability-pill">加水印</span>
-    <span class="pdf-capability-pill pdf-capability-pill--safe">本地处理</span>
+  <div class="capability-strip">
+    <span class="capability-pill">合并</span>
+    <span class="capability-pill">拆分</span>
+    <span class="capability-pill">加水印</span>
+    <span class="capability-pill capability-pill--safe">本地处理</span>
   </div>
 
   <!-- Tab 切换 -->
   <div class="pdf-tabs" role="tablist">
-    <button class="pdf-tab pdf-tab--active" data-tab="merge" role="tab" aria-selected="true">合并 PDF</button>
-    <button class="pdf-tab" data-tab="split" role="tab" aria-selected="false">拆分 PDF</button>
-    <button class="pdf-tab" data-tab="watermark" role="tab" aria-selected="false">加水印</button>
+    <button class="pdf-tab pdf-tab--active" data-tab="merge" id="pdfMergeTab" role="tab" aria-selected="true" aria-controls="pdfMergePane">合并 PDF</button>
+    <button class="pdf-tab" data-tab="split" id="pdfSplitTab" role="tab" aria-selected="false" aria-controls="pdfSplitPane">拆分 PDF</button>
+    <button class="pdf-tab" data-tab="watermark" id="pdfWatermarkTab" role="tab" aria-selected="false" aria-controls="pdfWatermarkPane">加水印</button>
   </div>
 
   <!-- 合并面板 -->
-  <div class="pdf-pane" data-pane="merge">
+  <div class="pdf-pane" data-pane="merge" id="pdfMergePane" role="tabpanel" aria-labelledby="pdfMergeTab">
     <div class="pdf-upload-zone" id="pdfMergeUpload">
       <div class="pdf-upload-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -57,7 +58,7 @@ export function getPdfToolsTemplate() {
   </div>
 
   <!-- 拆分面板 -->
-  <div class="pdf-pane" data-pane="split" hidden>
+  <div class="pdf-pane" data-pane="split" id="pdfSplitPane" role="tabpanel" aria-labelledby="pdfSplitTab" hidden>
     <div class="pdf-upload-zone" id="pdfSplitUpload">
       <div class="pdf-upload-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -97,7 +98,7 @@ export function getPdfToolsTemplate() {
   </div>
 
   <!-- 水印面板 -->
-  <div class="pdf-pane" data-pane="watermark" hidden>
+  <div class="pdf-pane" data-pane="watermark" id="pdfWatermarkPane" role="tabpanel" aria-labelledby="pdfWatermarkTab" hidden>
     <div class="pdf-upload-zone" id="pdfWmUpload">
       <div class="pdf-upload-icon">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -279,6 +280,11 @@ export function mountPdfToolsTool(mount) {
 
   /* ── 合并 ── */
 
+  function resetMerge() {
+    mergeFiles = [];
+    renderMergeList();
+  }
+
   function renderMergeList() {
     if (mergeFiles.length === 0) {
       els.mergeList.hidden = true;
@@ -296,7 +302,7 @@ export function mountPdfToolsTool(mount) {
       <div class="pdf-file-row" data-index="${i}">
         <span class="pdf-file-order">${i + 1}</span>
         <span class="pdf-file-name">${escapeHtml(f.name)}</span>
-        <span class="pdf-file-size">${formatSize(f.size)}</span>
+        <span class="pdf-file-size">${formatBytes(f.size)}</span>
         <div class="pdf-file-move">
           ${i > 0 ? `<button class="pdf-move-btn" data-move="${i - 1}" title="上移" type="button">↑</button>` : ""}
           ${i < mergeFiles.length - 1 ? `<button class="pdf-move-btn" data-move-up="${i}" title="下移" type="button">↓</button>` : ""}
@@ -316,6 +322,15 @@ export function mountPdfToolsTool(mount) {
     renderMergeList();
   }
 
+  els.mergeUpload.setAttribute("tabindex", "0");
+  els.mergeUpload.setAttribute("role", "button");
+  els.mergeUpload.setAttribute("aria-label", "点击或拖拽上传 PDF 文件合并");
+  els.mergeUpload.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      els.mergeInput.click();
+    }
+  });
   els.mergeUpload.addEventListener("click", () => els.mergeInput.click());
   els.mergeInput.addEventListener("change", (e) => {
     addMergeFiles(e.target.files);
@@ -353,10 +368,7 @@ export function mountPdfToolsTool(mount) {
     }
   });
 
-  els.mergeClear.addEventListener("click", () => {
-    mergeFiles = [];
-    renderMergeList();
-  });
+  els.mergeClear.addEventListener("click", resetMerge);
 
   els.mergeBtn.addEventListener("click", async () => {
     if (mergeFiles.length < 2) return;
@@ -366,12 +378,12 @@ export function mountPdfToolsTool(mount) {
         showProgress(els.mergeProgress, els.mergeProgressFill, els.mergeProgressText, p, `合并中 ${Math.round(p * 100)}%`);
       });
       downloadBlob(blob, "merged.pdf");
-      showToast(`已合并 ${mergeFiles.length} 个 PDF`);
+      showToast("PDF 合并成功");
     } catch (err) {
       showToast(err.message || "合并失败");
     } finally {
       hideProgress(els.mergeProgress);
-      els.mergeBtn.disabled = false;
+      els.mergeBtn.disabled = mergeFiles.length < 2;
     }
   });
 
@@ -407,6 +419,15 @@ export function mountPdfToolsTool(mount) {
     els.splitEvery.checked = false;
   }
 
+  els.splitUpload.setAttribute("tabindex", "0");
+  els.splitUpload.setAttribute("role", "button");
+  els.splitUpload.setAttribute("aria-label", "点击或拖拽上传 PDF 文件拆分");
+  els.splitUpload.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      els.splitInput.click();
+    }
+  });
   els.splitUpload.addEventListener("click", () => els.splitInput.click());
   els.splitInput.addEventListener("change", (e) => {
     if (e.target.files[0]) loadSplitFile(e.target.files[0]);
@@ -447,11 +468,11 @@ export function mountPdfToolsTool(mount) {
           els.splitBtn.disabled = false;
           return;
         }
-        const blob = await splitPDF(splitFile, range, (p) => {
+        const blob = await splitPDF(splitFile, pages, (p) => {
           showProgress(els.splitProgress, els.splitProgressFill, els.splitProgressText, p, `拆分中 ${Math.round(p * 100)}%`);
         });
         downloadBlob(blob, `${splitFile.name.replace(/\.pdf$/i, "")}_split.pdf`);
-        showToast(`已提取 ${pages.length} 页`);
+        showToast("PDF 拆分成功");
       }
     } catch (err) {
       showToast(err.message || "拆分失败");
@@ -481,6 +502,15 @@ export function mountPdfToolsTool(mount) {
     els.wmInput.value = "";
   }
 
+  els.wmUpload.setAttribute("tabindex", "0");
+  els.wmUpload.setAttribute("role", "button");
+  els.wmUpload.setAttribute("aria-label", "点击或拖拽上传 PDF 文件加水印");
+  els.wmUpload.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      els.wmInput.click();
+    }
+  });
   els.wmUpload.addEventListener("click", () => els.wmInput.click());
   els.wmInput.addEventListener("change", (e) => {
     if (e.target.files[0]) loadWmFile(e.target.files[0]);
@@ -532,12 +562,21 @@ export function mountPdfToolsTool(mount) {
       els.wmBtn.disabled = false;
     }
   });
+
+  mount._cleanup = () => {
+    resetMerge();
+    resetSplit();
+    resetWm();
+  };
+  currentPdfToolsCleanup = mount._cleanup;
 }
 
-/* ── 工具函数 ── */
+let currentPdfToolsCleanup = null;
 
-function formatSize(bytes) {
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / 1048576).toFixed(1) + " MB";
+export function unmountPdfToolsTool() {
+  if (typeof currentPdfToolsCleanup === "function") {
+    currentPdfToolsCleanup();
+    currentPdfToolsCleanup = null;
+  }
 }
+export { unmountPdfToolsTool as unmount };

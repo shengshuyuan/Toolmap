@@ -432,8 +432,8 @@ export function mountTextDiffTool(mount) {
   async function copyTextHistorySummary(id) {
     const record = textHistoryRecords.find((item) => item.id === id);
     if (!record) return;
-    await writeClipboard(record.summary || "暂无摘要。");
-    showToast("历史摘要已复制。");
+    const ok = await writeClipboard(record.summary || "暂无摘要。");
+    showToast(ok ? "历史摘要已复制。" : "复制失败了，请手动选择文本复制。");
   }
 
   async function removeTextHistory(id) {
@@ -581,12 +581,20 @@ export function mountTextDiffTool(mount) {
     btnClearTextHistory.addEventListener("click", removeAllTextHistory);
   }
 
+  let inputDebounceTimer = null;
   function bindEditorInputs() {
+    function debouncedResetDirty() {
+      if (inputDebounceTimer) clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = setTimeout(() => {
+        inputDebounceTimer = null;
+        resetDirtyComparison();
+      }, 100);
+    }
     elLeft.addEventListener("input", () => {
-      leftEditor.handleInput({ onDirty: () => resetDirtyComparison() });
+      leftEditor.handleInput({ onDirty: debouncedResetDirty });
     });
     elRight.addEventListener("input", () => {
-      rightEditor.handleInput({ onDirty: () => resetDirtyComparison() });
+      rightEditor.handleInput({ onDirty: debouncedResetDirty });
     });
   }
 
@@ -661,7 +669,28 @@ export function mountTextDiffTool(mount) {
   bindTextHistory();
   initDemoText();
   loadTextHistory({ silent: true });
+
+  mount._cleanup = () => {
+    if (inputDebounceTimer) {
+      clearTimeout(inputDebounceTimer);
+      inputDebounceTimer = null;
+    }
+    leftEditor?.destroy?.();
+    rightEditor?.destroy?.();
+    comparison?.reset?.();
+  };
+  currentTextDiffCleanup = mount._cleanup;
 }
+
+let currentTextDiffCleanup = null;
+
+export function unmountTextDiffTool() {
+  if (typeof currentTextDiffCleanup === "function") {
+    currentTextDiffCleanup();
+    currentTextDiffCleanup = null;
+  }
+}
+export { unmountTextDiffTool as unmount };
 
 
 

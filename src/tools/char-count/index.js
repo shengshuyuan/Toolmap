@@ -10,17 +10,17 @@ export function getCharCountTemplate() {
         <h2 id="char-count-title" class="char-title">在线字符统计</h2>
         <p class="char-lead">实时统计文本的字符、UTF-8 字节和 JavaScript 字符长度。支持中文、英文、emoji 与多行文本，全程在浏览器本地完成。</p>
       </div>
-      <div class="char-privacy">
+      <div class="privacy-badge">
         <strong>本地处理</strong>
         <span>文本不会上传服务器</span>
       </div>
     </div>
 
-    <div class="char-capability-strip" aria-label="字符统计能力">
-      <span class="char-capability-pill">实时统计</span>
-      <span class="char-capability-pill">字符 / 字节 / 长度</span>
-      <span class="char-capability-pill">中文 / emoji 支持</span>
-      <span class="char-capability-pill char-capability-pill--safe">本地处理</span>
+    <div class="capability-strip" aria-label="字符统计能力">
+      <span class="capability-pill">实时统计</span>
+      <span class="capability-pill">字符 / 字节 / 长度</span>
+      <span class="capability-pill">中文 / emoji 支持</span>
+      <span class="capability-pill capability-pill--safe">本地处理</span>
     </div>
 
     <div class="char-editor">
@@ -140,8 +140,8 @@ export function mountCharCountTool(mount) {
       return;
     }
     try {
-      await writeClipboard(els.text.value);
-      showToast("文本已复制。");
+      const ok = await writeClipboard(els.text.value);
+      showToast(ok ? "文本已复制。" : "复制失败，请手动选择复制。");
     } catch (err) {
       console.error("[char-count] copy failed:", err);
       showToast("复制失败，请稍后再试。");
@@ -150,3 +150,6 @@ export function mountCharCountTool(mount) {
 
   render();
 }
+
+export function unmountCharCountTool() {}
+export { unmountCharCountTool as unmount };

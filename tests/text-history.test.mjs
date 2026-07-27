@@ -25,7 +25,7 @@ assert.equal(record.rightChars, 9);
 assert.match(record.summary, /2行存在不一致/);
 assert.equal(getTextHistoryUsage([record]), new TextEncoder().encode(record.leftText + record.rightText).length);
 
-const css = await readFile(new URL("../assets/app.css", import.meta.url), "utf8");
+const css = await readFile(new URL("../src/tools/text-diff/text-diff.css", import.meta.url), "utf8");
 const textTool = await readFile(new URL("../src/tools/text-diff/index.js", import.meta.url), "utf8");
 assert.match(css, /\.text-diff-tool \.text-history/);
 assert.match(textTool, /历史记录/);

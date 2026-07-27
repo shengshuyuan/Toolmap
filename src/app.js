@@ -6,6 +6,7 @@ import { escapeHtml } from "./shared/escape.js";
 const mountedTools = new Set();
 const mountingTools = new Map();
 const loadedModules = new Map();
+let currentToolKey = null;
 
 function $(id) {
   return document.getElementById(id);
@@ -38,7 +39,20 @@ function setShellCopy(toolKey) {
   const name = $("shellToolName");
   const hint = $("shellToolHint");
   if (title) title.textContent = tool.title;
-  if (subtitle) subtitle.innerHTML = tool.subtitle;
+  if (subtitle) {
+    subtitle.textContent = "";
+    if (tool.subtitlePrefix) subtitle.appendChild(document.createTextNode(tool.subtitlePrefix));
+    if (tool.subtitleBadge) {
+      const badgeEl = document.createElement("span");
+      badgeEl.className = "badge";
+      badgeEl.textContent = tool.subtitleBadge;
+      subtitle.appendChild(badgeEl);
+    }
+    if (tool.subtitleSuffix) subtitle.appendChild(document.createTextNode(tool.subtitleSuffix));
+    if (!tool.subtitlePrefix && !tool.subtitleBadge) {
+      subtitle.textContent = tool.subtitle;
+    }
+  }
   if (name) name.textContent = tool.name;
   if (hint) hint.textContent = tool.hint;
   document.title = `${tool.name} - ${APP_TITLE}`;
@@ -55,9 +69,50 @@ function updateSwitch(toolKey) {
 
 async function loadToolModule(tool) {
   if (loadedModules.has(tool.id)) return loadedModules.get(tool.id);
-  const promise = import(`${tool.importPath}?v=${APP_VERSION}`);
+  const promise = import(`${tool.importPath}?v=${APP_VERSION}`).catch((err) => {
+    loadedModules.delete(tool.id);
+    throw err;
+  });
   loadedModules.set(tool.id, promise);
   return promise;
+}
+
+async function unmountTool(toolKey) {
+  const tool = getToolById(toolKey);
+  if (!tool) return;
+  const mount = $(tool.mountId);
+  if (mount && typeof mount._cleanup === "function") {
+    try {
+      mount._cleanup();
+    } catch (err) {
+      console.warn(`[unmount mount._cleanup] ${toolKey} failed:`, err);
+    }
+    delete mount._cleanup;
+  }
+  if (loadedModules.has(toolKey)) {
+    try {
+      const mod = await loadedModules.get(toolKey);
+      const unmountFn = mod.unmount || mod[`unmount${tool.exportName.slice(5)}`];
+      if (typeof unmountFn === "function") {
+        unmountFn();
+      }
+    } catch (err) {
+      console.warn(`[unmount] ${toolKey} failed:`, err);
+    }
+  }
+}
+
+function focusToolHeading(toolKey) {
+  const tool = getToolById(toolKey);
+  if (!tool) return;
+  const mount = $(tool.mountId);
+  if (mount) {
+    const heading = mount.querySelector("h2, h1, .panel__title, .char-title, .qr-title, .pdf-title");
+    if (heading) {
+      if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
+      heading.focus();
+    }
+  }
 }
 
 async function mountTool(toolKey) {
@@ -90,17 +145,22 @@ async function mountTool(toolKey) {
 
 async function showTool(toolKey, { updateHash = true } = {}) {
   const key = getToolById(toolKey) ? toolKey : "text-diff";
+  updateSwitch(key);
+  setShellCopy(key);
+  if (currentToolKey && currentToolKey !== key) {
+    await unmountTool(currentToolKey);
+  }
   await mountTool(key);
+  currentToolKey = key;
   TOOL_REGISTRY.forEach((tool) => {
     const candidate = tool.id;
     const mount = $(tool.mountId);
     if (mount) mount.hidden = candidate !== key;
   });
-  setShellCopy(key);
-  updateSwitch(key);
   if (updateHash && window.location.hash !== `#${key}`) {
     history.replaceState(null, "", `#${key}`);
   }
+  focusToolHeading(key);
 }
 
 function bindToolSwitch() {

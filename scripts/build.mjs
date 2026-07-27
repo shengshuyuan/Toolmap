@@ -8,8 +8,7 @@ const DIST = join(ROOT, "dist");
 const JS_TARGET = "es2020";
 
 const JS_DIRS = ["src"];
-const CSS_FILES = ["assets/app.css"];
-const STATIC_FILES = ["index.html", "sw.js", "manifest.json"];
+const STATIC_FILES = ["index.html", "sw.js", "manifest.json", "favicon.svg"];
 const STATIC_DIRS = ["assets", "vendor"];
 
 async function ensureDir(dir) {
@@ -58,6 +57,32 @@ async function copyFile(srcFile) {
   return rel;
 }
 
+async function updateServiceWorkerPrecache() {
+  const jsFiles = await collectFiles(join(ROOT, "src"), ".js");
+  const cssFiles = await collectFiles(join(ROOT, "src"), ".css");
+  const relJS = jsFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
+  const relCSS = cssFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
+  const staticUrls = [
+    "/",
+    "/index.html",
+    "/favicon.svg",
+    "/assets/app.css",
+    "/sw.js",
+    "/manifest.json",
+  ];
+  const allUrls = Array.from(new Set([...staticUrls, ...relJS, ...relCSS])).sort();
+
+  const swPath = join(ROOT, "sw.js");
+  let swCode = await readFile(swPath, "utf8");
+  const precacheArrayString = JSON.stringify(allUrls, null, 2);
+  swCode = swCode.replace(/const PRECACHE_URLS = \[\s*[\s\S]*?\n\];/m, `const PRECACHE_URLS = ${precacheArrayString};`);
+  await writeFile(swPath, swCode);
+
+  const distSwPath = join(DIST, "sw.js");
+  let distSwCode = await transform(swCode, { loader: "js", minify: true, target: JS_TARGET });
+  await writeFile(distSwPath, distSwCode.code);
+}
+
 async function main() {
   const start = Date.now();
   console.log("[build] Starting production build...");
@@ -73,8 +98,13 @@ async function main() {
   }
   console.log(`[build] Minified ${jsCount} JS files`);
 
-  for (const file of CSS_FILES) await minifyCSS(join(ROOT, file));
-  console.log(`[build] Minified ${CSS_FILES.length} CSS files`);
+  const srcCss = await collectFiles(join(ROOT, "src"), ".css");
+  const cssFiles = [join(ROOT, "assets/app.css"), ...srcCss];
+  for (const file of cssFiles) await minifyCSS(file);
+  console.log(`[build] Minified ${cssFiles.length} CSS files`);
+
+  await updateServiceWorkerPrecache();
+  console.log("[build] Auto-updated Service Worker precache manifest");
 
   const elapsed = Date.now() - start;
   console.log(`[build] Done in ${elapsed}ms -> dist/`);
