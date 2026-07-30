@@ -17,6 +17,13 @@ function setShellMeta() {
   if (year) year.textContent = String(new Date().getFullYear());
   const version = $("appVersionLabel");
   if (version) version.textContent = `v${APP_VERSION} · ${BUILD_LABEL}`;
+  // 便于确认是否命中最新部署：控制台可见工具数量与列表
+  try {
+    console.info(
+      `[Toolmap] v${APP_VERSION} tools(${TOOL_REGISTRY.length}):`,
+      TOOL_REGISTRY.map((t) => t.buttonLabel).join(" · ")
+    );
+  } catch (_) {}
 }
 
 function readInitialTool() {

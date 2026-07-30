@@ -81,6 +81,31 @@
     <script type="module">
       import { APP_VERSION } from "./src/config/app-meta.js";
 
+      // 版本变更时强制清掉旧 Service Worker / Cache，避免导航栏仍显示旧工具列表
+      const VERSION_KEY = "toolmap-seen-version";
+      const prevVersion = localStorage.getItem(VERSION_KEY);
+      if (prevVersion !== APP_VERSION) {
+        localStorage.setItem(VERSION_KEY, APP_VERSION);
+        if (prevVersion) {
+          try {
+            if ("serviceWorker" in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map((r) => r.unregister()));
+            }
+            if (window.caches?.keys) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map((k) => caches.delete(k)));
+            }
+          } catch (_) {}
+          const reloadKey = `toolmap-reloaded-${APP_VERSION}`;
+          if (!sessionStorage.getItem(reloadKey)) {
+            sessionStorage.setItem(reloadKey, "1");
+            location.reload();
+            throw new Error("toolmap: cache purged, reloading");
+          }
+        }
+      }
+
       const style = document.querySelector("[data-app-style]");
       if (style) style.href = `./assets/app.css?v=${APP_VERSION}`;
 
@@ -93,7 +118,10 @@
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./sw.js").catch(() => {});
+          navigator.serviceWorker
+            .register(`./sw.js?v=${Date.now()}`)
+            .then((reg) => reg.update())
+            .catch(() => {});
         });
       }
     </script>
