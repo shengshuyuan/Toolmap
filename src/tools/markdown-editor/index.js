@@ -132,6 +132,8 @@ export function mountMarkdownEditorTool(mount) {
   const root = $("#mdRoot");
   const editor = $("#mdEditor");
   const preview = $("#mdPreview");
+  const previewPane = $("#mdPreviewPane");
+  const editorPane = $("#mdEditorPane");
   const titleInput = $("#mdTitle");
   const saveStatus = $("#mdSaveStatus");
   const statsEl = $("#mdStats");
@@ -144,6 +146,7 @@ export function mountMarkdownEditorTool(mount) {
   const outlinePane = $("#mdOutlinePane");
   const outlineToggle = $("#mdOutlineToggle");
   const exitFullscreenBtn = $("#mdExitFullscreen");
+  const syncScrollEl = $("#mdSyncScroll");
   const showToast = createToast(toastEl, { showClass: "md-toast--show", duration: 2400 });
 
   const store = createDocumentStore();
@@ -232,9 +235,11 @@ export function mountMarkdownEditorTool(mount) {
   function setMode(mode) {
     viewMode = mode;
     localStorage.setItem(MODE_KEY, mode);
-    root.dataset.mode = mode;
+    // fullscreen 仍展示双栏，dataset 用 split 以免误触仅编辑/仅预览样式
+    root.dataset.mode = mode === "fullscreen" ? "split" : mode;
+    const activeMode = mode === "fullscreen" ? "split" : mode;
     mount.querySelectorAll(".md-mode").forEach((btn) => {
-      btn.classList.toggle("md-mode--active", btn.dataset.mode === mode);
+      btn.classList.toggle("md-mode--active", btn.dataset.mode === activeMode);
     });
     const isFullscreen = mode === "fullscreen";
     root.classList.toggle("md-is-fullscreen", isFullscreen);
@@ -496,7 +501,6 @@ export function mountMarkdownEditorTool(mount) {
   });
 
   // drag import
-  const editorPane = $("#mdEditorPane");
   ["dragenter", "dragover"].forEach((ev) => {
     editorPane.addEventListener(ev, (e) => {
       e.preventDefault();
@@ -517,26 +521,59 @@ export function mountMarkdownEditorTool(mount) {
     const btn = e.target.closest("[data-id]");
     if (!btn) return;
     const target = preview.querySelector(`#${CSS.escape(btn.dataset.id)}`);
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!target || !previewPane) return;
+    // 预览滚动容器是 pane，不是内部 .md-preview
+    const paneRect = previewPane.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    previewPane.scrollTop += targetRect.top - paneRect.top - 12;
   });
 
-  // sync scroll
-  let syncing = false;
-  const syncScroll = $("#mdSyncScroll");
-  editor.addEventListener("scroll", () => {
-    if (!syncScroll.checked || syncing || viewMode === "edit") return;
-    syncing = true;
-    const ratio = editor.scrollTop / Math.max(1, editor.scrollHeight - editor.clientHeight);
-    preview.scrollTop = ratio * Math.max(0, preview.scrollHeight - preview.clientHeight);
-    syncing = false;
-  });
-  preview.addEventListener("scroll", () => {
-    if (!syncScroll.checked || syncing || viewMode === "preview") return;
-    syncing = true;
-    const ratio = preview.scrollTop / Math.max(1, preview.scrollHeight - preview.clientHeight);
-    editor.scrollTop = ratio * Math.max(0, editor.scrollHeight - editor.clientHeight);
-    syncing = false;
-  });
+  /* ── 同步滚动 ──
+   * 编辑区滚动元素：#mdEditor (textarea)
+   * 预览区滚动元素：#mdPreviewPane（CSS overflow 在 pane 上，不在 .md-preview 上）
+   */
+  let syncLock = false;
+
+  function scrollMax(el) {
+    if (!el) return 0;
+    return Math.max(0, el.scrollHeight - el.clientHeight);
+  }
+
+  function bothPanesScrollable() {
+    if (!syncScrollEl?.checked) return false;
+    // 仅编辑 / 仅预览时另一侧不可见，无需同步
+    if (viewMode === "edit" || viewMode === "preview") return false;
+    return Boolean(editor && previewPane);
+  }
+
+  function syncScrollFrom(source, target) {
+    if (!bothPanesScrollable() || syncLock || !source || !target) return;
+    const srcMax = scrollMax(source);
+    const tgtMax = scrollMax(target);
+    if (srcMax <= 0 && tgtMax <= 0) return;
+    const ratio = srcMax <= 0 ? 0 : source.scrollTop / srcMax;
+    syncLock = true;
+    target.scrollTop = ratio * tgtMax;
+    // 下一帧解除，避免 scroll 事件回环
+    requestAnimationFrame(() => {
+      syncLock = false;
+    });
+  }
+
+  editor.addEventListener(
+    "scroll",
+    () => {
+      syncScrollFrom(editor, previewPane);
+    },
+    { passive: true }
+  );
+  previewPane.addEventListener(
+    "scroll",
+    () => {
+      syncScrollFrom(previewPane, editor);
+    },
+    { passive: true }
+  );
 
   // splitter drag
   let dragging = false;
