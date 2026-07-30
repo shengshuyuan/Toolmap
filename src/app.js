@@ -1,7 +1,9 @@
 import { APP_TITLE, APP_VERSION, BUILD_LABEL } from "./config/app-meta.js";
-import { renderToolMountMarkup, renderToolSwitchMarkup } from "./app-shell.js";
-import { TOOL_REGISTRY, getToolById, getToolIds } from "./tool-registry.js";
 import { escapeHtml } from "./shared/escape.js";
+
+// 带版本号动态加载：绕过浏览器对 /src/*.js 的旧 immutable 缓存
+const { renderToolMountMarkup, renderToolSwitchMarkup } = await import(`./app-shell.js?v=${APP_VERSION}`);
+const { TOOL_REGISTRY, getToolById, getToolIds } = await import(`./tool-registry.js?v=${APP_VERSION}`);
 
 const mountedTools = new Set();
 const mountingTools = new Map();

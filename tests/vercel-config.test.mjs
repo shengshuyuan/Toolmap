@@ -10,8 +10,10 @@ function findHeaderValue(source, key) {
 }
 
 assert.equal(findHeaderValue("/", "Cache-Control"), "public, max-age=0, must-revalidate");
-assert.equal(findHeaderValue("/assets/(.*)", "Cache-Control"), "public, max-age=31536000, immutable");
-assert.equal(findHeaderValue("/src/(.*)", "Cache-Control"), "public, max-age=31536000, immutable");
-assert.ok(findHeaderValue("/src/(.*)", "Cache-Control").includes("immutable"));
+// 源码 JS/CSS 不可用 immutable 长缓存，否则发版后浏览器会一直用旧 tool-registry
+assert.equal(findHeaderValue("/assets/(.*)", "Cache-Control"), "public, max-age=0, must-revalidate");
+assert.equal(findHeaderValue("/src/(.*)", "Cache-Control"), "public, max-age=0, must-revalidate");
+assert.equal(findHeaderValue("/sw.js", "Cache-Control"), "public, max-age=0, must-revalidate");
+assert.ok(!findHeaderValue("/src/(.*)", "Cache-Control").includes("immutable"));
 
 console.log("vercel config tests passed");
