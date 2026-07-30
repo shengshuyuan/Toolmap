@@ -19,7 +19,33 @@
 .qrcode-tool .qr-tab--active{background:var(--card); color:var(--text); box-shadow:var(--shadow2)}
 .qrcode-tool .qr-tab:hover:not(.qr-tab--active){color:var(--text)}
 
-.qrcode-tool .qr-type-tabs{display:flex; gap:4px; margin-bottom:12px}
+.qrcode-tool .qr-main{
+  display:grid;
+  grid-template-columns: minmax(0, 560px) 320px;
+  gap:28px;
+  justify-content:center;
+  align-items:start;
+}
+.qrcode-tool .qr-settings{display:flex; flex-direction:column; gap:14px; min-width:0}
+.qrcode-tool .qr-group{
+  border:1px solid var(--line);
+  border-radius:var(--r2);
+  background:rgba(255,255,255,.35);
+  padding:12px 14px;
+}
+.qrcode-tool .qr-group-title{
+  margin:0 0 10px;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.02em;
+  color:var(--text);
+}
+.qrcode-tool .qr-group--advanced summary{
+  cursor:pointer;
+  list-style:none;
+}
+.qrcode-tool .qr-group--advanced summary::-webkit-details-marker{display:none}
+.qrcode-tool .qr-type-tabs{display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap}
 .qrcode-tool .qr-type-tab{
   padding:6px 14px; border:1px solid var(--line); border-radius:999px; font-size:12px; font-weight:600;
   background:transparent; color:var(--muted); cursor:pointer; transition:all .15s ease;
@@ -27,19 +53,18 @@
 .qrcode-tool .qr-type-tab--active{border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
 .qrcode-tool .qr-type-tab:hover:not(.qr-type-tab--active){border-color:var(--accent); color:var(--accent)}
 
-.qrcode-tool .qr-main{display:grid; grid-template-columns:1fr auto; gap:24px; align-items:start}
-.qrcode-tool .qr-input-section{display:flex; flex-direction:column; gap:10px}
 .qrcode-tool .qr-form{display:flex; flex-direction:column; gap:6px}
-.qrcode-tool .qr-label{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em}
+.qrcode-tool .qr-label{font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.02em}
 .qrcode-tool .qr-textarea,.qrcode-tool .qr-input,.qrcode-tool .qr-select{
   padding:10px 12px; border:1px solid var(--line); border-radius:var(--r2);
   background:var(--bg); color:var(--text); font-size:14px; font-family:inherit; resize:vertical;
   transition:border-color .15s;
 }
+.qrcode-tool .qr-input--sm,.qrcode-tool .qr-select--sm{padding:6px 8px; font-size:12px; min-width:0; width:auto; max-width:120px}
 .qrcode-tool .qr-textarea:focus,.qrcode-tool .qr-input:focus,.qrcode-tool .qr-select:focus{outline:none; border-color:var(--accent)}
 .qrcode-tool .qr-select{cursor:pointer}
-.qrcode-tool .qr-options{margin-top:8px; padding-top:10px; border-top:1px solid var(--line)}
-.qrcode-tool .qr-option-row{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+.qrcode-tool .qr-option-row{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
+.qrcode-tool .qr-option-row--wrap{align-items:center}
 .qrcode-tool .qr-ec-group{display:flex; gap:4px}
 .qrcode-tool .qr-ec-btn{
   width:32px; height:32px; border:1px solid var(--line); border-radius:8px;
@@ -49,44 +74,63 @@
 .qrcode-tool .qr-ec-btn--active{border-color:var(--accent); background:var(--accent-soft); color:var(--accent)}
 .qrcode-tool .qr-ec-btn:hover:not(.qr-ec-btn--active){border-color:var(--accent); color:var(--accent)}
 .qrcode-tool .qr-color{
-  width:36px; height:30px; padding:2px; border:1px solid var(--line); border-radius:8px; cursor:pointer; background:var(--bg);
+  width:32px; height:26px; padding:2px; border:1px solid var(--line); border-radius:6px; cursor:pointer; background:var(--bg);
 }
+.qrcode-tool .qr-option-row--inline{
+  display:grid;
+  grid-template-columns:repeat(2, auto 1fr);
+  gap:10px;
+  align-items:center;
+}
+.qrcode-tool .qr-option-row--inline .qr-label{margin-bottom:0}
+.qrcode-tool .qr-option-row--inline .qr-input--sm{max-width:none}
+.qrcode-tool .qr-basic-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:12px;
+}
+@media (max-width: 520px){
+  .qrcode-tool .qr-option-row--inline{grid-template-columns:1fr}
+  .qrcode-tool .qr-basic-grid{grid-template-columns:1fr}
+}
+.qrcode-tool .qr-check{
+  display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); margin:6px 0;
+}
+.qrcode-tool .qr-subfields{margin-top:8px}
+.qrcode-tool .qr-hint{margin:6px 0 0; font-size:12px; color:var(--muted2); line-height:1.45}
+.qrcode-tool .qr-hint--center{text-align:center}
+.qrcode-tool .qr-muted{font-size:12px; color:var(--muted2)}
+.qrcode-tool .qr-field-error{margin:4px 0 0; font-size:12px; color:var(--danger)}
+.qrcode-tool .qr-field-warn{margin:4px 0 0; font-size:12px; color:#b45309}
+.qrcode-tool .qr-range{flex:1; min-width:100px}
+.qrcode-tool .qr-logo-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 
-.qrcode-tool .qr-preview-section{display:flex; flex-direction:column; align-items:center; gap:10px; min-width:200px}
+.qrcode-tool .qr-preview-section{
+  position:sticky; top:92px;
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  min-width:200px;
+}
 .qrcode-tool .qr-preview-frame{
   position:relative;
-  width:200px; height:200px; border:1px solid var(--line); border-radius:var(--r2);
+  width:min(100%, 280px); height:280px; border:1px solid var(--line); border-radius:var(--r2);
   display:flex; align-items:center; justify-content:center; background:#fff; overflow:hidden;
 }
-.qrcode-tool .qr-canvas{
-  display:none;
-  max-width:100%; max-height:100%;
-  image-rendering:pixelated;
-}
+.qrcode-tool .qr-canvas{display:none; max-width:100%; max-height:100%; image-rendering:pixelated}
 .qrcode-tool .qr-canvas.is-visible{display:block}
 .qrcode-tool .qr-placeholder{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:0;
-  padding:16px;
-  color:var(--muted2);
-  font-size:13px;
-  line-height:1.5;
-  text-align:center;
-  white-space:normal;
-  writing-mode:horizontal-tb;
-  pointer-events:none;
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  margin:0; padding:16px; color:var(--muted2); font-size:13px; line-height:1.5;
+  text-align:center; white-space:normal; writing-mode:horizontal-tb; pointer-events:none;
 }
 .qrcode-tool .qr-version-info{font-size:11px; color:var(--muted2); min-height:16px; text-align:center}
+.qrcode-tool .qr-check-box{
+  width:100%; max-width:280px; padding:8px 10px; border-radius:10px; font-size:12px; line-height:1.45; text-align:center;
+  border:1px solid var(--line); background:var(--bg);
+}
+.qrcode-tool .qr-check--pass{border-color:rgba(120,140,93,.35); background:rgba(120,140,93,.12); color:rgba(69,87,46,.95)}
+.qrcode-tool .qr-check--warn{border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.12); color:#92400e}
+.qrcode-tool .qr-check--fail{border-color:rgba(255,59,48,.35); background:rgba(255,59,48,.08); color:rgba(190,38,30,.95)}
 .qrcode-tool .qr-download-group{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
-.qrcode-tool .qr-size-select{display:flex; align-items:center; gap:8px}
-.qrcode-tool .qr-select--sm{padding:4px 8px; font-size:12px; min-width:0}
-
-/* 防止工具内 display:flex/grid 覆盖 HTML hidden 语义 */
-.qrcode-tool [hidden]{display:none !important}
 
 .qrcode-tool .qr-btn{
   padding:8px 16px; border:1px solid var(--line); border-radius:var(--r2);
@@ -97,6 +141,7 @@
 .qrcode-tool .qr-btn:disabled{opacity:.5; cursor:not-allowed}
 .qrcode-tool .qr-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff}
 .qrcode-tool .qr-btn--primary:hover:not(:disabled){background:#FF7A4D; color:#fff}
+.qrcode-tool .qr-btn--sm{padding:4px 10px; font-size:11px}
 
 .qrcode-tool .qr-toast{
   opacity:0; max-height:0; overflow:hidden; margin-top:8px; padding:0;
@@ -105,17 +150,12 @@
 }
 .qrcode-tool .qr-toast--show{opacity:1; transform:translateY(0); max-height:60px; padding:9px 12px}
 
-/* 识别面板 */
 .qrcode-tool .qr-upload-zone{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:40px 24px; border:2px dashed var(--line); border-radius:var(--r);
   cursor:pointer; transition:all .2s; text-align:center;
 }
-.qrcode-tool .qr-upload-zone:focus{
-  outline:none;
-  border-color:var(--accent);
-  box-shadow:0 0 0 4px var(--accent-soft);
-}
+.qrcode-tool .qr-upload-zone:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 4px var(--accent-soft)}
 .qrcode-tool .qr-upload-zone:hover,.qrcode-tool .qr-upload-zone--drag{border-color:var(--accent); background:var(--accent-soft)}
 .qrcode-tool .qr-upload-icon{color:var(--muted2); margin-bottom:12px}
 .qrcode-tool .qr-upload-text{margin:0; font-size:15px; font-weight:600; color:var(--text)}
@@ -123,26 +163,10 @@
 
 .qrcode-tool .qr-scan-result{display:grid; grid-template-columns:auto 1fr; gap:20px; align-items:start; margin-top:16px}
 .qrcode-tool .qr-scan-preview{
-  width:160px;
-  min-height:120px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:1px solid var(--line);
-  border-radius:var(--r2);
-  background:var(--bg);
-  overflow:hidden;
+  width:160px; min-height:120px; display:flex; align-items:center; justify-content:center;
+  border:1px solid var(--line); border-radius:var(--r2); background:var(--bg); overflow:hidden;
 }
-.qrcode-tool .qr-scan-img{
-  display:block;
-  width:100%;
-  height:auto;
-  max-height:200px;
-  object-fit:contain;
-  border:0;
-  border-radius:0;
-  background:transparent;
-}
+.qrcode-tool .qr-scan-img{display:block; width:100%; height:auto; max-height:200px; object-fit:contain}
 .qrcode-tool .qr-scan-img:not([src]),
 .qrcode-tool .qr-scan-img[src=""]{display:none}
 .qrcode-tool .qr-scan-title{margin:0 0 8px; font-size:16px; font-weight:700}
@@ -153,12 +177,10 @@
 .qrcode-tool .qr-scan-actions{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap}
 .qrcode-tool .qr-scan-error{margin-top:16px; text-align:center; color:var(--danger); font-size:14px}
 
-/* 历史记录 */
 .qrcode-tool .qr-history{margin-top:20px; padding-top:16px; border-top:1px solid var(--line)}
 .qrcode-tool .qr-section-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px}
 .qrcode-tool .qr-section-title{margin:0; font-size:15px; font-weight:700}
 .qrcode-tool .qr-section-actions{display:flex; gap:6px}
-.qrcode-tool .qr-btn--sm{padding:4px 10px; font-size:11px}
 .qrcode-tool .qr-history-list{display:flex; flex-direction:column; gap:8px}
 .qrcode-tool .qr-history-empty{color:var(--muted2); font-size:13px; text-align:center; padding:16px 0}
 .qrcode-tool .qr-history-item{
@@ -166,7 +188,7 @@
   border:1px solid var(--line); border-radius:var(--r2); cursor:pointer; transition:all .15s;
 }
 .qrcode-tool .qr-history-item:hover{border-color:var(--accent); background:var(--accent-soft)}
-.qrcode-tool .qr-history-thumb{width:40px; height:40px; border-radius:6px; border:1px solid var(--line); image-rendering:pixelated}
+.qrcode-tool .qr-history-thumb{width:40px; height:40px; border-radius:6px; border:1px solid var(--line); image-rendering:pixelated; object-fit:contain; background:#fff}
 .qrcode-tool .qr-history-meta{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
 .qrcode-tool .qr-history-type{font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase}
 .qrcode-tool .qr-history-content{font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -174,13 +196,19 @@
 .qrcode-tool .qr-history-del{
   width:24px; height:24px; border:none; border-radius:6px; background:transparent;
   color:var(--muted2); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:all .15s;
 }
 .qrcode-tool .qr-history-del:hover{background:rgba(255,59,48,.1); color:var(--danger)}
 
-@media (max-width: 480px){
+.qrcode-tool [hidden]{display:none !important}
+
+@media (max-width: 860px){
   .qrcode-tool .qr-main{grid-template-columns:1fr}
-  .qrcode-tool .qr-preview-section{order:-1}
+  .qrcode-tool .qr-preview-section{order:-1; position:static}
+  .qrcode-tool .qr-preview-frame{width:220px; height:220px}
+}
+@media (max-width: 480px){
+  .qrcode-tool .qr-group{padding:10px 12px; border-radius:12px}
+  .qrcode-tool .qr-option-row{gap:8px 14px}
   .qrcode-tool .qr-preview-frame{width:160px; height:160px}
   .qrcode-tool .qr-scan-result{grid-template-columns:1fr}
 }

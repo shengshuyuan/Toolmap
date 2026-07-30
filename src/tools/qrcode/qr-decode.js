@@ -36,26 +36,45 @@ async function loadJsQR() {
 }
 
 /**
+ * 从 ImageData 解码
+ * @param {ImageData} imageData
+ * @returns {Promise<{ data: string } | null>}
+ */
+export async function decodeFromImageData(imageData) {
+  if (!imageData || !imageData.data) return null;
+  const jsQR = await loadJsQR();
+  const result = jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: "attemptBoth",
+  });
+  return result ? { data: result.data } : null;
+}
+
+/**
+ * 从 Canvas 解码
+ * @param {HTMLCanvasElement} canvas
+ * @returns {Promise<{ data: string } | null>}
+ */
+export async function decodeFromCanvas(canvas) {
+  if (!canvas) return null;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  return decodeFromImageData(imageData);
+}
+
+/**
  * 从图片文件解码二维码
  * @param {File} file - 图片文件
  * @returns {Promise<{ data: string } | null>}
  */
 export async function decodeFromImage(file) {
-  const jsQR = await loadJsQR();
-
   const img = await loadImage(file);
   const canvas = document.createElement("canvas");
   canvas.width = img.width;
   canvas.height = img.height;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(img, 0, 0);
-  const imageData = ctx.getImageData(0, 0, img.width, img.height);
-
-  const result = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: "attemptBoth",
-  });
-
-  return result ? { data: result.data } : null;
+  return decodeFromCanvas(canvas);
 }
 
 /**

@@ -100,6 +100,9 @@ async function unmountTool(toolKey) {
       console.warn(`[unmount] ${toolKey} failed:`, err);
     }
   }
+  // 必须从已挂载集合移除，否则切回该工具时 mountTool 会直接 return，
+  // 导致 cleanup 后的监听/定时器无法重新绑定（Markdown 沉浸式 Esc 等会失效）。
+  mountedTools.delete(toolKey);
 }
 
 function focusToolHeading(toolKey) {
@@ -107,7 +110,9 @@ function focusToolHeading(toolKey) {
   if (!tool) return;
   const mount = $(tool.mountId);
   if (mount) {
-    const heading = mount.querySelector("h2, h1, .panel__title, .char-title, .qr-title, .pdf-title");
+    const heading = mount.querySelector(
+      "h2, h1, .panel__title, .char-title, .qr-title, .md-title, .pdf-title"
+    );
     if (heading) {
       if (!heading.hasAttribute("tabindex")) heading.setAttribute("tabindex", "-1");
       heading.focus();
