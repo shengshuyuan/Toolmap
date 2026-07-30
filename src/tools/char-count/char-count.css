@@ -27,8 +27,12 @@
 }
 .char-count-tool .char-editor__textarea{
   width:100%;
-  min-height:220px;
+  height:220px;
+  min-height:160px;
+  max-height:360px;
   resize:vertical;
+  overflow:auto;
+  field-sizing:fixed;
   border:1px solid rgba(20,20,19,0.10);
   border-radius:14px;
   background:rgba(255,255,255,0.78);
@@ -173,5 +177,5 @@
 }
 
 @media (max-width: 480px){
-  .char-count-tool .char-editor__textarea{min-height: 140px}
+  .char-count-tool .char-editor__textarea{height:160px; min-height:120px; max-height:280px}
 }

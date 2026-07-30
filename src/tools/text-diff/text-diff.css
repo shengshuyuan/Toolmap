@@ -63,6 +63,7 @@
   background: rgba(250,249,245,0.86);
   height: 180px;
   min-height: 170px;
+  max-height: 420px;
   resize: vertical;
 }
 .text-diff-tool .editor__gutter{

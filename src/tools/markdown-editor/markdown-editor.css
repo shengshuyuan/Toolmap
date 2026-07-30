@@ -63,7 +63,10 @@
   display:grid;
   grid-template-columns: auto minmax(280px, var(--md-split)) 6px minmax(280px, 1fr);
   gap:0;
-  min-height:480px;
+  /* 固定工作区高度，内部滚动，避免输入框随内容无限增高 */
+  height: min(68vh, 620px);
+  min-height: 420px;
+  max-height: min(78vh, 720px);
   border:1px solid var(--line);
   border-radius:var(--r2);
   overflow:hidden;
@@ -121,11 +124,31 @@
 .markdown-editor-tool .md-outline-item--h5,
 .markdown-editor-tool .md-outline-item--h6{padding-left:30px; font-size:11px}
 
-.markdown-editor-tool .md-editor-pane{position:relative; min-width:280px; display:flex; flex-direction:column}
+.markdown-editor-tool .md-editor-pane{
+  position:relative;
+  min-width:0;
+  min-height:0; /* 关键：允许 flex/grid 子项收缩，出现内部滚动 */
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 .markdown-editor-tool .md-editor{
-  flex:1; width:100%; min-height:480px; border:none; resize:none; padding:14px 16px;
+  flex:1 1 auto;
+  width:100%;
+  height:100%;
+  min-height:0;
+  max-height:100%;
+  border:none;
+  resize:none;
+  overflow:auto; /* 内容超出后显示滚动条 */
+  field-sizing:fixed;
+  padding:14px 16px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size:13.5px; line-height:1.65; background:transparent; color:var(--text); outline:none;
+  font-size:13.5px;
+  line-height:1.65;
+  background:transparent;
+  color:var(--text);
+  outline:none;
 }
 .markdown-editor-tool .md-drop-hint{
   position:absolute; inset:8px; border:2px dashed var(--accent); border-radius:12px;
@@ -140,9 +163,18 @@
   background:var(--accent);
   width:8px;
 }
-.markdown-editor-tool .md-preview-pane{min-width:280px; overflow:auto; background:rgba(255,255,255,.55)}
+.markdown-editor-tool .md-preview-pane{
+  min-width:0;
+  min-height:0;
+  overflow:auto;
+  background:rgba(255,255,255,.55);
+}
 .markdown-editor-tool .md-preview{
-  padding:16px 18px; min-height:480px; font-size:15px; line-height:1.7; color:var(--text);
+  padding:16px 18px;
+  min-height:0;
+  font-size:15px;
+  line-height:1.7;
+  color:var(--text);
 }
 .markdown-editor-tool .md-preview h1{
   font-size:1.8em; padding-bottom:.3em; border-bottom:2px solid var(--accent-soft); margin:1em 0 .5em;
@@ -267,7 +299,9 @@ html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
 @media (max-width: 900px){
   .markdown-editor-tool .md-workspace{
     grid-template-columns: 1fr !important;
-    grid-template-rows: auto auto;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    height: min(72vh, 640px);
+    min-height: 360px;
   }
   .markdown-editor-tool .md-outline{
     position:absolute; left:0; top:0; bottom:0; z-index:10;
@@ -284,10 +318,15 @@ html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
   .markdown-editor-tool .md-outline.is-collapsed .md-outline-toggle{writing-mode:horizontal-tb; padding:4px 8px}
   .markdown-editor-tool .md-splitter{display:none !important}
   .markdown-editor-tool[data-mode="split"] .md-editor-pane,
-  .markdown-editor-tool[data-mode="split"] .md-preview-pane{display:block}
+  .markdown-editor-tool[data-mode="split"] .md-preview-pane{
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+  }
   .markdown-editor-tool[data-mode="split"] .md-preview-pane{border-top:1px solid var(--line)}
   .markdown-editor-tool .md-editor,
-  .markdown-editor-tool .md-preview{min-height:320px}
+  .markdown-editor-tool .md-preview{min-height:0; overflow:auto}
 }
 @media (max-width: 640px){
   .markdown-editor-tool .md-toolbar{

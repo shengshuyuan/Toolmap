@@ -1,4 +1,4 @@
-const CACHE_NAME = "toolmap-v5";
+const CACHE_NAME = "toolmap-v6";
 const PRECACHE_URLS = [
   "/",
   "/assets/app.css",
