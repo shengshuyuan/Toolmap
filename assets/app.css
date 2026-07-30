@@ -153,7 +153,9 @@ body{
 .tool-switch{
   margin-top: 12px;
   display:flex;
+  flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 }
 .tool-switch__btn{
   appearance:none;
@@ -163,6 +165,8 @@ body{
   border-radius: 999px;
   color: var(--text);
   cursor:pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
 }
 .tool-switch__btn:hover{transform: translateY(-1px); box-shadow: var(--shadow2)}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "toolmap-v2";
+const CACHE_NAME = "toolmap-v3";
 const PRECACHE_URLS = [
   "/",
   "/assets/app.css",
@@ -79,13 +79,15 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+/**
+ * JS/CSS：网络优先，避免发版后仍命中旧 tool-registry 导致导航缺工具
+ * 其它静态资源：缓存优先，网络回写
+ */
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Only cache same-origin GET requests
   if (url.origin !== self.location.origin || event.request.method !== "GET") return;
 
-  // For HTML: network-first strategy
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() => caches.match("/index.html"))
@@ -93,16 +95,38 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For static assets: stale-while-revalidate
+  const isCodeAsset =
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css") ||
+    url.pathname.endsWith("/sw.js") ||
+    url.pathname.endsWith("manifest.json");
+
+  if (isCodeAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request).then((response) => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-        }
-        return response;
-      }).catch(() => cached);
+      const fetchPromise = fetch(event.request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => cached);
       return cached || fetchPromise;
     })
   );
