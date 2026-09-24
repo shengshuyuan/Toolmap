@@ -11,7 +11,7 @@
 .markdown-editor-tool .md-head{
   display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap;
 }
-.markdown-editor-tool .md-title{margin:0; font-size:22px; font-family:"Poppins",Arial,sans-serif}
+.markdown-editor-tool .md-title{margin:0; font-size:22px; font-weight:700}
 .markdown-editor-tool .md-lead{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55}
 .markdown-editor-tool .md-head-actions{display:flex; gap:8px; flex-wrap:wrap}
 .markdown-editor-tool .md-sr-only{

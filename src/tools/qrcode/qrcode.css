@@ -8,7 +8,7 @@
 }
 .qrcode-tool.qr-panel--enter{animation: enter .34s ease-out both}
 .qrcode-tool .qr-head{margin-bottom: 14px}
-.qrcode-tool .qr-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-family:"Poppins",Arial,sans-serif}
+.qrcode-tool .qr-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-weight:700}
 .qrcode-tool .qr-lead{margin:7px 0 0; color:var(--muted); font-size:13px; line-height:1.6}
 
 .qrcode-tool .qr-tabs{display:flex; gap:4px; margin:16px 0 12px; background:var(--bg); border-radius:var(--r2); padding:4px; border:1px solid var(--line)}

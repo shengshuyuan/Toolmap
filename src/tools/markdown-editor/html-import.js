@@ -99,6 +99,7 @@ const FONT_SIZE_PX = { 1: 10, 2: 13, 3: 16, 4: 18, 5: 24, 6: 32, 7: 48 };
  * @returns {{ type: "el", tag: string, attrs: Record<string, string>, children: any[] }}
  */
 function parseHtml(html) {
+  /** @type {{ type: "el"; tag: string; attrs: Record<string, string>; children: any[]; }} */
   const root = { type: "el", tag: "body", attrs: {}, children: [] };
   const stack = [root];
   const s = String(html ?? "");
@@ -134,6 +135,7 @@ function parseHtml(html) {
         continue;
       }
       const tag = open[1].toLowerCase();
+      /** @type {{ type: "el"; tag: string; attrs: Record<string, string>; children: any[]; }} */
       const el = { type: "el", tag, attrs: parseAttrs(open[2] || ""), children: [] };
       stack[stack.length - 1].children.push(el);
       i += open[0].length;

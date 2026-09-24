@@ -15,7 +15,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
   mount.innerHTML = `
     <div class="workbench-view">
       <header class="wb-hero">
-        <div class="wb-hero__kicker">产品经理的本地工具箱</div>
+        <div class="wb-hero__kicker">产品经理的本地工作台</div>
         <h1 class="wb-hero__title">把琐碎工作，做得分明顺手。</h1>
         <p class="wb-hero__subtitle">文本、图片与文档，在浏览器内完成处理。</p>
 
@@ -130,7 +130,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
       if (!recents.length) {
         recentList.innerHTML = `
           <div class="wb-recent-empty">
-            <p>暂无最近记录。使用文本比对、Markdown 写作或图片压缩后，记录将自动保存在当前浏览器本地。</p>
+            <p>暂无最近记录。使用文本比对、Markdown 写作、图片压缩或二维码设计后，记录将自动保存在当前浏览器本地。</p>
           </div>
         `;
       } else {

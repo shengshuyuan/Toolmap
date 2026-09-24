@@ -12,6 +12,7 @@ export function getPdfToolsTemplate() {
 <div class="pdf-tools-tool pdf-panel pdf-panel--enter">
   <!-- 头部 -->
   <div class="pdf-head">
+    <div class="tool-breadcrumb">素材与交付 / PDF 工具</div>
     <h2 class="pdf-title">PDF 工具</h2>
     <p class="pdf-lead">合并、拆分、加水印 — 全部在浏览器本地完成，文件不离开你的设备。</p>
     <div class="privacy-badge"><strong>本地处理</strong><span>所有操作在浏览器完成，不上传任何文件</span></div>

@@ -8,7 +8,7 @@
 }
 .image-compress-tool.image-panel--enter{animation: enter .34s ease-out both}
 .image-compress-tool .image-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px}
-.image-compress-tool .image-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-weight:700}
 .image-compress-tool .image-lead{margin:7px 0 0; max-width:68ch; color:var(--muted); font-size:13px; line-height:1.55}
 
 .image-compress-tool .image-grid{margin-top:14px; display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:14px}
@@ -53,7 +53,7 @@
   font-size:24px;
   line-height:1;
 }
-.image-compress-tool .image-drop__title{font-size:18px; font-weight:800; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-drop__title{font-size:18px; font-weight:700}
 .image-compress-tool .image-drop__sub{color:var(--muted); font-size:13px}
 .image-compress-tool .image-settings{
   border:1px solid var(--line);
@@ -62,7 +62,7 @@
   padding:14px;
 }
 .image-compress-tool .image-settings__head{display:flex; justify-content:space-between; gap:10px; align-items:baseline; margin-bottom:12px}
-.image-compress-tool .image-settings__title{font-size:14px; font-weight:800; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-settings__title{font-size:14px; font-weight:700}
 .image-compress-tool .image-settings__hint{color:var(--muted2); font-size:12px; text-align:right}
 .image-compress-tool .image-mode-list{display:grid; grid-template-columns:1fr 1fr; gap:8px}
 .image-compress-tool .image-mode{
@@ -141,7 +141,7 @@
   padding:10px 12px;
 }
 .image-compress-tool .image-stat span{display:block; color:var(--muted2); font-size:12px}
-.image-compress-tool .image-stat strong{display:block; margin-top:4px; font-size:17px; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-stat strong{display:block; margin-top:4px; font-size:17px; font-weight:700}
 .image-compress-tool .image-stat--save strong{color:rgba(85,104,61,0.96)}
 .image-compress-tool .image-result-grid{margin-top:12px; display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:14px}
 .image-compress-tool .image-list-wrap,
@@ -152,7 +152,7 @@
   overflow:hidden;
 }
 .image-compress-tool .image-section-head{padding:12px 14px; border-bottom:1px solid rgba(20,20,19,0.08); display:flex; justify-content:space-between; gap:14px; align-items:baseline}
-.image-compress-tool .image-section-title{font-size:13px; font-weight:800; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-section-title{font-size:13px; font-weight:700}
 .image-compress-tool .image-section-sub{font-size:12px; color:var(--muted2)}
 .image-compress-tool .image-list{max-height:410px; overflow:auto}
 .image-compress-tool .image-empty{padding:18px 14px; color:var(--muted); font-size:13px}
@@ -184,7 +184,7 @@
   background:rgba(255,255,255,0.55);
 }
 .image-compress-tool .image-preview-card__placeholder{display:grid; place-items:center; color:var(--muted2); font-size:13px}
-.image-compress-tool .image-preview-card__pane strong{font-size:13px; font-family:"Poppins", Arial, sans-serif}
+.image-compress-tool .image-preview-card__pane strong{font-size:13px; font-weight:700}
 .image-compress-tool .image-history{
   margin-top:12px;
   border:1px solid var(--line);

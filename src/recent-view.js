@@ -86,7 +86,7 @@ export async function mountRecentView(mount, { onNavigate }) {
           </div>
           <div class="recent-card__actions">
             ${item.restorable ? `<button type="button" class="btn btn--sm btn--primary recent-action-open" data-tool="${item.toolId}" data-record-id="${item.recordId}">继续编辑</button>` : `<button type="button" class="btn btn--sm btn--secondary recent-action-view" data-tool="${item.toolId}">前往工具</button>`}
-            <button type="button" class="btn btn--sm btn--subtle-danger recent-action-del" data-tool="${item.toolId}" data-record-id="${item.recordId}">删除</button>
+            <button type="button" class="btn btn--sm btn--danger-subtle recent-action-del" data-tool="${item.toolId}" data-record-id="${item.recordId}">删除</button>
           </div>
         </article>
       `;

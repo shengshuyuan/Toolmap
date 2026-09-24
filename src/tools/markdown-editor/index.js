@@ -17,7 +17,8 @@ export function getMarkdownEditorTemplate() {
   <button type="button" class="md-exit-fullscreen" id="mdExitFullscreen" hidden>退出沉浸</button>
   <div class="md-head">
     <div>
-      <h2 class="md-title">在线 Markdown 创作台</h2>
+      <div class="tool-breadcrumb">文档与评审 / Markdown</div>
+      <h2 class="md-title">Markdown 创作台</h2>
       <p class="md-lead">Markdown / HTML 导入 · 实时预览 · 本地保存 · 沉浸式写作</p>
       <div class="privacy-badge"><strong>本地处理</strong><span>文档不上传服务器，草稿保存在本机浏览器</span></div>
     </div>
@@ -697,13 +698,21 @@ export function mountMarkdownEditorTool(mount) {
   };
   document.addEventListener("keydown", onKey);
 
-  // restore latest draft
+  // restore requested or latest draft
   (async () => {
     await refreshDocList();
+    const pendingRestoreId = sessionStorage.getItem("toolmap_restore_markdown");
+    if (pendingRestoreId) {
+      sessionStorage.removeItem("toolmap_restore_markdown");
+    }
     if (store) {
       const docs = (await store.list()).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-      if (docs[0]) await openDoc(docs[0].id);
-      else {
+      const targetDoc = pendingRestoreId ? docs.find((d) => d.id === pendingRestoreId) : null;
+      if (targetDoc) {
+        await openDoc(targetDoc.id);
+      } else if (docs[0]) {
+        await openDoc(docs[0].id);
+      } else {
         setContent("# 欢迎使用 Markdown 创作台\n\n- 支持 **加粗**、*斜体*、`代码`\n- 可导入 `.md` / `.html`\n- 草稿自动保存在本地\n", { markDirty: false });
         titleInput.value = "欢迎使用 Markdown 创作台";
       }

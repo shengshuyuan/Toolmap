@@ -5,12 +5,17 @@
 
 格式参考 Keep a Changelog，版本号遵循 SemVer 风格。
 
-## [Unreleased]
+## [0.6.6] - 2026-09-24
 
-### Docs
-- 补充 `CHANGELOG.md`
-- 补充 `CONTRIBUTING.md`
-- 明确 Git 提交、发布与回滚协作规范
+### Fixed
+- 修复全局 CSS 变量 `--pad-lg` 与 `--r2` 缺失导致的 5 个工具面板内容贴边与直角化问题
+- 修复本地数据管理页（Data Manage）样式类名错位，对齐卡片、表头与横向滚动样式
+- 修复最近使用卡片删除按钮 `.btn--danger-subtle` 类名书写错误
+- 修复 `html-import.js` 中的 TypeScript 类型推断错误
+- 修复各老工具写死 `Poppins` 字体问题，全站统一继承系统无衬线字体栈
+- 修复 Markdown 草稿恢复机制，支持按 `restoreId` 恢复指定文档
+- 移除各工具标题的“在线”前缀，补齐面包屑导航，统一“本地工作台”品牌定位
+- 修正 `index.html` 与 `manifest.json` 的 SEO 描述与图标配置
 
 ## [0.4.1] - 2026-05-03
 

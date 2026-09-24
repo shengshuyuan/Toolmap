@@ -8,7 +8,7 @@
 }
 .char-count-tool.char-panel--enter{animation: enter .34s ease-out both}
 .char-count-tool .char-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px}
-.char-count-tool .char-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-family:"Poppins", Arial, sans-serif}
+.char-count-tool .char-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-weight:700}
 .char-count-tool .char-lead{margin:7px 0 0; max-width:72ch; color:var(--muted); font-size:13px; line-height:1.6}
 
 .char-count-tool .char-editor{
@@ -22,8 +22,7 @@
   display:block;
   margin-bottom:10px;
   font-size:14px;
-  font-weight:800;
-  font-family:"Poppins", Arial, sans-serif;
+  font-weight:700;
 }
 .char-count-tool .char-editor__textarea{
   width:100%;
@@ -105,7 +104,7 @@
   padding:14px;
 }
 .char-count-tool .char-stat span{display:block; color:var(--muted2); font-size:12px}
-.char-count-tool .char-stat strong{display:block; margin-top:6px; font-size:22px; font-family:"Poppins", Arial, sans-serif}
+.char-count-tool .char-stat strong{display:block; margin-top:6px; font-size:22px; font-weight:700}
 .char-count-tool .char-stat small{display:block; margin-top:6px; color:var(--muted); font-size:12px}
 .char-count-tool .char-stat--core strong{color:rgba(180,72,31,.98)}
 .char-count-tool .char-metrics{
@@ -123,7 +122,7 @@
   gap:12px;
   align-items:baseline;
 }
-.char-count-tool .char-metrics__title{font-size:13px; font-weight:800; font-family:"Poppins", Arial, sans-serif}
+.char-count-tool .char-metrics__title{font-size:13px; font-weight:700}
 .char-count-tool .char-metrics__sub{font-size:12px; color:var(--muted2)}
 .char-count-tool .char-metrics__grid{
   display:grid;
@@ -138,7 +137,7 @@
   padding:12px;
 }
 .char-count-tool .char-mini-stat span{display:block; color:var(--muted2); font-size:12px}
-.char-count-tool .char-mini-stat strong{display:block; margin-top:6px; font-size:18px; font-family:"Poppins", Arial, sans-serif}
+.char-count-tool .char-mini-stat strong{display:block; margin-top:6px; font-size:18px; font-weight:700}
 .char-count-tool .char-explain{
   margin-top:14px;
   border:1px solid var(--line);
@@ -146,7 +145,7 @@
   background:rgba(250,249,245,0.66);
   padding:14px;
 }
-.char-count-tool .char-explain__title{font-size:14px; font-weight:800; font-family:"Poppins", Arial, sans-serif}
+.char-count-tool .char-explain__title{font-size:14px; font-weight:700}
 .char-count-tool .char-explain__body{margin-top:10px; color:var(--muted); font-size:13px; line-height:1.6}
 .char-count-tool .char-explain__body p{margin:0 0 8px}
 .char-count-tool .char-example{

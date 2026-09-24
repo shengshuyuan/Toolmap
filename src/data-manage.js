@@ -13,9 +13,14 @@ import { escapeHtml } from "./shared/escape.js";
 export async function mountDataManageView(mount, { onNavigate }) {
   mount.innerHTML = `
     <div class="data-manage-view">
-      <div class="data-head">
-        <h1 class="data-title">本地数据管理</h1>
-        <p class="data-desc">Toolmap 所有功能均在浏览器本地运行，数据保存在您设备的 IndexedDB 中，不会上传至任何第三方服务器。</p>
+      <div class="page-header">
+        <div class="page-header__breadcrumb">工作台 / 本地数据管理</div>
+        <div class="page-header__row">
+          <div>
+            <h1 class="page-header__title">本地数据管理</h1>
+            <p class="page-header__subtitle">Toolmap 所有功能均在浏览器本地运行，数据保存在您设备的 IndexedDB 中，不会上传至任何第三方服务器。</p>
+          </div>
+        </div>
       </div>
 
       <div class="data-card">

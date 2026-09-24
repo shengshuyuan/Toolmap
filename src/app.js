@@ -56,41 +56,13 @@ async function bootstrap() {
 
   function setShellCopy(toolKey) {
     const tool = getToolById(toolKey);
-    const title = $("shellTitle");
-    const subtitle = $("shellSubtitle");
-    const name = $("shellToolName");
-    const hint = $("shellToolHint");
-
     if (tool) {
-      if (title) title.textContent = tool.title;
-      if (subtitle) {
-        subtitle.textContent = "";
-        if (tool.subtitlePrefix) subtitle.appendChild(document.createTextNode(tool.subtitlePrefix));
-        if (tool.subtitleBadge) {
-          const badgeEl = document.createElement("span");
-          badgeEl.className = "badge";
-          badgeEl.textContent = tool.subtitleBadge;
-          subtitle.appendChild(badgeEl);
-        }
-        if (tool.subtitleSuffix) subtitle.appendChild(document.createTextNode(tool.subtitleSuffix));
-        if (!tool.subtitlePrefix && !tool.subtitleBadge) {
-          subtitle.textContent = tool.subtitle;
-        }
-      }
-      if (name) name.textContent = tool.name;
-      if (hint) hint.textContent = tool.hint;
       document.title = `${tool.buttonLabel} - ${APP_TITLE}`;
     } else if (toolKey === "workbench") {
-      if (title) title.textContent = "工作台";
-      if (subtitle) subtitle.textContent = "产品经理的本地工作台";
       document.title = `工作台 - ${APP_TITLE}`;
     } else if (toolKey === "recent") {
-      if (title) title.textContent = "最近使用";
-      if (subtitle) subtitle.textContent = "跨工具历史记录与草稿";
       document.title = `最近使用 - ${APP_TITLE}`;
     } else if (toolKey === "data-manage") {
-      if (title) title.textContent = "本地数据管理";
-      if (subtitle) subtitle.textContent = "存储容量与备份";
       document.title = `本地数据管理 - ${APP_TITLE}`;
     }
   }
@@ -221,6 +193,8 @@ async function bootstrap() {
     if (options.restoreId) {
       if (key === "text-diff") {
         sessionStorage.setItem("toolmap_restore_text_diff", options.restoreId);
+      } else if (key === "markdown-editor") {
+        sessionStorage.setItem("toolmap_restore_markdown", options.restoreId);
       }
     }
 

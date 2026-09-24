@@ -22,7 +22,8 @@ export function getImageCompressTemplate() {
   <div class="image-compress-tool image-panel image-panel--enter" aria-labelledby="image-compress-title">
     <div class="image-head">
       <div>
-        <h2 id="image-compress-title" class="image-title">在线图片压缩</h2>
+        <div class="tool-breadcrumb">素材与交付 / 图片压缩</div>
+        <h2 id="image-compress-title" class="image-title">图片压缩</h2>
         <p class="image-lead">拖入或选择图片，在浏览器本地完成压缩。智能推荐会自动转 WebP、收敛尺寸，并在省得少时自动增强压缩。</p>
       </div>
       <div class="privacy-badge">

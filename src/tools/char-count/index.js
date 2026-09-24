@@ -7,7 +7,8 @@ export function getCharCountTemplate() {
   <div class="char-count-tool char-panel char-panel--enter" aria-labelledby="char-count-title">
     <div class="char-head">
       <div>
-        <h2 id="char-count-title" class="char-title">在线字符统计</h2>
+        <div class="tool-breadcrumb">文档与评审 / 字符统计</div>
+        <h2 id="char-count-title" class="char-title">字符统计</h2>
         <p class="char-lead">实时统计文本的字符、UTF-8 字节和 JavaScript 字符长度。支持中文、英文、emoji 与多行文本，全程在浏览器本地完成。</p>
       </div>
       <div class="privacy-badge">

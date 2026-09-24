@@ -31,6 +31,7 @@ export function getQrcodeTemplate() {
   return /* html */ `
 <div class="qrcode-tool qr-panel qr-panel--enter">
   <div class="qr-head">
+    <div class="tool-breadcrumb">素材与交付 / 二维码</div>
     <h2 class="qr-title">二维码设计与识别</h2>
     <p class="qr-lead">输入内容实时生成二维码，支持外框、Logo 与可扫描性自检；识别全程本地完成。</p>
     <div class="privacy-badge"><strong>本地处理</strong><span>内容、Logo 与图片均不上传服务器</span></div>
