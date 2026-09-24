@@ -11,7 +11,7 @@ export function parseDebugScopes(search = "") {
     .filter(Boolean);
 }
 
-export function isDebugEnabled(scope, { search } = {}) {
+export function isDebugEnabled(scope, { search = undefined } = {}) {
   const scopes = parseDebugScopes(search ?? globalThis.location?.search ?? "");
   return scopes.includes("*") || scopes.includes(scope);
 }

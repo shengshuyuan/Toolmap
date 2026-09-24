@@ -500,7 +500,7 @@ export function mountQrcodeTool(mount) {
       return true;
     }
     const checked = validateOutputSize(style.customSize);
-    if (!checked.ok) {
+    if (checked.ok === false) {
       els.sizeError.hidden = false;
       els.sizeError.textContent = checked.message;
       return false;
@@ -800,14 +800,15 @@ export function mountQrcodeTool(mount) {
   /* ── 事件 ── */
 
   mount.addEventListener("click", (e) => {
-    const tabBtn = e.target.closest(".qr-tab");
-    if (tabBtn) switchTab(tabBtn.dataset.tab);
+    const target = e.target instanceof Element ? e.target : null;
+    const tabBtn = target?.closest(".qr-tab");
+    if (tabBtn instanceof HTMLElement) switchTab(tabBtn.dataset.tab);
 
-    const typeBtn = e.target.closest(".qr-type-tab");
-    if (typeBtn) switchType(typeBtn.dataset.type);
+    const typeBtn = target?.closest(".qr-type-tab");
+    if (typeBtn instanceof HTMLElement) switchType(typeBtn.dataset.type);
 
-    const ecBtn = e.target.closest(".qr-ec-btn");
-    if (ecBtn) switchEc(ecBtn.dataset.ec);
+    const ecBtn = target?.closest(".qr-ec-btn");
+    if (ecBtn instanceof HTMLElement) switchEc(ecBtn.dataset.ec);
   });
 
   [

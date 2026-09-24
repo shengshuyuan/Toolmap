@@ -10,7 +10,20 @@ export const MIN_SAFE_MARGIN = 2;
 export const MAX_LOGO_RATIO = 0.28;
 export const WARN_LOGO_RATIO = 0.22;
 
-/** @returns {import("./qr-style.js").QrStyleState} */
+/**
+ * @typedef {object} QrStyleState
+ * @property {string} foreground
+ * @property {string} background
+ * @property {'L'|'M'|'Q'|'H'} errorLevel
+ * @property {number} margin
+ * @property {number} outputSize
+ * @property {'preset'|'custom'} sizeMode
+ * @property {number} customSize
+ * @property {{enabled:boolean,width:number,color:string,radius:number,background:string,padding:number}} frame
+ * @property {{enabled:boolean,dataUrl:string,mime:string,name:string,sizeRatio:number,radius:number,padding:number,background:string,fit:'contain'|'cover'}} logo
+ */
+
+/** @returns {QrStyleState} */
 export function createDefaultStyle() {
   return {
     foreground: "#000000",

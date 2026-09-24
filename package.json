@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "verify:build": "node scripts/verify-build.mjs",
     "typecheck": "tsc --noEmit --project jsconfig.json",
+    "pretest": "npm run verify:build",
     "test": "node --test tests/*.mjs"
   },
   "devDependencies": {

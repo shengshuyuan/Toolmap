@@ -245,11 +245,12 @@ export function mountPdfToolsTool(mount) {
   }
 
   mount.addEventListener("click", (e) => {
-    const tabBtn = e.target.closest(".pdf-tab");
-    if (tabBtn) switchTab(tabBtn.dataset.tab);
+    const target = e.target instanceof Element ? e.target : null;
+    const tabBtn = target?.closest(".pdf-tab");
+    if (tabBtn instanceof HTMLElement) switchTab(tabBtn.dataset.tab);
 
-    const posBtn = e.target.closest(".pdf-pos-btn");
-    if (posBtn) {
+    const posBtn = target?.closest(".pdf-pos-btn");
+    if (posBtn instanceof HTMLElement) {
       wmPosition = posBtn.dataset.pos;
       $$(".pdf-pos-btn").forEach((b) => b.classList.toggle("pdf-pos-btn--active", b === posBtn));
     }

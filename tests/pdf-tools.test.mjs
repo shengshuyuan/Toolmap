@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { parsePageRanges } from "../src/tools/pdf-tools/pdf-split.js";
+import { normalizePageSelection, parsePageRanges } from "../src/tools/pdf-tools/pdf-split.js";
 import { calcPosition as wmCalcPosition } from "../src/tools/pdf-tools/pdf-watermark.js";
 
 // ── parsePageRanges 测试 ──
@@ -50,6 +50,12 @@ import { calcPosition as wmCalcPosition } from "../src/tools/pdf-tools/pdf-water
 {
   const pages = parsePageRanges("abc", 10);
   assert.deepEqual(pages, []);
+}
+
+// UI 预解析后的 0-indexed 页码数组可直接传入拆分逻辑
+{
+  assert.deepEqual(normalizePageSelection([0, 2, 4], 5), [0, 2, 4]);
+  assert.deepEqual(normalizePageSelection([4, 2, 2, -1, 8], 5), [2, 4]);
 }
 
 // ── calcPosition (split) 测试 ──

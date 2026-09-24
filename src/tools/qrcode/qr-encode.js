@@ -509,7 +509,7 @@ function writeVersionInfo(modules, size, version) {
  * 编码 QR Code
  * @param {string} text - 要编码的文本
  * @param {{ errorCorrectionLevel?: 'L'|'M'|'Q'|'H' }} [options]
- * @returns {{ modules: number[][], version: number, size: number }}
+ * @returns {{ modules: boolean[][], version: number, size: number }}
  */
 export function encodeQR(text, options = {}) {
   const ecLevel = options.errorCorrectionLevel || "M";
@@ -558,6 +558,7 @@ export function encodeQR(text, options = {}) {
   }
 
   // 7. 转换为 boolean[][] (true=黑, false=白)
+  /** @type {boolean[][]} */
   const result = [];
   for (let r = 0; r < size; r++) {
     const row = [];

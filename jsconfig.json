@@ -8,6 +8,6 @@
     "strict": false,
     "baseUrl": "."
   },
-  "include": ["src/shared/**/*.js", "src/config/**/*.js", "src/tool-registry.js"],
+  "include": ["src/**/*.js", "src/**/*.d.ts"],
   "exclude": ["node_modules", "dist", "tests"]
 }

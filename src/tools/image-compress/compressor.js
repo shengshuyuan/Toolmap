@@ -1,4 +1,4 @@
-import { getModeSettings, getOutputMime, buildOutputName, createBitmap } from "./utils.js";
+import { getModeSettings, getOutputMime, buildOutputName, closeImageSource, createBitmap } from "./utils.js";
 
 export function calculateTargetSize(width, height, maxEdge) {
   const limit = Number(maxEdge) || 0;
@@ -37,7 +37,7 @@ export async function compressImageFile(file, settings) {
       if (settings.mode !== "smart" || savedRatio >= 18) break;
     }
   } finally {
-    if (typeof bitmap.close === "function") bitmap.close();
+    closeImageSource(bitmap);
   }
   if (!best) throw new Error("图片压缩失败，请换一张图片试试。");
 

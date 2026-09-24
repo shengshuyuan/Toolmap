@@ -22,28 +22,90 @@ import {
 } from "./history-store.js";
 import { exportTextHistory } from "../../shared/history-export.js";
 
+const DEMO_LEFT = `会员权益说明 (v1.0)
+1. 免费用户每天可导出 3 次
+2. 专业版支持批量导出
+3. 导出失败不退还次数
+4. 支持导出格式：CSV、JSON`;
+
+const DEMO_RIGHT = `会员权益说明 (v2.0)
+1. 免费用户每天可导出 5 次
+2. 专业版支持批量导出
+3. 导出失败不扣减次数
+4. 支持导出格式：CSV、JSON、PDF
+5. 企业版支持团队成员协作`;
+
 export function getTextDiffTemplate() {
   return `
   <div class="text-diff-tool panel panel--enter" aria-labelledby="diff-title">
-    <div class="panel__head">
-      <h2 id="diff-title" class="panel__title">在线文本差异比对</h2>
-      <div class="panel__hint">提示：先点「一键清空空行」，再点「开始比对」，效果更好。快捷键 ⌘/Ctrl + Enter。</div>
+    <div class="diff-header-bar">
+      <div class="diff-header-bar__left">
+        <div class="diff-breadcrumb">文档与评审 / 文本比对</div>
+        <h1 id="diff-title" class="diff-page-title">文本比对</h1>
+        <p class="diff-page-subtitle">看清每一处修改。</p>
+      </div>
+      <div class="diff-header-bar__actions">
+        <button id="btnOpenHistory" class="btn btn--outline" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          历史记录
+        </button>
+        <button id="btnCompare" class="btn btn--primary" type="button">
+          开始比对
+        </button>
+      </div>
     </div>
 
-    <div class="capability-strip" aria-label="文本比对能力">
-      <span class="capability-pill">中文比对</span>
-      <span class="capability-pill">英文比对</span>
-      <span class="capability-pill">代码比对</span>
-      <span class="capability-pill">大文本粘贴</span>
-      <span class="capability-pill capability-pill--safe">本地处理</span>
+    <div class="diff-control-bar">
+      <div class="diff-control-bar__left">
+        <div class="diff-view-tabs" role="tablist">
+          <button type="button" class="diff-tab-btn diff-tab-btn--active" id="tabViewSide" role="tab" aria-selected="true">左右对照</button>
+          <button type="button" class="diff-tab-btn" id="tabViewInline" role="tab" aria-selected="false">逐条查看</button>
+        </div>
+        <button type="button" class="btn btn--xs btn--subtle" id="btnBackToEdit" hidden>返回编辑</button>
+      </div>
+
+      <div class="diff-control-bar__right">
+        <label class="diff-switch-label" title="比对时忽略空格与空行差异（不修改原文）">
+          <input type="checkbox" id="chkIgnoreWhitespace" class="diff-switch-input" />
+          <span class="diff-switch-text">忽略空白</span>
+        </label>
+
+        <div class="diff-more-dropdown-wrap">
+          <button type="button" class="btn btn--sm btn--outline" id="btnMoreToggle">
+            更多 ▾
+          </button>
+          <div class="diff-more-menu" id="moreDropdownMenu" hidden>
+            <button type="button" class="diff-menu-item" id="btnClean">清空空行</button>
+            <button type="button" class="diff-menu-item" id="btnSwap">交换文本</button>
+            <button type="button" class="diff-menu-item" id="btnLoadDemo">载入需求变更示例</button>
+            <div class="diff-menu-divider"></div>
+            <button type="button" class="diff-menu-item diff-menu-item--danger" id="btnClear">清空全部文本</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="workspace">
-      <div class="workspace__col">
-        <div class="field">
-          <div class="field__label-row">
-            <label class="field__label" for="leftText">原文本</label>
-            <div class="field__sub">Original</div>
+    <div id="diffStaleBanner" class="diff-stale-banner" hidden>
+      <span>输入内容已更新，当前展示的为旧比对结果。点击「开始比对」重新计算。</span>
+    </div>
+
+    <!-- 舞台区域：编辑与差异同台切换 -->
+    <div class="diff-stage" id="diffStage">
+      <!-- 1. 编辑模式 -->
+      <div class="diff-stage-editor" id="stageEditor">
+        <div class="diff-editor-pane">
+          <div class="diff-pane-head">
+            <div class="diff-pane-head__left">
+              <span class="diff-pane-label">原文本</span>
+              <span class="diff-pane-sub">Original</span>
+            </div>
+            <div class="diff-pane-head__right">
+              <label class="diff-file-import-btn" title="导入本地文件">
+                <input type="file" id="fileInputLeft" accept=".txt,.md,.json,.js,.ts,.html,.css,.csv,.xml" hidden />
+                导入 ⭡
+              </label>
+              <button type="button" class="diff-pane-clear-btn" id="btnClearLeft">清空</button>
+            </div>
           </div>
           <div class="editor" aria-label="原文本编辑器">
             <div id="leftGutter" class="editor__gutter" aria-hidden="true"></div>
@@ -54,18 +116,25 @@ export function getTextDiffTemplate() {
                 class="textarea textarea--overlay"
                 wrap="off"
                 spellcheck="false"
-                placeholder="把原文本粘贴到这里…"
+                placeholder="粘贴原始需求、说明或旧版代码…"
               ></textarea>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="workspace__col">
-        <div class="field">
-          <div class="field__label-row">
-            <label class="field__label" for="rightText">对比文本</label>
-            <div class="field__sub">Changed</div>
+        <div class="diff-editor-pane">
+          <div class="diff-pane-head">
+            <div class="diff-pane-head__left">
+              <span class="diff-pane-label">对比文本</span>
+              <span class="diff-pane-sub">Changed</span>
+            </div>
+            <div class="diff-pane-head__right">
+              <label class="diff-file-import-btn" title="导入本地文件">
+                <input type="file" id="fileInputRight" accept=".txt,.md,.json,.js,.ts,.html,.css,.csv,.xml" hidden />
+                导入 ⭡
+              </label>
+              <button type="button" class="diff-pane-clear-btn" id="btnClearRight">清空</button>
+            </div>
           </div>
           <div class="editor" aria-label="对比文本编辑器">
             <div id="rightGutter" class="editor__gutter" aria-hidden="true"></div>
@@ -76,92 +145,72 @@ export function getTextDiffTemplate() {
                 class="textarea textarea--overlay"
                 wrap="off"
                 spellcheck="false"
-                placeholder="把需要比对的文本粘贴到这里…"
+                placeholder="粘贴修改后的需求、新版说明或对比材料…"
               ></textarea>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="toolbar" role="group" aria-label="文本比对工具条">
-      <div class="toolbar__group toolbar__group--primary">
-        <button id="btnCompare" class="btn btn--primary" type="button">
-          <span class="btn__icon" aria-hidden="true">◎</span>
-          开始比对
-        </button>
-      </div>
-
-      <div class="toolbar__group">
-        <button id="btnPrev" class="btn" type="button" disabled>
-          <span class="btn__icon" aria-hidden="true">↑</span>
-          上一处
-        </button>
-        <button id="btnNext" class="btn" type="button" disabled>
-          <span class="btn__icon" aria-hidden="true">↓</span>
-          下一处
-        </button>
-      </div>
-
-      <div class="toolbar__group toolbar__group--tools">
-        <button id="btnClean" class="btn" type="button">
-          <span class="btn__icon" aria-hidden="true">⎚</span>
-          清空空行
-        </button>
-        <button id="btnClear" class="btn" type="button">
-          <span class="btn__icon" aria-hidden="true">⌫</span>
-          清空文本
-        </button>
-        <button id="btnSwap" class="btn" type="button">
-          <span class="btn__icon" aria-hidden="true">⇄</span>
-          交换文本
-        </button>
-      </div>
-
-      <div class="toolbar__group toolbar__group--result">
-        <button id="btnCopy" class="btn" type="button">
-          <span class="btn__icon" aria-hidden="true">▣</span>
-          复制结果
-        </button>
+      <!-- 2. 差异查看模式 -->
+      <div class="diff-stage-result" id="stageResult" hidden>
+        <div id="diffView" class="diff-view" role="region" aria-label="差异结果区">
+          <div class="diff-empty">还没有结果。点击上方「开始比对」。</div>
+        </div>
       </div>
     </div>
 
+    <!-- 底部常驻栏：统计、定位导航、复制摘要 -->
+    <footer class="diff-bottom-bar" id="diffBottomBar">
+      <div class="diff-bottom-bar__left">
+        <div class="diff-stats-counts" id="diffStatsCounts">
+          修改 <b id="statModCount">0</b> · <span class="stat--add">新增 <b id="statAddCount">0</b></span> · <span class="stat--del">删除 <b id="statDelCount">0</b></span>
+        </div>
+        <div id="statusText" class="diff-status-tip">准备就绪。快捷键 ⌘/Ctrl + Enter。</div>
+        <div id="diffCount" hidden>0</div>
+      </div>
+
+      <div class="diff-bottom-bar__center">
+        <div class="diff-nav-pill">
+          <span id="statNavLabel">第 0 / 0 处</span>
+          <button id="btnPrev" class="diff-nav-btn" type="button" title="上一处修改" disabled>↑</button>
+          <button id="btnNext" class="diff-nav-btn" type="button" title="下一处修改" disabled>↓</button>
+        </div>
+      </div>
+
+      <div class="diff-bottom-bar__right">
+        <button id="btnCopy" class="btn btn--outline" type="button">
+          复制差异摘要
+        </button>
+      </div>
+    </footer>
+
+    <div id="compareHints" class="compare-hints" hidden></div>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <div class="status-row" aria-live="polite">
-      <div id="statusText" class="status-text">准备就绪。</div>
-      <div class="status-right">
-        <div id="diffCount" class="count-pill" title="差异条目数">差异：0</div>
-      </div>
-    </div>
-    <div id="compareHints" class="compare-hints" hidden></div>
-
-    <div class="result">
-      <div class="result__head">
-        <div class="result__title">比对结果</div>
-        <div class="result__sub">橙色为内容差异，蓝色为排版差异（空格/空行）。</div>
-      </div>
-      <div id="diffView" class="diff-view" role="region" aria-label="差异结果区">
-        <div class="diff-empty">还没有结果。点击上方「开始比对」。</div>
-      </div>
-    </div>
-
-    <section class="text-history" aria-label="文本比对历史记录">
-      <div class="text-history__head">
-        <div>
-          <div class="text-history__title">历史记录</div>
-          <div id="textHistoryMeta" class="text-history__sub">保存两侧文本和比对摘要，仅当前浏览器本地可见。</div>
+    <!-- 历史记录抽屉 -->
+    <div id="historyDrawerBackdrop" class="drawer-backdrop" hidden></div>
+    <aside id="historyDrawer" class="text-history-drawer" aria-label="文本比对历史记录" hidden>
+      <div class="text-history">
+        <div class="text-history__head">
+          <div>
+            <h2 class="text-history__title">历史记录</h2>
+            <div id="textHistoryMeta" class="text-history__sub">保存两侧文本和比对摘要，仅当前浏览器本地可见。</div>
+          </div>
+          <button type="button" class="drawer-close-btn" id="btnCloseHistoryDrawer" aria-label="关闭历史记录">✕</button>
         </div>
+
         <div class="text-history__actions">
           <button id="btnRefreshTextHistory" class="history-mini-btn" type="button">刷新</button>
           <button id="btnExportTextHistory" class="history-mini-btn" type="button">导出</button>
           <button id="btnClearTextHistory" class="history-mini-btn history-mini-btn--danger" type="button" disabled>清空历史</button>
         </div>
+
+        <div id="textHistoryList" class="text-history__list">
+          <div class="diff-empty">比对完成后会自动保存到这里。</div>
+        </div>
       </div>
-      <div id="textHistoryList" class="text-history__list">
-        <div class="diff-empty">比对完成后会自动保存到这里。</div>
-      </div>
-    </section>
+    </aside>
   </div>
 `;
 }
@@ -170,40 +219,6 @@ function getRequiredElement(root, id) {
   const el = root.querySelector(`#${id}`);
   if (!el) throw new Error(`文本比对工具缺少节点：#${id}`);
   return el;
-}
-
-function normalizeForDiff(text) {
-  return normalizeNewlines(text);
-}
-
-function computeChangedLineSets(lines) {
-  const leftChanged = new Set();
-  const rightChanged = new Set();
-  let l = 0;
-  let r = 0;
-
-  for (const row of lines) {
-    if (row.op === "equal") {
-      l++;
-      r++;
-      continue;
-    }
-    if (row.op === "delete") {
-      l++;
-      leftChanged.add(l);
-      continue;
-    }
-    if (row.op === "insert") {
-      r++;
-      rightChanged.add(r);
-      continue;
-    }
-    l++;
-    r++;
-    leftChanged.add(l);
-    rightChanged.add(r);
-  }
-  return { leftChanged, rightChanged };
 }
 
 export function mountTextDiffTool(mount) {
@@ -232,6 +247,32 @@ export function mountTextDiffTool(mount) {
   const elTextHistoryMeta = $("textHistoryMeta");
   const elTextHistoryList = $("textHistoryList");
 
+  // 新架构节点
+  const stageEditor = $("stageEditor");
+  const stageResult = $("stageResult");
+  const btnBackToEdit = $("btnBackToEdit");
+  const tabViewSide = $("tabViewSide");
+  const tabViewInline = $("tabViewInline");
+  const chkIgnoreWhitespace = /** @type {HTMLInputElement} */ ($("chkIgnoreWhitespace"));
+  const btnMoreToggle = $("btnMoreToggle");
+  const moreDropdownMenu = $("moreDropdownMenu");
+  const btnLoadDemo = $("btnLoadDemo");
+  const btnClearLeft = $("btnClearLeft");
+  const btnClearRight = $("btnClearRight");
+  const fileInputLeft = /** @type {HTMLInputElement} */ ($("fileInputLeft"));
+  const fileInputRight = /** @type {HTMLInputElement} */ ($("fileInputRight"));
+  const diffStaleBanner = $("diffStaleBanner");
+  const statModCount = $("statModCount");
+  const statAddCount = $("statAddCount");
+  const statDelCount = $("statDelCount");
+  const statNavIndex = $("statNavIndex");
+
+  // 抽屉
+  const historyDrawer = $("historyDrawer");
+  const historyDrawerBackdrop = $("historyDrawerBackdrop");
+  const btnOpenHistory = $("btnOpenHistory");
+  const btnCloseHistoryDrawer = $("btnCloseHistoryDrawer");
+
   const leftEditor = createEditorController({
     textarea: elLeft,
     gutter: $("leftGutter"),
@@ -251,13 +292,44 @@ export function mountTextDiffTool(mount) {
   });
 
   let compareLock = false;
-  let toastTimer = 0;
   const showToast = createToast(elToast, { showClass: "toast--show", duration: 3500 });
   let textHistoryRecords = [];
+  let isDiffMode = false;
+  let viewMode = "side"; // 'side' | 'inline'
+  let isDirtyAfterDiff = false;
 
   function setStatus(text, tone = "muted") {
     elStatus.textContent = text;
     elStatus.style.color = tone === "danger" ? "rgba(255,59,48,.88)" : "";
+  }
+
+  function setStage(mode) {
+    isDiffMode = mode === "diff";
+    stageEditor.hidden = isDiffMode;
+    stageResult.hidden = !isDiffMode;
+    btnBackToEdit.hidden = !isDiffMode;
+
+    if (isDiffMode) {
+      btnCompare.textContent = "重新比对";
+    } else {
+      btnCompare.textContent = "开始比对";
+    }
+  }
+
+  function markDiffStale(stale) {
+    isDirtyAfterDiff = stale;
+    diffStaleBanner.hidden = !stale;
+  }
+
+  function openDrawer() {
+    historyDrawer.hidden = false;
+    historyDrawerBackdrop.hidden = false;
+    loadTextHistory();
+  }
+
+  function closeDrawer() {
+    historyDrawer.hidden = true;
+    historyDrawerBackdrop.hidden = true;
   }
 
   function renderCompareHints(messages = []) {
@@ -289,6 +361,16 @@ export function mountTextDiffTool(mount) {
     comparison.reset({ clearResult });
     resetChangedEditors();
     renderCompareHints();
+    statModCount.textContent = "0";
+    statAddCount.textContent = "0";
+    statDelCount.textContent = "0";
+    statNavIndex.textContent = "第 0 / 0 处";
+  }
+
+  function updateNavIndexDisplay() {
+    const total = comparison.nav.anchors.length;
+    const current = total > 0 ? comparison.nav.activeIndex + 1 : 0;
+    statNavIndex.textContent = `第 ${current} / ${total} 处`;
   }
 
   function locateFromMeta(meta) {
@@ -298,21 +380,6 @@ export function mountTextDiffTool(mount) {
     const actualRight = rightLine ? rightEditor.scrollToLine(rightLine) : null;
     if (actualLeft) leftEditor.flashLine(actualLeft);
     if (actualRight) rightEditor.flashLine(actualRight);
-    if (
-      shouldWarnLineMismatch({
-        expectedLeft: leftLine,
-        expectedRight: rightLine,
-        actualLeft,
-        actualRight,
-      })
-    ) {
-      debugLog("text-diff", "line mismatch auto-corrected", {
-        expectedLeft: leftLine,
-        expectedRight: rightLine,
-        actualLeft,
-        actualRight,
-      });
-    }
     return { leftLine, rightLine, actualLeft, actualRight };
   }
 
@@ -323,6 +390,7 @@ export function mountTextDiffTool(mount) {
     const anchor = comparison.nav.anchors[clamped];
     focusAnchor(anchor);
     const located = locateFromMeta(comparison.anchorMeta[anchor]);
+    updateNavIndexDisplay();
     setStatus(`定位差异 ${clamped + 1}/${comparison.nav.anchors.length} · ${buildLocateStatus({
       expectedLeft: located.leftLine,
       expectedRight: located.rightLine,
@@ -338,6 +406,7 @@ export function mountTextDiffTool(mount) {
     rememberEditorValues();
     setStatus("已清空空行（两侧）。");
     resetDirtyComparison();
+    markDiffStale(true);
     leftEditor.scheduleRender();
     rightEditor.scheduleRender();
   }
@@ -350,6 +419,7 @@ export function mountTextDiffTool(mount) {
     rememberEditorValues();
     setStatus("已交换文本。");
     resetDirtyComparison();
+    markDiffStale(true);
     leftEditor.scheduleRender();
     rightEditor.scheduleRender();
   }
@@ -363,22 +433,24 @@ export function mountTextDiffTool(mount) {
     rememberEditorValues();
     setStatus("已清空。");
     resetDirtyComparison({ clearResult: true });
+    setStage("edit");
+    markDiffStale(false);
     leftEditor.scheduleRender();
     rightEditor.scheduleRender();
   }
 
   async function onCopyResult() {
     if (!comparison.latestCompareLines) {
-      showToast("你好像还没比对呢，比对后再试试吧！");
+      showToast("还没有可复制的比对结果，请先比对。");
       return;
     }
 
     try {
       const ok = await writeClipboard(summarizeDiffLines(comparison.latestCompareLines));
-      showToast(ok ? "复制完成了，粘贴看看吧" : "复制失败了，请手动选择文本复制。");
+      showToast(ok ? "差异摘要已复制到剪贴板。" : "复制失败，请手动选择复制。");
     } catch (err) {
       console.error("[copy] failed:", err);
-      showToast("复制失败了，请稍后再试。");
+      showToast("复制失败，请重试。");
     }
   }
 
@@ -425,6 +497,9 @@ export function mountTextDiffTool(mount) {
     resetDirtyComparison({ clearResult: true });
     leftEditor.scheduleRender();
     rightEditor.scheduleRender();
+    closeDrawer();
+    setStage("edit");
+    markDiffStale(false);
     setStatus("已恢复历史文本，可继续修改或重新比对。");
     showToast("历史文本已恢复。");
   }
@@ -456,8 +531,8 @@ export function mountTextDiffTool(mount) {
   function renderTextHistory() {
     const usage = getTextHistoryUsage(textHistoryRecords);
     elTextHistoryMeta.textContent = textHistoryRecords.length
-      ? `已保存 ${textHistoryRecords.length}/${TEXT_HISTORY_LIMIT} 条，占用 ${formatBytes(usage)}。仅当前浏览器本地可见。`
-      : "保存两侧文本和比对摘要，仅当前浏览器本地可见。";
+      ? `已保存 ${textHistoryRecords.length}/${TEXT_HISTORY_LIMIT} 条，占用 ${formatBytes(usage)}。仅当前设备浏览器可见。`
+      : "保存两侧文本和比对摘要，仅当前设备浏览器可见。";
     btnClearTextHistory.disabled = textHistoryRecords.length === 0;
     btnExportTextHistory.disabled = textHistoryRecords.length === 0;
 
@@ -498,8 +573,8 @@ export function mountTextDiffTool(mount) {
     btnCompare.disabled = true;
 
     try {
-      const leftRaw = elLeft.value ?? "";
-      const rightRaw = elRight.value ?? "";
+      let leftRaw = elLeft.value ?? "";
+      let rightRaw = elRight.value ?? "";
 
       if (leftRaw.trim() === "" && rightRaw.trim() === "") {
         setStatus("请在两侧输入文本后再比对。", "danger");
@@ -508,16 +583,35 @@ export function mountTextDiffTool(mount) {
       }
 
       resetBothEditorScrolls();
-      setStatus(leftRaw.trim() === "" || rightRaw.trim() === "" ? "提示：一侧为空时，将显示为“全新增/全删除”。" : "正在比对…");
+      setStatus("正在比对…");
+
       const hints = collectComparisonHints({
         leftText: leftRaw,
         rightText: rightRaw,
       });
 
-      const result = diffLines(normalizeForDiff(leftRaw), normalizeForDiff(rightRaw));
-      const changed = computeChangedLineSets(result.lines);
-      leftEditor.setChangedLines(changed.leftChanged);
-      rightEditor.setChangedLines(changed.rightChanged);
+      // 忽略空白比对选项（不直接改写用户输入）
+      let leftToDiff = normalizeNewlines(leftRaw);
+      let rightToDiff = normalizeNewlines(rightRaw);
+      if (chkIgnoreWhitespace.checked) {
+        leftToDiff = leftToDiff.split("\n").map((s) => s.trimEnd()).join("\n");
+        rightToDiff = rightToDiff.split("\n").map((s) => s.trimEnd()).join("\n");
+      }
+
+      const result = diffLines(leftToDiff, rightToDiff);
+
+      // 精确统计修改、新增、删除（三口径独立，不重叠计入）
+      let modCount = 0;
+      let addCount = 0;
+      let delCount = 0;
+      for (const line of result.lines) {
+        if (line.op === "replace") modCount++;
+        else if (line.op === "insert") addCount++;
+        else if (line.op === "delete") delCount++;
+      }
+      statModCount.textContent = String(modCount);
+      statAddCount.textContent = String(addCount);
+      statDelCount.textContent = String(delCount);
 
       const rendered = renderDiff(elDiffView, result);
       comparison.setRenderedResult({
@@ -526,20 +620,20 @@ export function mountTextDiffTool(mount) {
         lines: result.lines,
         diffCount: result.diffCount,
       });
+
       await saveComparisonHistory({ leftText: leftRaw, rightText: rightRaw, result });
       renderCompareHints(hints.messages);
 
+      setStage("diff");
+      markDiffStale(false);
+      updateNavIndexDisplay();
+
       if (result.diffCount === 0) {
-        setStatus(hints.isLargeTextMode ? "两侧内容一致：差异为 0（大文本模式已完成）。" : "两侧内容一致：差异为 0。");
+        setStatus("两侧内容一致：未发现差异。");
       } else {
         goto(0);
-        setStatus(
-          `比对完成：内容差异 ${result.contentDiffCount}，排版差异 ${result.formatDiffCount}${hints.isLargeTextMode ? "，已按大文本模式处理" : ""}。`
-        );
+        setStatus(`比对完成：修改 ${modCount} · 新增 ${addCount} · 删除 ${delCount}。`);
       }
-
-      // 比对完成后滚动到结果区
-      elDiffView.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       console.error("[compare] failed:", err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -550,22 +644,107 @@ export function mountTextDiffTool(mount) {
     }
   }
 
+  function handleFileInput(inputEl, targetTextarea, editorController) {
+    const file = inputEl.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      targetTextarea.value = String(e.target?.result || "");
+      editorController.rememberValue();
+      editorController.resetScroll();
+      editorController.scheduleRender();
+      markDiffStale(true);
+      setStatus(`已导入文件：${file.name}`);
+    };
+    reader.readAsText(file);
+    inputEl.value = "";
+  }
+
+  function loadDemoData() {
+    elLeft.value = DEMO_LEFT;
+    elRight.value = DEMO_RIGHT;
+    rememberEditorValues();
+    resetBothEditorScrolls();
+    leftEditor.scheduleRender();
+    rightEditor.scheduleRender();
+    resetDirtyComparison({ clearResult: true });
+    setStage("edit");
+    markDiffStale(false);
+    setStatus("已填入「需求变更示例」：可直接点击「开始比对」。");
+  }
+
   function bindToolbar() {
     btnCompare.addEventListener("click", onCompare);
-    btnClean.addEventListener("click", onCleanBlankLines);
-    btnSwap.addEventListener("click", onSwap);
-    btnClear.addEventListener("click", onClear);
+    btnBackToEdit.addEventListener("click", () => setStage("edit"));
+    btnClean.addEventListener("click", () => {
+      moreDropdownMenu.hidden = true;
+      onCleanBlankLines();
+    });
+    btnSwap.addEventListener("click", () => {
+      moreDropdownMenu.hidden = true;
+      onSwap();
+    });
+    btnClear.addEventListener("click", () => {
+      moreDropdownMenu.hidden = true;
+      onClear();
+    });
+    btnLoadDemo.addEventListener("click", () => {
+      moreDropdownMenu.hidden = true;
+      loadDemoData();
+    });
     btnCopy.addEventListener("click", onCopyResult);
     btnPrev.addEventListener("click", () => goto(comparison.nav.activeIndex - 1));
     btnNext.addEventListener("click", () => goto(comparison.nav.activeIndex + 1));
 
-    // Ctrl/Cmd + Enter 快捷键触发比对
+    // 更多下拉菜单
+    btnMoreToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      moreDropdownMenu.hidden = !moreDropdownMenu.hidden;
+    });
+    document.addEventListener("click", () => {
+      moreDropdownMenu.hidden = true;
+    });
+
+    // 左右对照 vs 逐条查看
+    tabViewSide.addEventListener("click", () => {
+      tabViewSide.classList.add("diff-tab-btn--active");
+      tabViewInline.classList.remove("diff-tab-btn--active");
+      elDiffView.classList.remove("diff-view--inline");
+      viewMode = "side";
+    });
+    tabViewInline.addEventListener("click", () => {
+      tabViewInline.classList.add("diff-tab-btn--active");
+      tabViewSide.classList.remove("diff-tab-btn--active");
+      elDiffView.classList.add("diff-view--inline");
+      viewMode = "inline";
+    });
+
+    // 文件导入与单侧清空
+    fileInputLeft.addEventListener("change", () => handleFileInput(fileInputLeft, elLeft, leftEditor));
+    fileInputRight.addEventListener("change", () => handleFileInput(fileInputRight, elRight, rightEditor));
+    btnClearLeft.addEventListener("click", () => {
+      elLeft.value = "";
+      leftEditor.scheduleRender();
+      markDiffStale(true);
+    });
+    btnClearRight.addEventListener("click", () => {
+      elRight.value = "";
+      rightEditor.scheduleRender();
+      markDiffStale(true);
+    });
+
+    // 快捷键 ⌘/Ctrl + Enter
     mount.addEventListener("keydown", (ev) => {
       if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
         ev.preventDefault();
         onCompare();
       }
     });
+
+    // 抽屉开关
+    btnOpenHistory.addEventListener("click", openDrawer);
+    btnCloseHistoryDrawer.addEventListener("click", closeDrawer);
+    historyDrawerBackdrop.addEventListener("click", closeDrawer);
 
     btnRefreshTextHistory.addEventListener("click", () => loadTextHistory());
     btnExportTextHistory.addEventListener("click", async () => {
@@ -583,18 +762,20 @@ export function mountTextDiffTool(mount) {
 
   let inputDebounceTimer = null;
   function bindEditorInputs() {
-    function debouncedResetDirty() {
+    function onInputChanged() {
       if (inputDebounceTimer) clearTimeout(inputDebounceTimer);
       inputDebounceTimer = setTimeout(() => {
         inputDebounceTimer = null;
-        resetDirtyComparison();
+        if (comparison.latestCompareLines) {
+          markDiffStale(true);
+        }
       }, 100);
     }
     elLeft.addEventListener("input", () => {
-      leftEditor.handleInput({ onDirty: debouncedResetDirty });
+      leftEditor.handleInput({ onDirty: onInputChanged });
     });
     elRight.addEventListener("input", () => {
-      rightEditor.handleInput({ onDirty: debouncedResetDirty });
+      rightEditor.handleInput({ onDirty: onInputChanged });
     });
   }
 
@@ -643,32 +824,22 @@ export function mountTextDiffTool(mount) {
     });
   }
 
-  function initDemoText() {
-    elLeft.value = `第一行
-第二行
-第三行
-
-第五行（中间故意有空行）`;
-    elRight.value = `第一行
-第二行（被修改）
-第三行
-第四行（新增）
-第五行（中间故意有空行）`;
-    rememberEditorValues();
-    resetBothEditorScrolls();
-    leftEditor.scheduleRender();
-    rightEditor.scheduleRender();
-    setStatus("已填入演示文本：可直接点击「开始比对」。");
-  }
-
   comparison.reset();
   bindToolbar();
   bindEditorInputs();
   bindEditorScroll();
   bindDiffClickLocate();
   bindTextHistory();
-  initDemoText();
-  loadTextHistory({ silent: true });
+
+  // 检查是否有外部跳转要求恢复的历史记录
+  const pendingRestoreId = sessionStorage.getItem("toolmap_restore_text_diff");
+  if (pendingRestoreId) {
+    sessionStorage.removeItem("toolmap_restore_text_diff");
+    listTextHistory().then((recs) => {
+      textHistoryRecords = recs;
+      restoreTextHistory(pendingRestoreId);
+    }).catch(() => {});
+  }
 
   mount._cleanup = () => {
     if (inputDebounceTimer) {
@@ -691,6 +862,3 @@ export function unmountTextDiffTool() {
   }
 }
 export { unmountTextDiffTool as unmount };
-
-
-

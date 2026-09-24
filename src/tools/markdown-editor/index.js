@@ -456,13 +456,13 @@ export function mountMarkdownEditorTool(mount) {
   });
 
   mount.querySelector(".md-toolbar").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-fmt]");
-    if (btn) applyFormat(btn.dataset.fmt);
+    const btn = e.target instanceof Element ? e.target.closest("[data-fmt]") : null;
+    if (btn instanceof HTMLElement) applyFormat(btn.dataset.fmt);
   });
 
   mount.querySelector(".md-mode-switch").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-mode]");
-    if (btn) setMode(btn.dataset.mode);
+    const btn = e.target instanceof Element ? e.target.closest("[data-mode]") : null;
+    if (btn instanceof HTMLElement) setMode(btn.dataset.mode);
   });
 
   $("#mdFullscreenBtn").addEventListener("click", () => {

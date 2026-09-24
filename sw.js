@@ -1,7 +1,8 @@
-const CACHE_NAME = "toolmap-v7";
+const CACHE_NAME = "toolmap-v8";
 const PRECACHE_URLS = [
   "/",
   "/assets/app.css",
+  "/assets/og-image.svg",
   "/favicon.svg",
   "/index.html",
   "/manifest.json",
@@ -10,6 +11,7 @@ const PRECACHE_URLS = [
   "/src/bg-art.js",
   "/src/config/app-meta.js",
   "/src/debug.js",
+  "/src/navigation-state.js",
   "/src/shared/clipboard.js",
   "/src/shared/escape.js",
   "/src/shared/format.js",
@@ -60,7 +62,9 @@ const PRECACHE_URLS = [
   "/src/tools/text-diff/state.js",
   "/src/tools/text-diff/summary.js",
   "/src/tools/text-diff/text-diff.css",
-  "/sw.js"
+  "/sw.js",
+  "/vendor/jsqr.min.js",
+  "/vendor/pdf-lib.min.js"
 ];
 
 self.addEventListener("install", (event) => {
@@ -111,13 +115,13 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(() => caches.match(event.request, { ignoreSearch: true }))
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cached) => {
       const fetchPromise = fetch(event.request)
         .then((response) => {
           if (response.ok) {

@@ -34,9 +34,24 @@ export function parsePageRanges(str, maxPage) {
 }
 
 /**
+ * 接受 UI 已解析的 0-indexed 页码或原始范围字符串，统一为有效页码数组。
+ * @param {string | number[]} selection
+ * @param {number} maxPage
+ * @returns {number[]}
+ */
+export function normalizePageSelection(selection, maxPage) {
+  if (Array.isArray(selection)) {
+    return [...new Set(selection)]
+      .filter((page) => Number.isInteger(page) && page >= 0 && page < maxPage)
+      .sort((a, b) => a - b);
+  }
+  return parsePageRanges(selection, maxPage);
+}
+
+/**
  * 拆分 PDF 文件
  * @param {File} file - 源 PDF 文件
- * @param {string} pageRanges - 页码范围字符串
+ * @param {string | number[]} pageRanges - 页码范围字符串或 0-indexed 页码数组
  * @param {(progress: number) => void} [onProgress]
  * @returns {Promise<Blob>}
  */
@@ -47,7 +62,7 @@ export async function splitPDF(file, pageRanges, onProgress) {
   const bytes = await file.arrayBuffer();
   const srcDoc = await PDFDocument.load(bytes);
   const maxPage = srcDoc.getPageCount();
-  const pages = parsePageRanges(pageRanges, maxPage);
+  const pages = normalizePageSelection(pageRanges, maxPage);
 
   if (pages.length === 0) throw new Error("未指定有效页码");
   if (pages.length === maxPage) throw new Error("拆分范围包含所有页面，请直接下载原文件");

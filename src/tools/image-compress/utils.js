@@ -121,3 +121,18 @@ export async function createBitmap(file) {
     URL.revokeObjectURL(url);
   }
 }
+
+/**
+ * ImageBitmap 需要主动释放；HTMLImageElement 降级对象没有 close()。
+ * @param {unknown} source
+ */
+export function closeImageSource(source) {
+  if (
+    source &&
+    typeof source === "object" &&
+    "close" in source &&
+    typeof source.close === "function"
+  ) {
+    source.close();
+  }
+}

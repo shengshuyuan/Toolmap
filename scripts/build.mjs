@@ -8,7 +8,7 @@ const DIST = join(ROOT, "dist");
 const JS_TARGET = "es2020";
 
 const JS_DIRS = ["src"];
-const STATIC_FILES = ["index.html", "sw.js", "manifest.json", "favicon.svg"];
+const STATIC_FILES = ["index.html", "manifest.json", "favicon.svg"];
 const STATIC_DIRS = ["assets", "vendor"];
 
 async function ensureDir(dir) {
@@ -60,8 +60,12 @@ async function copyFile(srcFile) {
 async function updateServiceWorkerPrecache() {
   const jsFiles = await collectFiles(join(ROOT, "src"), ".js");
   const cssFiles = await collectFiles(join(ROOT, "src"), ".css");
+  const vendorFiles = await collectFiles(join(ROOT, "vendor"), ".js");
+  const assetFiles = await collectFiles(join(ROOT, "assets"), ".svg");
   const relJS = jsFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
   const relCSS = cssFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
+  const relVendor = vendorFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
+  const relAssets = assetFiles.map((f) => "/" + f.slice(ROOT.length + 1).replace(/\\/g, "/"));
   const staticUrls = [
     "/",
     "/index.html",
@@ -70,16 +74,24 @@ async function updateServiceWorkerPrecache() {
     "/sw.js",
     "/manifest.json",
   ];
-  const allUrls = Array.from(new Set([...staticUrls, ...relJS, ...relCSS])).sort();
+  const allUrls = Array.from(
+    new Set([...staticUrls, ...relJS, ...relCSS, ...relVendor, ...relAssets])
+  ).sort();
 
   const swPath = join(ROOT, "sw.js");
-  let swCode = await readFile(swPath, "utf8");
+  const swCode = await readFile(swPath, "utf8");
   const precacheArrayString = JSON.stringify(allUrls, null, 2);
-  swCode = swCode.replace(/const PRECACHE_URLS = \[\s*[\s\S]*?\n\];/m, `const PRECACHE_URLS = ${precacheArrayString};`);
-  await writeFile(swPath, swCode);
+  const precachePattern = /const PRECACHE_URLS = \[\s*[\s\S]*?\n\];/m;
+  if (!precachePattern.test(swCode)) {
+    throw new Error("Service Worker template is missing PRECACHE_URLS");
+  }
+  const generatedSwCode = swCode.replace(
+    precachePattern,
+    `const PRECACHE_URLS = ${precacheArrayString};`
+  );
 
   const distSwPath = join(DIST, "sw.js");
-  let distSwCode = await transform(swCode, { loader: "js", minify: true, target: JS_TARGET });
+  const distSwCode = await transform(generatedSwCode, { loader: "js", minify: true, target: JS_TARGET });
   await writeFile(distSwPath, distSwCode.code);
 }
 

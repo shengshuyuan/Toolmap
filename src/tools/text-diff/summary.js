@@ -3,7 +3,7 @@
  */
 
 /**
- * @param {{op:"equal"|"insert"|"delete"|"replace", left?:string, right?:string}[]} lines
+ * @param {{op:"equal"|"insert"|"delete"|"replace", left?:string, right?:string, diffType?:"content"|"format"}[]} lines
  */
 export function summarizeDiffLines(lines) {
   const safeLines = Array.isArray(lines) ? lines : [];

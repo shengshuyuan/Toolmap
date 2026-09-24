@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <title>树园工具导航 - 本地在线工具箱</title>
-    <meta name="description" content="树园工具导航：在线文本差异比对、图片压缩、字符统计等工具，全程浏览器本地处理。" />
+    <title>Toolmap - 产品经理的本地工作台</title>
+    <meta name="description" content="Toolmap：面向产品经理的本地工作台，支持文本比对、Markdown 创作、图片压缩、二维码设计与 PDF 工具，全程在浏览器本地完成。" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://toolmap.shuyuan.me/" />
-    <meta property="og:title" content="树园工具导航 - 本地在线工具箱" />
-    <meta property="og:description" content="在线文本差异比对、图片压缩、字符统计等工具，全程浏览器本地处理，隐私优先。" />
+    <meta property="og:title" content="Toolmap - 产品经理的本地工作台" />
+    <meta property="og:description" content="面向产品经理的本地工作台：文本比对、Markdown 创作、图片压缩、二维码设计与 PDF 工具，全程在浏览器本地完成。" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://toolmap.shuyuan.me/" />
     <meta property="og:image" content="https://toolmap.shuyuan.me/assets/og-image.svg" />
@@ -22,8 +22,6 @@
     <link rel="stylesheet" href="./src/tools/markdown-editor/markdown-editor.css" />
     <link rel="stylesheet" href="./src/tools/pdf-tools/pdf-tools.css" />
     <script>
-      // 本页面使用 ES Module（import/export）。如果你直接双击打开（file://），多数浏览器会拦截模块加载，
-      // 造成“点按钮没反应”。所以在 file:// 场景提前给出提示（不影响正常 http(s) 访问）。
       (function () {
         try {
           if (location.protocol === "file:") {
@@ -34,92 +32,87 @@
     </script>
   </head>
   <body>
-    <div class="bg">
-      <canvas id="bgCanvas" class="bg__canvas" aria-hidden="true"></canvas>
-      <div class="bg__radial bg__radial--a"></div>
-      <div class="bg__radial bg__radial--b"></div>
-      <div class="bg__noise" aria-hidden="true"></div>
-    </div>
+    <div class="app-shell">
+      <!-- 移动端侧栏遮罩 -->
+      <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
 
-    <header class="site-header">
-      <div class="container">
-        <div class="file-warning" role="alert" aria-live="polite">
-          检测到你正在用 <code>file://</code> 直接打开本页面。由于浏览器安全策略，模块脚本会被拦截，导致按钮无响应。
-          请在该目录运行：<code>python3 -m http.server 5173</code>，然后访问 <code>http://localhost:5173</code>。
-        </div>
-        <div class="site-header__row">
-          <div>
-            <div class="kicker">Shuyuan</div>
-            <h1 id="shellTitle" class="title">在线文本差异比对</h1>
-            <p id="shellSubtitle" class="subtitle">
-              支持中文、英文、代码和大文本粘贴。<span class="badge">隐私优先</span> 全程在浏览器本地完成。
-            </p>
-          </div>
-
-          <div class="site-header__meta">
-            <div class="meta-card">
-              <div class="meta-card__label">当前工具</div>
-              <div id="shellToolName" class="meta-card__value">在线文本差异比对</div>
-              <div id="shellToolHint" class="meta-card__hint">中文/英文/代码 · 大文本 · 本地比对</div>
-            </div>
-          </div>
+      <!-- 固定侧栏 (216px) -->
+      <aside class="sidebar" id="siteSidebar" aria-label="侧栏导航">
+        <div class="sidebar__brand">
+          <div class="sidebar__logo-mark">T</div>
+          <span class="sidebar__brand-name">Toolmap</span>
+          <span class="sidebar__version">本地版</span>
+          <button type="button" class="sidebar__close-mobile" id="btnCloseSidebar" aria-label="关闭菜单">✕</button>
         </div>
 
-        <nav id="toolSwitch" class="tool-switch" aria-label="工具切换"></nav>
+        <button class="sidebar__search-btn" id="sidebarSearchBtn" type="button">
+          <div class="sidebar__search-left">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>搜索工具</span>
+          </div>
+          <kbd class="sidebar__search-kbd">⌘K</kbd>
+        </button>
+
+        <nav id="toolSwitch" class="sidebar-nav" aria-label="工具切换"></nav>
+
+        <div class="sidebar__footer">
+          <div class="sidebar__safe-badge">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>本地处理</span>
+          </div>
+          <button type="button" class="sidebar__manage-btn" id="sidebarDataManageBtn" data-nav-target="data-manage" title="本地数据管理" aria-label="本地数据管理">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+        </div>
+      </aside>
+
+      <!-- 主舞台区 -->
+      <div class="app-main">
+        <!-- 移动端顶栏 -->
+        <header class="mobile-topbar">
+          <button type="button" class="mobile-menu-btn" id="btnMobileMenu" aria-label="打开菜单">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="mobile-topbar__brand">Toolmap</div>
+          <div style="width: 22px;"></div>
+        </header>
+
+        <main class="main-stage">
+          <div class="file-warning" role="alert" aria-live="polite">
+            检测到你正在用 <code>file://</code> 直接打开本页面。由于浏览器安全策略，模块脚本会被拦截，导致按钮无响应。
+            请在该目录运行：<code>python3 -m http.server 5173</code>，然后访问 <code>http://localhost:5173</code>。
+          </div>
+
+          <div id="toolMounts"></div>
+        </main>
+
+        <footer class="app-footer">
+          <div class="footer__left">© <span id="year"></span> <a href="https://github.com/shengshuyuan/Toolmap" target="_blank" rel="noopener">树园</a></div>
+          <div class="footer__right"><span id="appVersionLabel"></span> · 本地运行 · 仅保存在当前浏览器</div>
+        </footer>
       </div>
-    </header>
-
-    <main class="container">
-      <div id="toolMounts"></div>
-
-      <footer class="footer">
-        <div class="footer__left">© <span id="year"></span> <a href="https://github.com/shengshuyuan/Toolmap" target="_blank" rel="noopener" class="footer__link">树园</a></div>
-        <div class="footer__right"><span id="appVersionLabel"></span> · 本地运行 · 不上传文件</div>
-      </footer>
-    </main>
+    </div>
 
     <script type="module">
       import { APP_VERSION } from "./src/config/app-meta.js";
 
-      // 版本变更时强制清掉旧 Service Worker / Cache，避免导航栏仍显示旧工具列表
       const VERSION_KEY = "toolmap-seen-version";
       const prevVersion = localStorage.getItem(VERSION_KEY);
       if (prevVersion !== APP_VERSION) {
         localStorage.setItem(VERSION_KEY, APP_VERSION);
-        if (prevVersion) {
-          try {
-            if ("serviceWorker" in navigator) {
-              const regs = await navigator.serviceWorker.getRegistrations();
-              await Promise.all(regs.map((r) => r.unregister()));
-            }
-            if (window.caches?.keys) {
-              const keys = await caches.keys();
-              await Promise.all(keys.map((k) => caches.delete(k)));
-            }
-          } catch (_) {}
-          const reloadKey = `toolmap-reloaded-${APP_VERSION}`;
-          if (!sessionStorage.getItem(reloadKey)) {
-            sessionStorage.setItem(reloadKey, "1");
-            location.reload();
-            throw new Error("toolmap: cache purged, reloading");
-          }
-        }
       }
 
       const style = document.querySelector("[data-app-style]");
       if (style) style.href = `./assets/app.css?v=${APP_VERSION}`;
 
-      await Promise.all([
-        import(`./src/bg-art.js?v=${APP_VERSION}`),
-        import(`./src/app.js?v=${APP_VERSION}`),
-      ]);
+      await import(`./src/app.js?v=${APP_VERSION}`);
     </script>
 
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register(`./sw.js?v=${Date.now()}`)
+            .register("./sw.js")
             .then((reg) => reg.update())
             .catch(() => {});
         });

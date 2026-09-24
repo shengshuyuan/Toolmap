@@ -13,7 +13,7 @@ import { charDiffHtml } from "./char-diff.js";
 /**
  * @param {HTMLElement} mount
  * @param {{lines: DiffLine[], diffCount: number, contentDiffCount?: number, formatDiffCount?: number}} result
- * @returns {{ anchors: string[] }}
+ * @returns {{ anchors: string[], anchorMeta: Record<string, { leftLine: number|null, rightLine: number|null }> }}
  */
 export function renderDiff(mount, result) {
   const { lines } = result;
@@ -24,7 +24,7 @@ export function renderDiff(mount, result) {
     empty.className = "diff-empty";
     empty.textContent = "没有内容可展示。";
     mount.appendChild(empty);
-    return { anchors: [] };
+    return { anchors: [], anchorMeta: {} };
   }
 
   const table = document.createElement("table");

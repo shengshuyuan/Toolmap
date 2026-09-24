@@ -6,6 +6,7 @@ import {
   formatBytes,
   getModeSettings,
   getOutputMime,
+  closeImageSource,
 } from "../src/tools/image-compress/utils.js";
 import { buildCompressionCandidates, calculateTargetSize } from "../src/tools/image-compress/compressor.js";
 import { HISTORY_LIMIT, createHistoryRecord, getHistoryUsage, isHistoryAvailable } from "../src/tools/image-compress/history-store.js";
@@ -24,6 +25,11 @@ assert.equal(getModeSettings("lossless").outputFormat, "original");
 assert.equal(getModeSettings("lossless").maxEdge, 0);
 assert.equal(getOutputMime("image/png", "webp", "smart"), "image/webp");
 assert.equal(getOutputMime("image/png", "webp", "lossless"), "image/png");
+
+let closeCount = 0;
+closeImageSource({ close() { closeCount += 1; } });
+closeImageSource({});
+assert.equal(closeCount, 1, "仅在图片源提供 close() 时释放，不依赖全局 ImageBitmap 构造器");
 
 assert.deepEqual(calculateTargetSize(4000, 2000, 2000), { width: 2000, height: 1000, resized: true });
 assert.deepEqual(calculateTargetSize(1200, 800, 2000), { width: 1200, height: 800, resized: false });
