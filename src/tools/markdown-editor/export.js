@@ -65,8 +65,17 @@ export function buildSafeHtmlDocument(markdown, title) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${escapeHtml(title || "document")}</title>
   <style>
-    body{font-family:Georgia,"Noto Serif SC",serif;line-height:1.7;color:#1a1a1a;max-width:760px;margin:40px auto;padding:0 20px}
-    h1,h2,h3,h4{line-height:1.25}
+    body{font-family:"Songti SC","Noto Serif SC",Georgia,serif;line-height:1.75;color:#1a1a1a;max-width:760px;margin:40px auto;padding:0 20px}
+    h1,h2,h3,h4,h5,h6{font-weight:700;line-height:1.3;color:#1a1a1a;margin:1.2em 0 .5em}
+    h1{font-size:1.8em}
+    h2{font-size:1.45em}
+    h3{font-size:1.22em}
+    h4,h5,h6{font-size:1.05em}
+    p{margin:.7em 0}
+    strong,b{font-weight:700}
+    em,i{font-style:italic}
+    u{text-decoration:underline;text-underline-offset:.15em}
+    del,s{text-decoration:line-through}
     code{background:#f4f4f0;padding:1px 6px;border-radius:6px;font-size:.92em}
     pre{background:#1e1e1e;color:#f5f5f5;padding:14px;border-radius:10px;overflow:auto}
     pre code{background:transparent;padding:0;color:inherit}

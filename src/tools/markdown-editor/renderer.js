@@ -71,7 +71,7 @@ export function renderMarkdown(md) {
       }
 
       // table
-      if (/^\s*\|.+\|\s*$/.test(line)) {
+      if (/^[ \t]*\|.+\|[ \t]*$/.test(line)) {
         closeLists(); closeQuote();
         inTable = true;
         tableRows.push(line);
@@ -81,8 +81,8 @@ export function renderMarkdown(md) {
         flushTable();
       }
 
-      // hr
-      if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+      // hr。只认普通空格，避免段首全角空格被当成分隔线。
+      if (/^[ \t]*(-{3,}|\*{3,}|_{3,})[ \t]*$/.test(line)) {
         closeLists(); closeQuote();
         html.push("<hr />");
         i++;
@@ -90,7 +90,7 @@ export function renderMarkdown(md) {
       }
 
       // headings
-      const h = line.match(/^(#{1,6})\s+(.+)$/);
+      const h = line.match(/^(#{1,6})[ \t]+(.+)$/);
       if (h) {
         closeLists(); closeQuote();
         const level = h[1].length;
@@ -101,11 +101,12 @@ export function renderMarkdown(md) {
       }
 
       // blockquote
-      const q = line.match(/^>\s?(.*)$/);
+      const q = line.match(/^>[ \t]?(.*)$/);
       if (q) {
         closeLists();
         if (!inQuote) { html.push("<blockquote>"); inQuote = true; }
-        html.push(`<p>${inline(q[1])}</p>`);
+        const quoted = paragraphHtml(q[1]);
+        if (quoted) html.push(quoted);
         i++;
         continue;
       } else {
@@ -113,7 +114,7 @@ export function renderMarkdown(md) {
       }
 
       // task list
-      const task = line.match(/^\s*[-*+]\s+\[([ xX])\]\s+(.+)$/);
+      const task = line.match(/^[ \t]*[-*+]\s+\[([ xX])\]\s+(.+)$/);
       if (task) {
         if (inOl) { html.push("</ol>"); inOl = false; }
         if (inUl) { html.push("</ul>"); inUl = false; }
@@ -127,7 +128,7 @@ export function renderMarkdown(md) {
       }
 
       // ul
-      const ul = line.match(/^\s*[-*+]\s+(.+)$/);
+      const ul = line.match(/^[ \t]*[-*+]\s+(.+)$/);
       if (ul) {
         if (inOl) { html.push("</ol>"); inOl = false; }
         if (inTask) { html.push("</ul>"); inTask = false; }
@@ -138,7 +139,7 @@ export function renderMarkdown(md) {
       }
 
       // ol
-      const ol = line.match(/^\s*\d+\.\s+(.+)$/);
+      const ol = line.match(/^[ \t]*\d+\.\s+(.+)$/);
       if (ol) {
         if (inUl) { html.push("</ul>"); inUl = false; }
         if (inTask) { html.push("</ul>"); inTask = false; }
@@ -155,7 +156,8 @@ export function renderMarkdown(md) {
         continue;
       }
 
-      html.push(`<p>${inline(line)}</p>`);
+      const paragraph = paragraphHtml(line);
+      if (paragraph) html.push(paragraph);
       i++;
     }
 
@@ -196,41 +198,69 @@ function renderTable(rows) {
 }
 
 /**
+ * 段落。段首全角空格或 em 空格转成 text-indent，避免字体里这个字符宽度不对。
+ * @param {string} line
+ * @returns {string}
+ */
+function paragraphHtml(line) {
+  const match = String(line ?? "").match(/^((?:\u3000|\u2003){1,8})([\s\S]*)$/);
+  const indent = match ? [...match[1]].length : 0;
+  const content = indent ? match[2] : line;
+  if (String(content ?? "").trim() === "") return "";
+  const style = indent ? ` style="text-indent:${indent}em"` : "";
+  return `<p${style}>${inline(content)}</p>`;
+}
+
+/**
  * 行内语法
  * @param {string} text
  */
 export function inline(text) {
   let s = escapeHtml(String(text ?? ""));
+  const holders = [];
+  const hold = (html) => {
+    const token = `\uE000${holders.length}\uE001`;
+    holders.push(html);
+    return token;
+  };
 
-  // images ![alt](url)
-  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, alt, url) => {
-    const safe = sanitizeUrl(url);
-    if (!safe) return escapeHtml(`![${alt}](${url})`);
-    return `<img src="${escapeAttr(safe)}" alt="${escapeAttr(alt)}" loading="lazy" />`;
+  // 图片、链接、代码先拿走，避免加粗/斜体改写标签属性
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (full, alt, url) => {
+    const safe = sanitizeUrl(unescapeHtml(url));
+    if (!safe) return full;
+    return hold(`<img src="${escapeAttr(safe)}" alt="${alt}" loading="lazy" />`);
   });
 
-  // links [text](url) — label 已在 escapeHtml 之后，禁止再插入未转义 HTML
-  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (_, label, url) => {
-    const safe = sanitizeUrl(url);
-    if (!safe) return `[${label}](${escapeHtml(url)})`;
-    return `<a href="${escapeAttr(safe)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g, (full, label, url) => {
+    const safe = sanitizeUrl(unescapeHtml(url));
+    if (!safe) return full;
+    return hold(`<a href="${escapeAttr(safe)}" target="_blank" rel="noopener noreferrer">${applyMarks(label)}</a>`);
   });
 
-  // inline code
-  s = s.replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`);
+  s = s.replace(/`([^`]+)`/g, (_, code) => hold(`<code>${code}</code>`));
+  s = applyMarks(s);
+  return s.replace(/\uE000(\d+)\uE001/g, (_, index) => holders[Number(index)] ?? "");
+}
 
-  // bold ** **
+function applyMarks(text) {
+  let s = text;
+  s = s.replace(/\+\+([^+]+)\+\+/g, "<u>$1</u>");
+  s = s.replace(/\*\*\*([^*]+)\*\*\*/g, "<strong><em>$1</em></strong>");
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/__([^_]+)__/g, "<strong>$1</strong>");
-
-  // italic * *
-  s = s.replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s).,!?:;]|$)/g, "$1<em>$2</em>");
-  s = s.replace(/(^|[\s(])_([^_\n]+)_(?=[\s).,!?:;]|$)/g, "$1<em>$2</em>");
-
-  // strike ~~
+  s = s.replace(/(^|[^A-Za-z0-9*])\*([^*\n]+)\*(?=$|[^A-Za-z0-9*])/g, "$1<em>$2</em>");
+  s = s.replace(/(^|[^A-Za-z0-9_])_([^_\n]+)_(?=$|[^A-Za-z0-9_])/g, "$1<em>$2</em>");
   s = s.replace(/~~([^~]+)~~/g, "<del>$1</del>");
-
   return s;
+}
+
+function unescapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
 }
 
 /**
