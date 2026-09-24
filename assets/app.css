@@ -46,12 +46,23 @@
 [hidden] { display: none !important; }
 html, body { min-height: 100%; height: 100%; }
 
-/* 程序化聚焦标题时去除突兀的蓝色边框，仅键盘 tab 访问展示可见焦点 */
-h1:focus:not(:focus-visible),
-h2:focus:not(:focus-visible),
-h3:focus:not(:focus-visible),
-[tabindex="-1"]:focus:not(:focus-visible) {
-  outline: none;
+/* 程序化聚焦标题或容器时去除突兀的浏览器默认蓝框 (仅用于无障碍播报，无需视觉描边) */
+[tabindex="-1"]:focus,
+h1:focus,
+h2:focus,
+h3:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* 恢复通过键盘正常 Tab 访问的交互元素焦点可见性 */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--primary, #e25c34);
+  outline-offset: 2px;
 }
 
 body {
