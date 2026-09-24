@@ -27,11 +27,11 @@ export async function mountRecentView(mount, { onNavigate }) {
       </div>
 
       <div class="recent-filter-bar" role="tablist" aria-label="工具筛选">
-        <button type="button" class="filter-pill filter-pill--active" data-filter="all">全部</button>
-        <button type="button" class="filter-pill" data-filter="text-diff">文本比对</button>
-        <button type="button" class="filter-pill" data-filter="markdown-editor">Markdown</button>
-        <button type="button" class="filter-pill" data-filter="image-compress">图片压缩</button>
-        <button type="button" class="filter-pill" data-filter="qrcode">二维码</button>
+        <button type="button" class="filter-pill filter-pill--active" data-filter="all" role="tab" aria-selected="true">全部</button>
+        <button type="button" class="filter-pill" data-filter="text-diff" role="tab" aria-selected="false">文本比对</button>
+        <button type="button" class="filter-pill" data-filter="markdown-editor" role="tab" aria-selected="false">Markdown</button>
+        <button type="button" class="filter-pill" data-filter="image-compress" role="tab" aria-selected="false">图片压缩</button>
+        <button type="button" class="filter-pill" data-filter="qrcode" role="tab" aria-selected="false">二维码</button>
       </div>
 
       <div id="recentFullList" class="recent-full-list">
@@ -124,8 +124,12 @@ export async function mountRecentView(mount, { onNavigate }) {
   // 绑定分类筛选
   mount.querySelectorAll(".filter-pill").forEach((pill) => {
     pill.addEventListener("click", () => {
-      mount.querySelectorAll(".filter-pill").forEach((p) => p.classList.remove("filter-pill--active"));
+      mount.querySelectorAll(".filter-pill").forEach((p) => {
+        p.classList.remove("filter-pill--active");
+        p.setAttribute("aria-selected", "false");
+      });
       pill.classList.add("filter-pill--active");
+      pill.setAttribute("aria-selected", "true");
       currentFilter = pill.getAttribute("data-filter") || "all";
       render();
     });
@@ -148,8 +152,14 @@ export async function mountRecentView(mount, { onNavigate }) {
   if (btnClear) {
     btnClear.addEventListener("click", async () => {
       if (window.confirm("确定要清空所有工具的本地历史数据吗？此操作不可逆！")) {
-        await clearAllLocalData();
+        const res = await clearAllLocalData();
         await refresh();
+        if (res && res.success) {
+          alert("本地数据已成功清空。");
+        } else {
+          const failed = (res && res.failedStores ? res.failedStores : []).join(", ") || "未知存储";
+          alert(`部分数据清空未完成（${failed}），请检查浏览器存储权限后重试。`);
+        }
       }
     });
   }

@@ -22,7 +22,6 @@ export function getPdfToolsTemplate() {
     <span class="capability-pill">合并</span>
     <span class="capability-pill">拆分</span>
     <span class="capability-pill">加水印</span>
-    <span class="capability-pill capability-pill--safe">本地处理</span>
   </div>
 
   <!-- Tab 切换 -->

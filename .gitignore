@@ -12,3 +12,5 @@ coverage/
 .cache/
 .temp/
 .tmp/
+.playwright-cli/
+output/

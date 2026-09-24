@@ -21,7 +21,6 @@ export function getCharCountTemplate() {
       <span class="capability-pill">实时统计</span>
       <span class="capability-pill">字符 / 字节 / 长度</span>
       <span class="capability-pill">中文 / emoji 支持</span>
-      <span class="capability-pill capability-pill--safe">本地处理</span>
     </div>
 
     <div class="char-editor">

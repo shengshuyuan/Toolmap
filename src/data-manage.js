@@ -151,9 +151,14 @@ export async function mountDataManageView(mount, { onNavigate }) {
   if (btnClear) {
     btnClear.addEventListener("click", async () => {
       if (window.confirm("确定要清空当前浏览器的所有 Toolmap 数据吗？操作无法撤销！")) {
-        await clearAllLocalData();
+        const res = await clearAllLocalData();
         await refreshStats();
-        alert("本地数据已成功清空。");
+        if (res && res.success) {
+          alert("本地数据已成功清空。");
+        } else {
+          const failed = (res && res.failedStores ? res.failedStores : []).join(", ") || "未知存储";
+          alert(`部分数据清空未完成（${failed}），请检查浏览器存储权限后重试。`);
+        }
       }
     });
   }

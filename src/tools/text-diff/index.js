@@ -300,6 +300,7 @@ export function mountTextDiffTool(mount) {
   let isDiffMode = false;
   let viewMode = "side"; // 'side' | 'inline'
   let isDirtyAfterDiff = false;
+  let onDocClickCloseMore = null;
 
   function setStatus(text, tone = "muted") {
     elStatus.textContent = text;
@@ -700,24 +701,29 @@ export function mountTextDiffTool(mount) {
     btnNext.addEventListener("click", () => goto(comparison.nav.activeIndex + 1));
 
     // 更多下拉菜单
+    onDocClickCloseMore = () => {
+      moreDropdownMenu.hidden = true;
+    };
     btnMoreToggle.addEventListener("click", (e) => {
       e.stopPropagation();
       moreDropdownMenu.hidden = !moreDropdownMenu.hidden;
     });
-    document.addEventListener("click", () => {
-      moreDropdownMenu.hidden = true;
-    });
+    document.addEventListener("click", onDocClickCloseMore);
 
     // 左右对照 vs 逐条查看
     tabViewSide.addEventListener("click", () => {
       tabViewSide.classList.add("diff-tab-btn--active");
+      tabViewSide.setAttribute("aria-selected", "true");
       tabViewInline.classList.remove("diff-tab-btn--active");
+      tabViewInline.setAttribute("aria-selected", "false");
       elDiffView.classList.remove("diff-view--inline");
       viewMode = "side";
     });
     tabViewInline.addEventListener("click", () => {
       tabViewInline.classList.add("diff-tab-btn--active");
+      tabViewInline.setAttribute("aria-selected", "true");
       tabViewSide.classList.remove("diff-tab-btn--active");
+      tabViewSide.setAttribute("aria-selected", "false");
       elDiffView.classList.add("diff-view--inline");
       viewMode = "inline";
     });
@@ -845,6 +851,7 @@ export function mountTextDiffTool(mount) {
   }
 
   mount._cleanup = () => {
+    document.removeEventListener("click", onDocClickCloseMore);
     if (inputDebounceTimer) {
       clearTimeout(inputDebounceTimer);
       inputDebounceTimer = null;

@@ -42,7 +42,6 @@ export function getQrcodeTemplate() {
     <span class="capability-pill">WiFi / vCard</span>
     <span class="capability-pill">外框 · Logo</span>
     <span class="capability-pill">扫描自检</span>
-    <span class="capability-pill capability-pill--safe">本地处理</span>
   </div>
 
   <div class="qr-tabs" role="tablist">
@@ -55,10 +54,10 @@ export function getQrcodeTemplate() {
       <div class="qr-settings">
         <section class="qr-group">
           <h3 class="qr-group-title">1. 内容</h3>
-          <div class="qr-type-tabs" role="tablist">
-            <button class="qr-type-tab qr-type-tab--active" data-type="text" type="button">文本 / URL</button>
-            <button class="qr-type-tab" data-type="wifi" type="button">WiFi</button>
-            <button class="qr-type-tab" data-type="vcard" type="button">vCard 名片</button>
+          <div class="qr-type-tabs" role="tablist" aria-label="内容类型">
+            <button class="qr-type-tab qr-type-tab--active" data-type="text" type="button" role="tab" aria-selected="true">文本 / URL</button>
+            <button class="qr-type-tab" data-type="wifi" type="button" role="tab" aria-selected="false">WiFi</button>
+            <button class="qr-type-tab" data-type="vcard" type="button" role="tab" aria-selected="false">vCard 名片</button>
           </div>
           <div class="qr-form" data-form="text">
             <label class="qr-label" for="qrText">输入文本或网址</label>
@@ -93,10 +92,10 @@ export function getQrcodeTemplate() {
           <div class="qr-option-row">
             <label class="qr-label">纠错等级</label>
             <div class="qr-ec-group" role="radiogroup" aria-label="纠错等级">
-              <button class="qr-ec-btn" data-ec="L" type="button" title="7% 容错">L</button>
-              <button class="qr-ec-btn qr-ec-btn--active" data-ec="M" type="button" title="15% 容错">M</button>
-              <button class="qr-ec-btn" data-ec="Q" type="button" title="25% 容错">Q</button>
-              <button class="qr-ec-btn" data-ec="H" type="button" title="30% 容错">H</button>
+              <button class="qr-ec-btn" data-ec="L" type="button" role="radio" aria-checked="false" title="7% 容错">L</button>
+              <button class="qr-ec-btn qr-ec-btn--active" data-ec="M" type="button" role="radio" aria-checked="true" title="15% 容错">M</button>
+              <button class="qr-ec-btn" data-ec="Q" type="button" role="radio" aria-checked="false" title="25% 容错">Q</button>
+              <button class="qr-ec-btn" data-ec="H" type="button" role="radio" aria-checked="false" title="30% 容错">H</button>
             </div>
           </div>
           <div class="qr-option-row qr-option-row--inline">
@@ -420,7 +419,9 @@ export function mountQrcodeTool(mount) {
     updateLogoUI();
     updateMarginWarn();
     $$(".qr-ec-btn").forEach((btn) => {
-      btn.classList.toggle("qr-ec-btn--active", btn.dataset.ec === style.errorLevel);
+      const active = btn.dataset.ec === style.errorLevel;
+      btn.classList.toggle("qr-ec-btn--active", active);
+      btn.setAttribute("aria-checked", String(active));
     });
   }
 
@@ -692,7 +693,9 @@ export function mountQrcodeTool(mount) {
   function switchType(type) {
     currentType = type;
     $$(".qr-type-tab").forEach((btn) => {
-      btn.classList.toggle("qr-type-tab--active", btn.dataset.type === type);
+      const active = btn.dataset.type === type;
+      btn.classList.toggle("qr-type-tab--active", active);
+      btn.setAttribute("aria-selected", String(active));
     });
     $$(".qr-form").forEach((form) => {
       form.hidden = form.dataset.form !== type;
@@ -703,7 +706,9 @@ export function mountQrcodeTool(mount) {
   function switchEc(ec) {
     style.errorLevel = ec;
     $$(".qr-ec-btn").forEach((btn) => {
-      btn.classList.toggle("qr-ec-btn--active", btn.dataset.ec === ec);
+      const active = btn.dataset.ec === ec;
+      btn.classList.toggle("qr-ec-btn--active", active);
+      btn.setAttribute("aria-checked", String(active));
     });
     scheduleGenerate();
   }

@@ -158,8 +158,8 @@ export function mountMarkdownEditorTool(mount) {
   let saveTimer = null;
   let lastFindIndex = 0;
 
-  // mobile default
-  if (window.matchMedia("(max-width: 720px)").matches && viewMode === "split") {
+  // mobile default: 在移动端视口（<= 768px）优先默认使用纯编辑视图
+  if (window.matchMedia("(max-width: 768px)").matches) {
     viewMode = "edit";
   }
 
@@ -444,6 +444,7 @@ export function mountMarkdownEditorTool(mount) {
       applyFormat("italic");
     } else if (mod && e.key.toLowerCase() === "k") {
       e.preventDefault();
+      e.stopPropagation();
       applyFormat("link");
     } else if (mod && e.key.toLowerCase() === "s") {
       e.preventDefault();

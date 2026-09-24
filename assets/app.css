@@ -43,7 +43,16 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
 html, body { min-height: 100%; height: 100%; }
+
+/* 程序化聚焦标题时去除突兀的蓝色边框，仅键盘 tab 访问展示可见焦点 */
+h1:focus:not(:focus-visible),
+h2:focus:not(:focus-visible),
+h3:focus:not(:focus-visible),
+[tabindex="-1"]:focus:not(:focus-visible) {
+  outline: none;
+}
 
 body {
   margin: 0;
@@ -315,6 +324,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* 移动端顶部顶栏 */
@@ -352,6 +363,16 @@ body {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+#toolMounts,
+.tool-mount {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 统一通用页脚 */
@@ -1260,5 +1281,17 @@ body {
   }
   .data-actions-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* 减少动态效果支持 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

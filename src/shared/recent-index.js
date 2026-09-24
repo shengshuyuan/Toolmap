@@ -215,14 +215,62 @@ export async function getStorageEstimate() {
 }
 
 /**
- * 导出全站数据为 JSON 备份
+ * 将 Blob 转为 DataURL 字符串（支持浏览器 FileReader 与 Node 环境 fallback）
+ * @param {Blob} blob
+ * @returns {Promise<string|null>}
  */
-export async function exportAllBackupData() {
+export async function blobToDataURL(blob) {
+  if (!blob) return null;
+  if (typeof FileReader !== "undefined") {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+  if (typeof blob.arrayBuffer === "function") {
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    return `data:${blob.type || "application/octet-stream"};base64,${base64}`;
+  }
+  return null;
+}
+
+/**
+ * 将 DataURL 字符串还原为 Blob 对象
+ * @param {string} dataURL
+ * @returns {Blob|null}
+ */
+export function dataURLToBlob(dataURL) {
+  if (!dataURL || typeof dataURL !== "string") return null;
+  const parts = dataURL.split(",");
+  if (parts.length < 2) return null;
+  const mimeMatch = parts[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+  const bstr = atob(parts[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
+/**
+ * 构建全站备份 Payload 数据结构，支持 Blob 序列化
+ */
+export async function buildBackupPayload() {
   if (!isHistoryAvailable()) throw new Error("当前环境不支持导出。");
 
   const backup = {
     app: "Toolmap",
-    schemaVersion: 1,
+    schemaVersion: 2,
     exportedAt: new Date().toISOString(),
     stores: {},
   };
@@ -230,12 +278,32 @@ export async function exportAllBackupData() {
   for (const [toolId, getStore] of Object.entries(STORES)) {
     try {
       const store = getStore();
-      backup.stores[toolId] = await store.list();
+      const list = await store.list();
+      const serializedList = await Promise.all(
+        list.map(async (record) => {
+          if (!record || typeof record !== "object") return record;
+          if (record.blob instanceof Blob) {
+            const blobDataUrl = await blobToDataURL(record.blob);
+            const { blob, ...rest } = record;
+            return { ...rest, blobDataUrl };
+          }
+          return record;
+        })
+      );
+      backup.stores[toolId] = serializedList;
     } catch (_) {
       backup.stores[toolId] = [];
     }
   }
 
+  return backup;
+}
+
+/**
+ * 导出全站数据为 JSON 备份
+ */
+export async function exportAllBackupData() {
+  const backup = await buildBackupPayload();
   const json = JSON.stringify(backup, null, 2);
   const blob = new Blob([json], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -271,6 +339,13 @@ export async function importBackupData(backupData) {
     for (const record of records) {
       if (!record || typeof record !== "object") continue;
       try {
+        const dataUrl = record.blobDataUrl || record.imageData;
+        if (dataUrl && !(record.blob instanceof Blob)) {
+          const restoredBlob = dataURLToBlob(dataUrl);
+          if (restoredBlob) {
+            record.blob = restoredBlob;
+          }
+        }
         await store.save(record);
         importedCount++;
       } catch (err) {
@@ -284,15 +359,22 @@ export async function importBackupData(backupData) {
 
 /**
  * 清空所有工具的本地历史数据
+ * @returns {Promise<{ success: boolean, failedStores: string[] }>}
  */
 export async function clearAllLocalData() {
-  if (!isHistoryAvailable()) return;
-  for (const getStore of Object.values(STORES)) {
+  if (!isHistoryAvailable()) return { success: false, failedStores: ["storage_unavailable"] };
+  const failedStores = [];
+  for (const [toolId, getStore] of Object.entries(STORES)) {
     try {
       const store = getStore();
       await store.clear();
     } catch (err) {
-      console.warn("[recent-index] clear failed:", err);
+      console.warn(`[recent-index] clear failed for ${toolId}:`, err);
+      failedStores.push(toolId);
     }
   }
+  return {
+    success: failedStores.length === 0,
+    failedStores,
+  };
 }

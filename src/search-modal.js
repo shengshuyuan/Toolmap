@@ -113,10 +113,10 @@ export function createSearchModal({ onNavigate }) {
       <div class="search-modal" role="dialog" aria-modal="true" aria-label="搜索工具与任务">
         <div class="search-modal__head">
           <svg class="search-modal__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="search" class="search-modal__input" id="searchModalInput" placeholder="搜索工具、任务（如：比较需求、图片变小、合并 PDF）..." autocomplete="off" spellcheck="false" />
+          <input type="search" class="search-modal__input" id="searchModalInput" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="searchModalResults" placeholder="搜索工具、任务（如：比较需求、图片变小、合并 PDF）..." autocomplete="off" spellcheck="false" />
           <button type="button" class="search-modal__close" id="searchModalClose" aria-label="关闭">Esc</button>
         </div>
-        <div class="search-modal__body" id="searchModalResults">
+        <div class="search-modal__body" id="searchModalResults" role="listbox" aria-label="搜索结果">
           <div class="search-modal__hint">输入关键词开始检索工具、常见任务与最近记录</div>
         </div>
         <div class="search-modal__footer">
@@ -136,23 +136,35 @@ export function createSearchModal({ onNavigate }) {
   let activeIndex = 0;
   let currentItems = [];
   let recentRecordsCache = [];
+  let previouslyFocusedElement = null;
 
   function open() {
+    previouslyFocusedElement = document.activeElement;
     modalEl.classList.add("search-modal-backdrop--open");
     modalEl.setAttribute("aria-hidden", "false");
+    input.setAttribute("aria-expanded", "true");
     input.value = "";
     activeIndex = 0;
     input.focus();
     renderResults("");
-    // 异步拉取最近记录作为搜索候选
+    // 异步拉取最近记录作为搜索候选，并在就绪后刷新当前视图
     listAllRecentRecords().then((list) => {
       recentRecordsCache = list;
+      if (modalEl.classList.contains("search-modal-backdrop--open")) {
+        renderResults(input.value);
+      }
     }).catch(() => {});
   }
 
   function close() {
     modalEl.classList.remove("search-modal-backdrop--open");
     modalEl.setAttribute("aria-hidden", "true");
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === "function") {
+      previouslyFocusedElement.focus();
+      previouslyFocusedElement = null;
+    }
   }
 
   function renderResults(query) {
@@ -166,13 +178,15 @@ export function createSearchModal({ onNavigate }) {
     activeIndex = 0;
 
     if (!matches.length) {
-      resultsEl.innerHTML = `<div class="search-modal__empty">未找到与“${escapeHtml(query)}”匹配的工具或任务</div>`;
+      input.removeAttribute("aria-activedescendant");
+      resultsEl.innerHTML = `<div class="search-modal__empty" role="status">未找到与“${escapeHtml(query)}”匹配的工具或任务</div>`;
       return;
     }
 
+    input.setAttribute("aria-activedescendant", "searchItem-0");
     resultsEl.innerHTML = matches
       .map((item, idx) => `
-        <div class="search-item ${idx === activeIndex ? "search-item--active" : ""}" data-index="${idx}">
+        <div id="searchItem-${idx}" role="option" aria-selected="${idx === activeIndex}" class="search-item ${idx === activeIndex ? "search-item--active" : ""}" data-index="${idx}">
           <div class="search-item__content">
             <div class="search-item__title">
               <span>${escapeHtml(item.title)}</span>
@@ -195,8 +209,11 @@ export function createSearchModal({ onNavigate }) {
 
   function updateActive() {
     resultsEl.querySelectorAll(".search-item").forEach((el, idx) => {
-      el.classList.toggle("search-item--active", idx === activeIndex);
+      const isActive = idx === activeIndex;
+      el.classList.toggle("search-item--active", isActive);
+      el.setAttribute("aria-selected", String(isActive));
     });
+    input.setAttribute("aria-activedescendant", `searchItem-${activeIndex}`);
     const activeEl = resultsEl.querySelector(".search-item--active");
     if (activeEl) {
       activeEl.scrollIntoView({ block: "nearest" });
@@ -234,6 +251,21 @@ export function createSearchModal({ onNavigate }) {
     } else if (e.key === "Escape") {
       e.preventDefault();
       close();
+    }
+  });
+
+  // 弹窗内的焦点约束
+  modalEl.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      const focusables = /** @type {HTMLElement[]} */ ([input, closeBtn].filter((el) => el instanceof HTMLElement));
+      if (focusables.length < 2) return;
+      if (e.shiftKey && document.activeElement === focusables[0]) {
+        e.preventDefault();
+        focusables[focusables.length - 1].focus();
+      } else if (!e.shiftKey && document.activeElement === focusables[focusables.length - 1]) {
+        e.preventDefault();
+        focusables[0].focus();
+      }
     }
   });
 

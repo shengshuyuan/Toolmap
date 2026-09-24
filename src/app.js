@@ -295,9 +295,17 @@ async function bootstrap() {
   if (btnCloseSidebar) btnCloseSidebar.addEventListener("click", closeMobileSidebar);
   if (sidebarBackdrop) sidebarBackdrop.addEventListener("click", closeMobileSidebar);
 
-  // 键盘快捷键 ⌘K
+  // 键盘快捷键 ⌘K（在输入框、文本域内或已被消费时不触发全局弹窗）
   window.addEventListener("keydown", (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      const target = e.target;
+      const isInput = target instanceof HTMLElement && (
+        target.isContentEditable ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT"
+      );
+      if (isInput || e.defaultPrevented) return;
       e.preventDefault();
       searchModal.open();
     }

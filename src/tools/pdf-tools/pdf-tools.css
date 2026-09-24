@@ -1,10 +1,12 @@
 .pdf-tools-tool.pdf-panel{
-  border-radius: calc(var(--r) + 6px);
+  border-radius: var(--r2);
   border: 1px solid var(--line);
   background: var(--card);
-  box-shadow: var(--shadow);
-  padding: var(--pad-lg);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow2);
+  padding: var(--pad);
+}
+.pdf-tools-tool [hidden] {
+  display: none !important;
 }
 .pdf-tools-tool.pdf-panel--enter{animation: enter .34s ease-out both}
 .pdf-tools-tool .pdf-head{margin-bottom: 14px}
@@ -47,14 +49,15 @@
 .pdf-tools-tool .pdf-file-size{font-size:12px; color:var(--muted2); flex-shrink:0}
 .pdf-tools-tool .pdf-file-move{display:flex; gap:4px}
 .pdf-tools-tool .pdf-move-btn{
-  width:24px; height:24px; border:1px solid var(--line); border-radius:6px;
+  min-width:32px; min-height:32px; width:32px; height:32px; border:1px solid var(--line); border-radius:6px;
   background:transparent; color:var(--muted); cursor:pointer; font-size:12px;
   display:flex; align-items:center; justify-content:center;
 }
 .pdf-tools-tool .pdf-move-btn:hover{border-color:var(--accent); color:var(--accent)}
 .pdf-tools-tool .pdf-file-remove{
-  width:24px; height:24px; border:none; border-radius:6px; background:transparent;
+  min-width:32px; min-height:32px; width:32px; height:32px; border:none; border-radius:6px; background:transparent;
   color:var(--muted2); font-size:16px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
 }
 .pdf-tools-tool .pdf-file-remove:hover{background:rgba(255,59,48,.1); color:var(--danger)}
 

@@ -1,11 +1,14 @@
 .markdown-editor-tool.md-panel{
-  border-radius: calc(var(--r) + 6px);
+  border-radius: var(--r2);
   border: 1px solid var(--line);
   background: var(--card);
-  box-shadow: var(--shadow);
-  padding: var(--pad-lg);
-  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow2);
+  padding: var(--pad);
   position: relative;
+  max-width: 100%;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .markdown-editor-tool.md-panel--enter{animation: enter .34s ease-out both}
 .markdown-editor-tool .md-head{
@@ -30,9 +33,10 @@
 .markdown-editor-tool .md-toolbar{
   display:flex; gap:10px; align-items:center; justify-content:space-between;
   margin:12px 0 10px; flex-wrap:wrap;
+  width: 100%; max-width: 100%; min-width: 0;
 }
 .markdown-editor-tool .md-toolbar-scroll{
-  display:flex; gap:6px; overflow-x:auto; max-width:100%; padding-bottom:2px; -webkit-overflow-scrolling:touch;
+  display:flex; gap:6px; overflow-x:auto; max-width:100%; min-width: 0; flex: 1 1 0%; padding-bottom:2px; -webkit-overflow-scrolling:touch;
 }
 .markdown-editor-tool .md-tb{
   flex-shrink:0; padding:6px 10px; border:1px solid var(--line); border-radius:999px;
@@ -258,7 +262,8 @@
 }
 .markdown-editor-tool .md-doc-open span{font-size:11px; color:var(--muted2)}
 .markdown-editor-tool .md-doc-del{
-  width:28px; height:28px; border:none; border-radius:8px; background:transparent; color:var(--muted2); cursor:pointer;
+  min-width:32px; min-height:32px; width:32px; height:32px; border:none; border-radius:8px; background:transparent; color:var(--muted2); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
 }
 .markdown-editor-tool .md-doc-del:hover{background:rgba(255,59,48,.1); color:var(--danger)}
 
@@ -310,11 +315,32 @@ html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
 .markdown-editor-tool [hidden]{display:none !important}
 
 @media (max-width: 900px){
-  .markdown-editor-tool .md-workspace{
+  .markdown-editor-tool .md-workspace,
+  .markdown-editor-tool[data-mode="edit"] .md-workspace,
+  .markdown-editor-tool[data-mode="preview"] .md-workspace,
+  .markdown-editor-tool[data-mode="split"] .md-workspace {
     grid-template-columns: 1fr !important;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+  .markdown-editor-tool[data-mode="edit"] .md-workspace,
+  .markdown-editor-tool[data-mode="preview"] .md-workspace {
+    grid-template-rows: 1fr !important;
+  }
+  .markdown-editor-tool[data-mode="split"] .md-workspace {
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+  .markdown-editor-tool .md-workspace{
     height: min(72vh, 640px);
     min-height: 360px;
+  }
+  .markdown-editor-tool .md-editor-pane,
+  .markdown-editor-tool .md-preview-pane {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
   }
   .markdown-editor-tool .md-outline{
     position:absolute; left:0; top:0; bottom:0; z-index:10;
@@ -344,10 +370,22 @@ html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
 @media (max-width: 640px){
   .markdown-editor-tool .md-toolbar{
     flex-direction:column; align-items:stretch; gap:8px;
+    width: 100%; min-width: 0; max-width: 100%;
   }
-  .markdown-editor-tool .md-toolbar-scroll{order:2}
-  .markdown-editor-tool .md-mode-switch{width:100%; justify-content:space-between}
+  .markdown-editor-tool .md-toolbar-scroll{
+    order:2; width: 100%; min-width: 0; max-width: 100%;
+  }
+  .markdown-editor-tool .md-mode-switch{
+    width:100%; justify-content:space-between;
+  }
+  .markdown-editor-tool .md-meta-row{
+    flex-direction: column; align-items: stretch; gap: 8px;
+  }
+  .markdown-editor-tool .md-title-input{
+    min-width: 0; width: 100%;
+  }
 }
 @media (max-width: 480px){
   .markdown-editor-tool .md-head-actions{width:100%}
+  .markdown-editor-tool.md-panel{padding: 14px;}
 }

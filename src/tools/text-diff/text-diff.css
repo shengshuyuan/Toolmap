@@ -11,6 +11,10 @@
   width: 100%;
 }
 
+.text-diff-tool [hidden] {
+  display: none !important;
+}
+
 /* 页面头部 */
 .text-diff-tool .diff-header-bar {
   display: flex;
