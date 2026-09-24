@@ -38,6 +38,9 @@ assert.ok(mountMarkup.includes('id="pdfToolsTool"'));
 assert.ok(templateMap["text-diff"].includes("btnCompare"));
 assert.ok(templateMap["text-diff"].includes("btnCopy"));
 assert.ok(templateMap["text-diff"].includes("btnExportTextHistory"));
+assert.ok(templateMap["text-diff"].includes('id="statNavIndex"'), "文本比对必须包含 statNavIndex 节点");
+assert.ok(templateMap["text-diff"].includes('id="btnPrev"'), "文本比对必须包含 btnPrev 节点");
+assert.ok(templateMap["text-diff"].includes('id="btnNext"'), "文本比对必须包含 btnNext 节点");
 
 assert.ok(templateMap["image-compress"].includes("icFileInput"));
 assert.ok(templateMap["image-compress"].includes("选择图片"));

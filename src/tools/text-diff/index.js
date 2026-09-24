@@ -172,7 +172,7 @@ export function getTextDiffTemplate() {
 
       <div class="diff-bottom-bar__center">
         <div class="diff-nav-pill">
-          <span id="statNavLabel">第 0 / 0 处</span>
+          <span id="statNavIndex">第 0 / 0 处</span>
           <button id="btnPrev" class="diff-nav-btn" type="button" title="上一处修改" disabled>↑</button>
           <button id="btnNext" class="diff-nav-btn" type="button" title="下一处修改" disabled>↓</button>
         </div>
@@ -216,7 +216,10 @@ export function getTextDiffTemplate() {
 }
 
 function getRequiredElement(root, id) {
-  const el = root.querySelector(`#${id}`);
+  let el = root.querySelector(`#${id}`);
+  if (!el && id === "statNavIndex") {
+    el = root.querySelector("#statNavLabel");
+  }
   if (!el) throw new Error(`文本比对工具缺少节点：#${id}`);
   return el;
 }

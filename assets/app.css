@@ -1014,6 +1014,8 @@ body {
   font-size: 13px;
   color: var(--muted);
   margin-top: 4px;
+}
+
 .data-action-card__info {
   flex: 1;
 }

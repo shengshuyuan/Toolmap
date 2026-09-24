@@ -59,4 +59,27 @@ assert.equal(manifest.name, "Toolmap - 产品经理的本地工作台");
 assert.equal(manifest.background_color, "#faf9f5");
 assert.ok(manifest.icons.length > 0 && manifest.icons[0].src.endsWith(".svg"), "manifest 应引用有效 svg 图标");
 
+// 6. CSS 大括号闭合完整性校验（防止样式断裂导致全局弹窗或布局脱落）
+const allCssFiles = [
+  "assets/app.css",
+  "src/tools/char-count/char-count.css",
+  "src/tools/image-compress/image-compress.css",
+  "src/tools/qrcode/qrcode.css",
+  "src/tools/markdown-editor/markdown-editor.css",
+  "src/tools/pdf-tools/pdf-tools.css",
+  "src/tools/text-diff/text-diff.css",
+];
+for (const file of allCssFiles) {
+  const content = await readFile(new URL(file, root), "utf8");
+  const cleaned = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/"[^"]*"/g, "").replace(/'[^']*'/g, "");
+  const openCount = (cleaned.match(/\{/g) || []).length;
+  const closeCount = (cleaned.match(/\}/g) || []).length;
+  assert.equal(
+    openCount,
+    closeCount,
+    `${file} 存在未闭合的 CSS 大括号: open={${openCount}}, close={${closeCount}}`
+  );
+}
+
 console.log("UI consistency and copywriting tests passed");
+
