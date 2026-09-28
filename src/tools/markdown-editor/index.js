@@ -1,4 +1,4 @@
-import { renderMarkdown } from "./renderer.js";
+import { renderMarkdown, cleanMarkdownEscapes } from "./renderer.js";
 import { htmlToMarkdown } from "./html-import.js";
 import { buildOutline } from "./outline.js";
 import { createDocumentStore, extractTitle, MAX_DOC_CHARS } from "./document-store.js";
@@ -58,6 +58,7 @@ export function getMarkdownEditorTemplate() {
       <button type="button" class="md-tb" data-fmt="table" title="表格">表格</button>
       <button type="button" class="md-tb" data-fmt="hr" title="分割线">—</button>
       <button type="button" class="md-tb" data-fmt="find" title="查找 (⌘F)">查找</button>
+      <button type="button" class="md-tb" data-fmt="clean-escapes" title="清理多余反斜杠转义（如将 4\.3\. 净化为 4.3.）">净化转义</button>
     </div>
     <div class="md-mode-switch" role="group" aria-label="视图模式">
       <button type="button" class="md-mode" data-mode="edit">编辑</button>
@@ -323,6 +324,18 @@ export function mountMarkdownEditorTool(mount) {
         findBar.hidden = false;
         $("#mdFindInput").focus();
         return;
+      case "clean-escapes": {
+        const val = editor.value;
+        const cleaned = cleanMarkdownEscapes(val);
+        if (cleaned !== val) {
+          setContent(cleaned, { markDirty: true });
+          scheduleAutoSave();
+          showToast("已清理多余反斜杠转义");
+        } else {
+          showToast("未检测到多余反斜杠转义");
+        }
+        return;
+      }
       default:
         return;
     }
@@ -414,11 +427,16 @@ export function mountMarkdownEditorTool(mount) {
       showToast(result.message || "已导入 HTML");
       return;
     }
+    const hasExcessiveEscapes = /(\d+)\\\./.test(text) || /\\\>/.test(text) || /\w\\\.com/.test(text);
     setContent(text, { markDirty: true });
     titleInput.value = safeFilename(name.replace(/\.(md|markdown|txt)$/i, ""));
     setSaveStatus("未保存", "is-dirty");
     scheduleAutoSave();
-    showToast("已导入文件");
+    if (hasExcessiveEscapes) {
+      showToast("已导入文件（含 \\ 转义，可点击工具栏【净化转义】一键清理）");
+    } else {
+      showToast("已导入文件");
+    }
   }
 
   /* ── 事件绑定 ── */

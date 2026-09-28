@@ -230,8 +230,15 @@
   margin:1em 0; padding:.6em 1em; border-left:4px solid var(--accent); border-radius:0 10px 10px 0;
   background:rgba(255,100,43,.04); color:var(--muted);
 }
-.markdown-editor-tool .md-preview img{max-width:100%; height:auto; border-radius:8px}
-.markdown-editor-tool .md-preview a{color:var(--accent)}
+.markdown-editor-tool .md-preview a{
+  color: #3240FC;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown-editor-tool .md-preview a:hover{
+  color: #1f2dc9;
+  text-decoration: underline;
+}
 .markdown-editor-tool .md-preview .md-empty,
 .markdown-editor-tool .md-preview .md-error{color:var(--muted2)}
 .markdown-editor-tool .md-preview ul,

@@ -341,7 +341,7 @@ function renderInlineElement(el, ctx) {
   const deco = style["text-decoration"] || "";
   if (isBoldElement(el, style)) next.bold = true;
   if (isItalicElement(el, style)) next.italic = true;
-  if (tag === "u" || (/underline/.test(deco) && !/line-through/.test(deco))) next.underline = true;
+  if (tag === "u" || (/underline/.test(deco) && !/line-through/.test(deco) && tag !== "a")) next.underline = true;
   if (tag === "del" || tag === "s" || tag === "strike" || /line-through/.test(deco)) next.strike = true;
 
   let inner = tag === "a"

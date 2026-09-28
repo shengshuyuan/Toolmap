@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { renderMarkdown, sanitizeUrl, inline, escapeHtml } from "../src/tools/markdown-editor/renderer.js";
+import { renderMarkdown, sanitizeUrl, inline, escapeHtml, cleanMarkdownEscapes } from "../src/tools/markdown-editor/renderer.js";
 import { sanitizeHtml, htmlToMarkdown } from "../src/tools/markdown-editor/html-import.js";
 import { buildOutline } from "../src/tools/markdown-editor/outline.js";
 import { safeFilename, buildSafeHtmlDocument } from "../src/tools/markdown-editor/export.js";
@@ -16,6 +16,7 @@ import { getMarkdownEditorTemplate } from "../src/tools/markdown-editor/index.js
   assert.ok(t.includes("mdExportHtml"));
   assert.ok(t.includes("mdOutline"));
   assert.ok(t.includes("mdFileInput"));
+  assert.ok(t.includes("clean-escapes"));
 }
 
 // Markdown 基础渲染
@@ -171,6 +172,34 @@ import { getMarkdownEditorTemplate } from "../src/tools/markdown-editor/index.js
 // XSS 文本 escape
 {
   assert.equal(escapeHtml("<img onerror=1>"), "&lt;img onerror=1&gt;");
+}
+// 导出 HTML 超链接样式校验（蓝色 #3240FC，非橙色 #FF642B）
+{
+  const exported = buildSafeHtmlDocument("[测试链接](https://example.com)", "链接测试");
+  assert.ok(exported.includes("color:#3240FC"), "导出的 HTML 超链接应为 #3240FC 蓝色");
+  assert.ok(!exported.includes("color:#FF642B"), "导出的 HTML 超链接不应为 #FF642B 橙色");
+  assert.ok(exported.includes("text-decoration:underline"), "导出的 HTML 超链接应保留下划线样式");
+}
+
+// CommonMark 标点反斜杠转义在渲染 HTML 时自动去转义（4\.3\. 渲染为 4.3.，\>\> 渲染为 >>）
+{
+  const html = renderMarkdown("**4\\.3\\. ****写信上传本地照片、视频附件、微信文件：**\n\n联系邮箱：service@139\\.com；路径：【我的】\\>\\>【设置】");
+  assert.ok(html.includes("4.3. "), "HTML 输出不应包含 4\\.3\\. 的反斜杠");
+  assert.ok(!html.includes("4\\.3\\."), "HTML 输出不应残留 \\ 转义");
+  assert.ok(html.includes("service@139.com"), "邮箱域名中的点号转义应在渲染时被消解");
+  assert.ok(!html.includes("139\\.com"));
+}
+
+// 智能净化反斜杠转义 cleanMarkdownEscapes
+{
+  const raw = "**4\\.3\\. ****写信上传本地照片、视频附件、微信文件：**\nservice@139\\.com\n【我的】\\>\\>【设置】\n我的\\-在线客服\n`code\\.test`\n```js\nconst regex = /\\d+\\.js/;\n```";
+  const cleaned = cleanMarkdownEscapes(raw);
+  assert.ok(cleaned.includes("**4.3. ****写信上传"), "应成功净化多级数字序号反斜杠");
+  assert.ok(cleaned.includes("service@139.com"), "应成功净化邮箱域名反斜杠");
+  assert.ok(cleaned.includes("【我的】>>【设置】"), "应成功净化箭头引用反斜杠");
+  assert.ok(cleaned.includes("我的-在线客服"), "应成功净化横杠反斜杠");
+  assert.ok(cleaned.includes("`code\\.test`"), "行内代码内的反斜杠必须原样保留");
+  assert.ok(cleaned.includes("const regex = /\\d+\\.js/;"), "代码块内的反斜杠必须原样保留");
 }
 
 console.log("markdown editor tests passed");

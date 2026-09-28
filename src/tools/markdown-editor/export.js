@@ -83,7 +83,8 @@ export function buildSafeHtmlDocument(markdown, title) {
     table{border-collapse:collapse;width:100%;margin:1em 0}
     th,td{border:1px solid #ddd;padding:8px 10px;text-align:left}
     img{max-width:100%;height:auto}
-    a{color:#FF642B}
+    a{color:#3240FC;text-decoration:underline;text-underline-offset:2px}
+    a:hover{color:#1f2dc9}
   </style>
 </head>
 <body>

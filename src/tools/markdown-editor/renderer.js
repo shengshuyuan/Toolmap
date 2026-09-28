@@ -251,7 +251,34 @@ function applyMarks(text) {
   s = s.replace(/(^|[^A-Za-z0-9*])\*([^*\n]+)\*(?=$|[^A-Za-z0-9*])/g, "$1<em>$2</em>");
   s = s.replace(/(^|[^A-Za-z0-9_])_([^_\n]+)_(?=$|[^A-Za-z0-9_])/g, "$1<em>$2</em>");
   s = s.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+  // 遵循 CommonMark §6.4 规范：去除正文中对标点符号的转义反斜杠（如 4\.3\. 渲染为 4.3.，\>\> 渲染为 >>）
+  s = s.replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g, "$1");
   return s;
+}
+
+/**
+ * 清理 Markdown 源码中过度转义的反斜杠（如飞书、Notion 导出的 4\.3\.、139\.com、\>\> 等）
+ * 完整保护代码块（```）与行内代码（`）不被误改
+ * @param {string} text
+ * @returns {string}
+ */
+export function cleanMarkdownEscapes(text) {
+  const holders = [];
+  let s = String(text ?? "");
+  // 1. 保留代码块
+  s = s.replace(/(```[\s\S]*?```)/g, (m) => {
+    holders.push(m);
+    return `\uE000${holders.length - 1}\uE001`;
+  });
+  // 2. 保留行内代码
+  s = s.replace(/(`[^`\n]+`)/g, (m) => {
+    holders.push(m);
+    return `\uE000${holders.length - 1}\uE001`;
+  });
+  // 3. 去除对标点符号的多余反斜杠转义 (如 \. \> \- \( \) \[ \] 等)
+  s = s.replace(/\\([!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~])/g, "$1");
+  // 4. 还原代码块与行内代码
+  return s.replace(/\uE000(\d+)\uE001/g, (_, i) => holders[Number(i)] ?? "");
 }
 
 function unescapeHtml(text) {
