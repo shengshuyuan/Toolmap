@@ -4,7 +4,7 @@
  */
 
 import { getStorageEstimate, exportAllBackupData, importBackupData, clearAllLocalData } from "./shared/recent-index.js";
-import { escapeHtml } from "./shared/escape.js";
+import { html } from "./shared/html.js";
 
 /**
  * @param {HTMLElement} mount
@@ -99,14 +99,14 @@ export async function mountDataManageView(mount, { onNavigate }) {
         return;
       }
 
-      tbody.innerHTML = stats.tools.map((t) => `
+      tbody.innerHTML = html`${stats.tools.map((t) => html`
         <tr>
-          <td><strong>${escapeHtml(t.label)}</strong></td>
+          <td><strong>${t.label}</strong></td>
           <td>${t.count} 条</td>
           <td>${t.formattedBytes}</td>
-          <td><code>toolmap-${escapeHtml(t.toolId)}</code></td>
+          <td><code>toolmap-${t.toolId}</code></td>
         </tr>
-      `).join("");
+      `)}`.toString();
     } catch (err) {
       console.warn("[data-manage] refresh failed:", err);
       totalEl.textContent = "读取失败";

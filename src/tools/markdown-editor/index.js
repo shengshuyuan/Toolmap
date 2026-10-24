@@ -7,129 +7,26 @@ import { analyzeTextStats } from "../char-count/stats.js";
 import { createToast } from "../../shared/toast.js";
 import { escapeHtml, escapeAttr } from "../../shared/escape.js";
 import { writeClipboard } from "../../shared/clipboard.js";
+import { getMarkdownEditorTemplate } from "./template.js";
+
+export { getMarkdownEditorTemplate };
 
 const SPLIT_KEY = "toolmap-md-split-ratio";
 const MODE_KEY = "toolmap-md-view-mode";
 
-export function getMarkdownEditorTemplate() {
-  return /* html */ `
-<div class="markdown-editor-tool md-panel md-panel--enter" id="mdRoot">
-  <button type="button" class="md-exit-fullscreen" id="mdExitFullscreen" hidden>退出沉浸</button>
-  <div class="md-head">
-    <div>
-      <div class="tool-breadcrumb">文档与评审 / Markdown</div>
-      <h2 class="md-title">Markdown 创作台</h2>
-      <p class="md-lead">Markdown / HTML 导入 · 实时预览 · 本地保存 · 沉浸式写作</p>
-      <div class="privacy-badge"><strong>本地处理</strong><span>文档不上传服务器，草稿保存在本机浏览器</span></div>
-    </div>
-    <div class="md-head-actions">
-      <button type="button" class="md-btn md-btn--sm" id="mdImportBtn">导入</button>
-      <input id="mdFileInput" type="file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden />
-      <button type="button" class="md-btn md-btn--sm" id="mdNewDoc">新建</button>
-      <button type="button" class="md-btn md-btn--sm md-btn--primary" id="mdSaveBtn">保存</button>
-      <button type="button" class="md-btn md-btn--sm" id="mdFullscreenBtn">沉浸式</button>
-    </div>
-  </div>
 
-  <div class="capability-strip">
-    <span class="capability-pill">实时预览</span>
-    <span class="capability-pill">HTML 导入</span>
-    <span class="capability-pill">大纲</span>
-    <span class="capability-pill">本地草稿</span>
-    <span class="capability-pill capability-pill--safe">离线可用</span>
-  </div>
-
-  <div class="md-toolbar" role="toolbar" aria-label="格式工具栏">
-    <div class="md-toolbar-scroll">
-      <button type="button" class="md-tb" data-fmt="h1" title="标题1">H1</button>
-      <button type="button" class="md-tb" data-fmt="h2" title="标题2">H2</button>
-      <button type="button" class="md-tb" data-fmt="h3" title="标题3">H3</button>
-      <button type="button" class="md-tb" data-fmt="bold" title="加粗 (⌘B)"><b>B</b></button>
-      <button type="button" class="md-tb" data-fmt="italic" title="斜体 (⌘I)"><i>I</i></button>
-      <button type="button" class="md-tb" data-fmt="strike" title="删除线"><s>S</s></button>
-      <button type="button" class="md-tb" data-fmt="link" title="链接 (⌘K)">链接</button>
-      <button type="button" class="md-tb" data-fmt="image" title="图片">图片</button>
-      <button type="button" class="md-tb" data-fmt="quote" title="引用">引用</button>
-      <button type="button" class="md-tb" data-fmt="ul" title="无序列表">• 列表</button>
-      <button type="button" class="md-tb" data-fmt="ol" title="有序列表">1. 列表</button>
-      <button type="button" class="md-tb" data-fmt="task" title="任务列表">☐ 任务</button>
-      <button type="button" class="md-tb" data-fmt="code" title="行内代码">\`code\`</button>
-      <button type="button" class="md-tb" data-fmt="codeblock" title="代码块">\`\`\`</button>
-      <button type="button" class="md-tb" data-fmt="table" title="表格">表格</button>
-      <button type="button" class="md-tb" data-fmt="hr" title="分割线">—</button>
-      <button type="button" class="md-tb" data-fmt="find" title="查找 (⌘F)">查找</button>
-      <button type="button" class="md-tb" data-fmt="clean-escapes" title="清理多余反斜杠转义（如将 4\.3\. 净化为 4.3.）">净化转义</button>
-    </div>
-    <div class="md-mode-switch" role="group" aria-label="视图模式">
-      <button type="button" class="md-mode" data-mode="edit">编辑</button>
-      <button type="button" class="md-mode md-mode--active" data-mode="split">分屏</button>
-      <button type="button" class="md-mode" data-mode="preview">预览</button>
-    </div>
-  </div>
-
-  <div class="md-meta-row">
-    <input id="mdTitle" class="md-title-input" type="text" placeholder="文档标题" maxlength="120" />
-    <span id="mdSaveStatus" class="md-save-status">未保存</span>
-    <label class="md-sync-label"><input id="mdSyncScroll" type="checkbox" checked /> 同步滚动</label>
-  </div>
-
-  <div class="md-workspace" id="mdWorkspace">
-    <aside class="md-outline" id="mdOutlinePane" aria-label="文档大纲">
-      <div class="md-outline-head">
-        <strong>大纲</strong>
-        <button type="button" class="md-btn md-btn--sm md-outline-toggle" id="mdOutlineToggle" aria-expanded="true" aria-controls="mdOutlinePane">收起</button>
-      </div>
-      <div id="mdOutline" class="md-outline-list"></div>
-    </aside>
-
-    <div class="md-editor-pane" id="mdEditorPane">
-      <label class="md-sr-only" for="mdEditor">Markdown 编辑区</label>
-      <textarea id="mdEditor" class="md-editor" spellcheck="true" placeholder="# 标题&#10;&#10;开始写作…"></textarea>
-      <div id="mdDropHint" class="md-drop-hint" hidden>松开以导入文件</div>
-    </div>
-
-    <div class="md-splitter" id="mdSplitter" role="separator" aria-orientation="vertical" aria-label="调整分屏比例" tabindex="0"></div>
-
-    <div class="md-preview-pane" id="mdPreviewPane">
-      <div id="mdPreview" class="md-preview" tabindex="0"></div>
-    </div>
-  </div>
-
-  <div class="md-footer-bar">
-    <div id="mdStats" class="md-stats"></div>
-    <div class="md-export-actions">
-      <button type="button" class="md-btn md-btn--sm" id="mdCopyMd">复制 MD</button>
-      <button type="button" class="md-btn md-btn--sm" id="mdCopyHtml">复制 HTML</button>
-      <button type="button" class="md-btn md-btn--sm" id="mdExportMd">导出 .md</button>
-      <button type="button" class="md-btn md-btn--sm" id="mdExportHtml">导出 HTML</button>
-    </div>
-  </div>
-
-  <section class="md-docs" aria-label="最近文档">
-    <div class="md-docs-head">
-      <h3>最近草稿</h3>
-      <button type="button" class="md-btn md-btn--sm" id="mdClearDocs">清空全部</button>
-    </div>
-    <div id="mdDocList" class="md-doc-list"></div>
-  </section>
-
-  <div id="mdFindBar" class="md-find-bar" hidden>
-    <input id="mdFindInput" class="md-input" type="text" placeholder="查找" />
-    <input id="mdReplaceInput" class="md-input" type="text" placeholder="替换为" />
-    <button type="button" class="md-btn md-btn--sm" id="mdFindNext">下一个</button>
-    <button type="button" class="md-btn md-btn--sm" id="mdReplaceOne">替换</button>
-    <button type="button" class="md-btn md-btn--sm" id="mdReplaceAll">全部替换</button>
-    <button type="button" class="md-btn md-btn--sm" id="mdFindClose">关闭</button>
-  </div>
-
-  <div id="mdToast" class="md-toast" role="status" aria-live="polite"></div>
-</div>`;
-}
-
+/**
+ * @param {HTMLElement & { _cleanup?: () => void }} mount
+ */
 export function mountMarkdownEditorTool(mount) {
   if (!(mount instanceof HTMLElement)) return;
   mount.innerHTML = getMarkdownEditorTemplate();
 
+  // 元素 id 由模板固定，各节点类型不同，这里按动态结构返回 any
+  /**
+   * @param {string} sel
+   * @returns {any}
+   */
   const $ = (sel) => mount.querySelector(sel);
   const root = $("#mdRoot");
   const editor = $("#mdEditor");
@@ -152,10 +49,13 @@ export function mountMarkdownEditorTool(mount) {
   const showToast = createToast(toastEl, { showClass: "md-toast--show", duration: 2400 });
 
   const store = createDocumentStore();
+  /** @type {string|null} */
   let currentId = null;
   let dirty = false;
   let viewMode = localStorage.getItem(MODE_KEY) || "split";
+  /** @type {ReturnType<typeof setTimeout>|null} */
   let renderTimer = null;
+  /** @type {ReturnType<typeof setTimeout>|null} */
   let saveTimer = null;
   let lastFindIndex = 0;
 
@@ -164,6 +64,10 @@ export function mountMarkdownEditorTool(mount) {
     viewMode = "edit";
   }
 
+  /**
+   * @param {string} text
+   * @param {string} [cls]
+   */
   function setSaveStatus(text, cls = "") {
     saveStatus.textContent = text;
     saveStatus.className = `md-save-status ${cls}`.trim();
@@ -173,6 +77,10 @@ export function mountMarkdownEditorTool(mount) {
     return editor.value;
   }
 
+  /**
+   * @param {string} text
+   * @param {{ markDirty?: boolean }} [opts]
+   */
   function setContent(text, { markDirty = false } = {}) {
     editor.value = String(text ?? "").slice(0, MAX_DOC_CHARS);
     dirty = markDirty;
@@ -182,7 +90,7 @@ export function mountMarkdownEditorTool(mount) {
   }
 
   function scheduleRender() {
-    clearTimeout(renderTimer);
+    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (renderTimer));
     renderTimer = setTimeout(renderAll, 120);
   }
 
@@ -195,7 +103,7 @@ export function mountMarkdownEditorTool(mount) {
   }
 
   function attachCodeCopyButtons() {
-    preview.querySelectorAll("pre.md-code").forEach((pre) => {
+    preview.querySelectorAll("pre.md-code").forEach((/** @type {Element} */ pre) => {
       if (pre.querySelector(".md-copy-code")) return;
       const btn = document.createElement("button");
       btn.className = "md-copy-code";
@@ -210,6 +118,7 @@ export function mountMarkdownEditorTool(mount) {
     });
   }
 
+  /** @param {string} md */
   function renderOutline(md) {
     const items = buildOutline(md);
     if (!items.length) {
@@ -234,13 +143,14 @@ export function mountMarkdownEditorTool(mount) {
     statsEl.textContent = `字符 ${s.characters} · 无空格 ${noSpace} · 词/字 ${words} · 行 ${s.lines} · 约 ${minutes} 分钟阅读`;
   }
 
+  /** @param {string} mode */
   function setMode(mode) {
     viewMode = mode;
     localStorage.setItem(MODE_KEY, mode);
     // fullscreen 仍展示双栏，dataset 用 split 以免误触仅编辑/仅预览样式
     root.dataset.mode = mode === "fullscreen" ? "split" : mode;
     const activeMode = mode === "fullscreen" ? "split" : mode;
-    mount.querySelectorAll(".md-mode").forEach((btn) => {
+    /** @type {NodeListOf<HTMLElement>} */ (mount.querySelectorAll(".md-mode")).forEach((btn) => {
       btn.classList.toggle("md-mode--active", btn.dataset.mode === activeMode);
     });
     const isFullscreen = mode === "fullscreen";
@@ -250,6 +160,7 @@ export function mountMarkdownEditorTool(mount) {
     if (isFullscreen && outlinePane) outlinePane.classList.add("is-collapsed");
   }
 
+  /** @param {number} ratio */
   function applySplitRatio(ratio) {
     const r = Math.min(0.75, Math.max(0.25, ratio));
     workspace.style.setProperty("--md-split", `${(r * 100).toFixed(1)}%`);
@@ -261,6 +172,11 @@ export function mountMarkdownEditorTool(mount) {
   setMode(viewMode === "fullscreen" ? "split" : viewMode);
 
   /* ── 工具栏格式 ── */
+  /**
+   * @param {string} before
+   * @param {string} [after]
+   * @param {string} [placeholder]
+   */
   function wrapSelection(before, after = before, placeholder = "") {
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -277,6 +193,7 @@ export function mountMarkdownEditorTool(mount) {
     scheduleAutoSave();
   }
 
+  /** @param {string} prefix */
   function prefixLines(prefix) {
     const start = editor.selectionStart;
     const end = editor.selectionEnd;
@@ -287,7 +204,7 @@ export function mountMarkdownEditorTool(mount) {
     const block = value.slice(lineStart, endPos);
     const nextBlock = block
       .split("\n")
-      .map((line) => (line.startsWith(prefix) ? line : prefix + line))
+      .map((/** @type {string} */ line) => (line.startsWith(prefix) ? line : prefix + line))
       .join("\n");
     editor.value = value.slice(0, lineStart) + nextBlock + value.slice(endPos);
     editor.focus();
@@ -297,6 +214,7 @@ export function mountMarkdownEditorTool(mount) {
     scheduleAutoSave();
   }
 
+  /** @param {string|undefined} fmt */
   function applyFormat(fmt) {
     switch (fmt) {
       case "h1": return wrapSelection("# ", "", "标题");
@@ -343,7 +261,7 @@ export function mountMarkdownEditorTool(mount) {
 
   /* ── 保存 ── */
   function scheduleAutoSave() {
-    clearTimeout(saveTimer);
+    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (saveTimer));
     setSaveStatus("正在保存…", "is-saving");
     saveTimer = setTimeout(() => {
       saveDoc().catch(() => setSaveStatus("保存失败", "is-error"));
@@ -394,6 +312,7 @@ export function mountMarkdownEditorTool(mount) {
       .join("");
   }
 
+  /** @param {string} id */
   async function openDoc(id) {
     if (!store) return;
     const doc = await store.get(id);
@@ -413,6 +332,7 @@ export function mountMarkdownEditorTool(mount) {
   }
 
   /* ── 导入 ── */
+  /** @param {File} file */
   async function importFile(file) {
     if (!file) return;
     const name = file.name || "document";
@@ -447,7 +367,7 @@ export function mountMarkdownEditorTool(mount) {
     scheduleAutoSave();
   });
 
-  editor.addEventListener("keydown", (e) => {
+  editor.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
     const mod = e.metaKey || e.ctrlKey;
     if (e.key === "Tab") {
       e.preventDefault();
@@ -475,14 +395,14 @@ export function mountMarkdownEditorTool(mount) {
     }
   });
 
-  mount.querySelector(".md-toolbar").addEventListener("click", (e) => {
+  mount.querySelector(".md-toolbar")?.addEventListener("click", (e) => {
     const btn = e.target instanceof Element ? e.target.closest("[data-fmt]") : null;
     if (btn instanceof HTMLElement) applyFormat(btn.dataset.fmt);
   });
 
-  mount.querySelector(".md-mode-switch").addEventListener("click", (e) => {
+  mount.querySelector(".md-mode-switch")?.addEventListener("click", (e) => {
     const btn = e.target instanceof Element ? e.target.closest("[data-mode]") : null;
-    if (btn instanceof HTMLElement) setMode(btn.dataset.mode);
+    if (btn instanceof HTMLElement) setMode(/** @type {string} */ (btn.dataset.mode));
   });
 
   $("#mdFullscreenBtn").addEventListener("click", () => {
@@ -514,7 +434,7 @@ export function mountMarkdownEditorTool(mount) {
   $("#mdSaveBtn").addEventListener("click", () => saveDoc().then(() => showToast("已保存")));
   $("#mdNewDoc").addEventListener("click", newDoc);
   $("#mdImportBtn").addEventListener("click", () => $("#mdFileInput").click());
-  $("#mdFileInput").addEventListener("change", (e) => {
+  $("#mdFileInput").addEventListener("change", (/** @type {Event & { target: HTMLInputElement }} */ e) => {
     const f = e.target.files?.[0];
     if (f) importFile(f);
     e.target.value = "";
@@ -522,7 +442,7 @@ export function mountMarkdownEditorTool(mount) {
 
   // drag import
   ["dragenter", "dragover"].forEach((ev) => {
-    editorPane.addEventListener(ev, (e) => {
+    editorPane.addEventListener(ev, (/** @type {Event} */ e) => {
       e.preventDefault();
       $("#mdDropHint").hidden = false;
     });
@@ -530,17 +450,17 @@ export function mountMarkdownEditorTool(mount) {
   editorPane.addEventListener("dragleave", () => {
     $("#mdDropHint").hidden = true;
   });
-  editorPane.addEventListener("drop", (e) => {
+  editorPane.addEventListener("drop", (/** @type {DragEvent} */ e) => {
     e.preventDefault();
     $("#mdDropHint").hidden = true;
     const f = e.dataTransfer?.files?.[0];
     if (f) importFile(f);
   });
 
-  outlineEl.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-id]");
+  outlineEl.addEventListener("click", (/** @type {MouseEvent & { target: Element }} */ e) => {
+    const btn = /** @type {HTMLElement|null} */ (e.target.closest("[data-id]"));
     if (!btn) return;
-    const target = preview.querySelector(`#${CSS.escape(btn.dataset.id)}`);
+    const target = preview.querySelector(`#${CSS.escape(/** @type {string} */ (btn.dataset.id))}`);
     if (!target || !previewPane) return;
     // 预览滚动容器是 pane，不是内部 .md-preview
     const paneRect = previewPane.getBoundingClientRect();
@@ -554,6 +474,7 @@ export function mountMarkdownEditorTool(mount) {
    */
   let syncLock = false;
 
+  /** @param {HTMLElement|null|undefined} el */
   function scrollMax(el) {
     if (!el) return 0;
     return Math.max(0, el.scrollHeight - el.clientHeight);
@@ -566,6 +487,10 @@ export function mountMarkdownEditorTool(mount) {
     return Boolean(editor && previewPane);
   }
 
+  /**
+   * @param {HTMLElement} source
+   * @param {HTMLElement} target
+   */
   function syncScrollFrom(source, target) {
     if (!bothPanesScrollable() || syncLock || !source || !target) return;
     const srcMax = scrollMax(source);
@@ -597,12 +522,12 @@ export function mountMarkdownEditorTool(mount) {
 
   // splitter drag
   let dragging = false;
-  splitter.addEventListener("pointerdown", (e) => {
+  splitter.addEventListener("pointerdown", (/** @type {PointerEvent} */ e) => {
     dragging = true;
     splitter.classList.add("is-dragging");
     splitter.setPointerCapture(e.pointerId);
   });
-  splitter.addEventListener("pointermove", (e) => {
+  splitter.addEventListener("pointermove", (/** @type {PointerEvent} */ e) => {
     if (!dragging) return;
     const rect = workspace.getBoundingClientRect();
     const outlineW = $("#mdOutlinePane").getBoundingClientRect().width || 0;
@@ -686,15 +611,15 @@ export function mountMarkdownEditorTool(mount) {
     }
   });
 
-  docList.addEventListener("click", async (e) => {
-    const open = e.target.closest("[data-open]");
+  docList.addEventListener("click", async (/** @type {MouseEvent & { target: Element }} */ e) => {
+    const open = /** @type {HTMLElement|null} */ (e.target.closest("[data-open]"));
     if (open) {
-      await openDoc(open.dataset.open);
+      await openDoc(/** @type {string} */ (open.dataset.open));
       return;
     }
-    const del = e.target.closest("[data-del]");
+    const del = /** @type {HTMLElement|null} */ (e.target.closest("[data-del]"));
     if (del && store) {
-      await store.remove(del.dataset.del);
+      await store.remove(/** @type {string} */ (del.dataset.del));
       if (currentId === del.dataset.del) newDoc();
       await refreshDocList();
     }
@@ -710,6 +635,7 @@ export function mountMarkdownEditorTool(mount) {
   });
 
   // Esc exit fullscreen at document level while mounted
+  /** @param {KeyboardEvent} e */
   const onKey = (e) => {
     if (e.key === "Escape" && root.classList.contains("md-is-fullscreen")) {
       setMode("split");
@@ -742,14 +668,15 @@ export function mountMarkdownEditorTool(mount) {
   })();
 
   mount._cleanup = () => {
-    clearTimeout(renderTimer);
-    clearTimeout(saveTimer);
+    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (renderTimer));
+    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (saveTimer));
     document.removeEventListener("keydown", onKey);
     document.documentElement.classList.remove("toolmap-md-immersive");
   };
   currentMdCleanup = mount._cleanup;
 }
 
+/** @type {(() => void)|null} */
 let currentMdCleanup = null;
 
 export function unmountMarkdownEditorTool() {

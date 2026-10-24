@@ -15,21 +15,7 @@
     <meta property="og:image" content="https://toolmap.shuyuan.me/assets/og-image.svg" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./assets/app.css" data-app-style />
-    <link rel="stylesheet" href="./src/tools/text-diff/text-diff.css" />
-    <link rel="stylesheet" href="./src/tools/image-compress/image-compress.css" />
-    <link rel="stylesheet" href="./src/tools/char-count/char-count.css" />
-    <link rel="stylesheet" href="./src/tools/qrcode/qrcode.css" />
-    <link rel="stylesheet" href="./src/tools/markdown-editor/markdown-editor.css" />
-    <link rel="stylesheet" href="./src/tools/pdf-tools/pdf-tools.css" />
-    <script>
-      (function () {
-        try {
-          if (location.protocol === "file:") {
-            document.documentElement.classList.add("is-file-protocol");
-          }
-        } catch (_) {}
-      })();
-    </script>
+    <script src="./src/boot/early.js"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -93,30 +79,7 @@
       </div>
     </div>
 
-    <script type="module">
-      import { APP_VERSION } from "./src/config/app-meta.js";
-
-      const VERSION_KEY = "toolmap-seen-version";
-      const prevVersion = localStorage.getItem(VERSION_KEY);
-      if (prevVersion !== APP_VERSION) {
-        localStorage.setItem(VERSION_KEY, APP_VERSION);
-      }
-
-      const style = document.querySelector("[data-app-style]");
-      if (style) style.href = `./assets/app.css?v=${APP_VERSION}`;
-
-      await import(`./src/app.js?v=${APP_VERSION}`);
-    </script>
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("./sw.js")
-            .then((reg) => reg.update())
-            .catch(() => {});
-        });
-      }
-    </script>
+    <script type="module" src="./src/boot/main.js"></script>
+    <script src="./src/boot/register-sw.js" defer></script>
   </body>
 </html>

@@ -9,6 +9,7 @@ export function createLatestNavigationGuard() {
       sequence += 1;
       return sequence;
     },
+    /** @param {number} token */
     isLatest(token) {
       return token === sequence;
     },
@@ -24,6 +25,10 @@ export function createLatestNavigationQueue() {
   let tail = Promise.resolve();
 
   return {
+    /**
+     * @param {(isLatest: () => boolean) => any} task
+     * @returns {Promise<any>}
+     */
     run(task) {
       const token = guard.begin();
       const execute = () => task(() => guard.isLatest(token));

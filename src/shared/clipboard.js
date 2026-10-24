@@ -1,3 +1,7 @@
+/**
+ * @param {string} text
+ * @returns {Promise<boolean>}
+ */
 export async function writeClipboard(text) {
   if (navigator.clipboard?.writeText) {
     try {

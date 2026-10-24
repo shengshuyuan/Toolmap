@@ -1,38 +1,42 @@
 import { createHistoryStore, isHistoryAvailable } from "../../shared/history-db.js";
+import { STORE_CONFIGS } from "../../shared/store-configs.js";
 
-export const HISTORY_LIMIT = 30;
+export const HISTORY_LIMIT = STORE_CONFIGS["image-compress"].limit;
 export { isHistoryAvailable };
 
-const store = createHistoryStore({
-  dbName: "toolmap-image-compress",
-  storeName: "history",
-  limit: HISTORY_LIMIT,
-});
+const store = createHistoryStore(STORE_CONFIGS["image-compress"]);
 
-/** 列出所有历史记录，剥离 blob 以节省内存（列表只展示元数据） */
+/**
+ * 列出所有历史记录，剥离 blob 以节省内存（列表只展示元数据）
+ * @returns {Promise<Array<import("./utils.js").HistoryMeta>>}
+ */
 export async function listHistoryMeta() {
   const records = await store.list();
   return records.map(stripBlob);
 }
 
 /** 按 ID 获取单条完整记录（含 blob），用于按需下载 */
+/** @param {string} id */
 export const getHistoryRecord = (id) => store.get(id);
 
+/** @param {Object} record */
 export const saveHistoryRecord = (record) => store.save(record);
+/** @param {string} id */
 export const deleteHistoryRecord = (id) => store.remove(id);
 export const clearHistory = () => store.clear();
 
-/** @param {Array<Object>} records @returns {number} */
+/** @param {Array<{ outputSize?: number }>} records @returns {number} */
 export function getHistoryUsage(records) {
   return records.reduce((sum, item) => sum + (item.outputSize || 0), 0);
 }
 
+/** @param {any} record */
 function stripBlob(record) {
   const { blob, ...meta } = record;
   return meta;
 }
 
-/** @param {Object} item @returns {Object|null} */
+/** @param {import("./utils.js").ImageItem} item @returns {Object|null} */
 export function createHistoryRecord(item) {
   const result = item.result;
   if (!result?.blob) return null;

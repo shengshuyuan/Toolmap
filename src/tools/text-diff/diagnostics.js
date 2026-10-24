@@ -1,11 +1,17 @@
+/** @param {unknown} text */
 function hasCrlf(text) {
   return /\r\n/.test(String(text ?? ""));
 }
 
+/** @param {unknown} text */
 function hasTrailingNewline(text) {
   return /(?:\r\n|\n|\r)$/.test(String(text ?? ""));
 }
 
+/**
+ * @param {unknown} text
+ * @returns {number}
+ */
 function countNormalizedLines(text) {
   const s = String(text ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   if (s === "") return 0;
@@ -14,9 +20,13 @@ function countNormalizedLines(text) {
   return parts.length;
 }
 
+/**
+ * @param {{ leftText?: unknown, rightText?: unknown, hardMaxLines?: number }} params
+ */
 export function collectComparisonHints({ leftText, rightText, hardMaxLines = 20000 }) {
   const left = String(leftText ?? "");
   const right = String(rightText ?? "");
+  /** @type {string[]} */
   const messages = [];
   const hasAnyCrlf = hasCrlf(left) || hasCrlf(right);
   const hasAnyTrailingNewline = hasTrailingNewline(left) || hasTrailingNewline(right);
@@ -36,6 +46,14 @@ export function collectComparisonHints({ leftText, rightText, hardMaxLines = 200
   };
 }
 
+/**
+ * @typedef {{ expectedLeft?: number|null, expectedRight?: number|null, actualLeft?: number|null, actualRight?: number|null }} LineLocateParams
+ */
+
+/**
+ * @param {LineLocateParams} params
+ * @returns {boolean}
+ */
 export function shouldWarnLineMismatch({ expectedLeft, expectedRight, actualLeft, actualRight }) {
   return (
     (expectedLeft != null && actualLeft != null && expectedLeft !== actualLeft) ||
@@ -43,6 +61,10 @@ export function shouldWarnLineMismatch({ expectedLeft, expectedRight, actualLeft
   );
 }
 
+/**
+ * @param {LineLocateParams} params
+ * @returns {string}
+ */
 export function buildLocateStatus({ expectedLeft, expectedRight, actualLeft, actualRight }) {
   const showLeft = actualLeft ?? expectedLeft ?? null;
   const showRight = actualRight ?? expectedRight ?? null;

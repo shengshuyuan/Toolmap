@@ -34,7 +34,7 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
   function openDB() {
     if (!isHistoryAvailable()) return Promise.reject(new Error("当前浏览器不支持历史记录。"));
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, 1);
+      const request = indexedDB.open(/** @type {string} */ (dbName), 1);
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains(storeName)) {
@@ -47,17 +47,26 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     });
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @param {IDBTransactionMode} mode
+   * @param {(store: IDBObjectStore) => IDBRequest | IDBRequest[] | void} action
+   * @returns {Promise<any>}
+   */
   function txDone(db, mode, action) {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(storeName, mode);
       const store = tx.objectStore(storeName);
       let settled = false;
+      /** @type {any} */
       let requestResult;
+      /** @param {any} [err] */
       function rejectOnce(err) {
         if (settled) return;
         settled = true;
         reject(err || new Error("历史记录操作失败。"));
       }
+      /** @param {any} [val] */
       function resolveOnce(val) {
         if (settled) return;
         settled = true;
@@ -85,19 +94,29 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     });
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @returns {Promise<any[]>}
+   */
   async function readAll(db) {
     return txDone(db, "readonly", (store) => store.getAll());
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @param {any} record
+   */
   async function putRecord(db, record) {
     return txDone(db, "readwrite", (store) => store.put(record));
   }
 
+  /** @param {IDBDatabase} db */
   async function trimHistory(db) {
     const records = await readAll(db);
     const overflow = records.sort((a, b) => b.createdAt - a.createdAt).slice(limit);
     if (!overflow.length) return;
     await txDone(db, "readwrite", (store) => {
+      /** @type {IDBRequest[]} */
       const requests = [];
       for (const record of overflow) requests.push(store.delete(record.id));
       return requests;
@@ -114,6 +133,7 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     }
   }
 
+  /** @param {any} record */
   async function save(record) {
     const db = await openDB();
     try {
@@ -129,6 +149,7 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     }
   }
 
+  /** @param {string} id */
   async function remove(id) {
     const db = await openDB();
     try {
@@ -147,6 +168,7 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     }
   }
 
+  /** @param {string} id */
   async function get(id) {
     const db = await openDB();
     try {

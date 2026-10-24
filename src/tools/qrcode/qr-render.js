@@ -10,8 +10,8 @@ import { clampLogoRatio, DEFAULT_MARGIN } from "./qr-style.js";
  * @property {string} [background]
  * @property {number} [margin]
  * @property {number} [pixelSize] 输出边长（含外框）
- * @property {object} [frame]
- * @property {object} [logo]
+ * @property {Partial<import("./qr-style.js").QrStyleState["frame"]>} [frame]
+ * @property {Partial<import("./qr-style.js").QrStyleState["logo"]>} [logo]
  */
 
 /**
@@ -180,13 +180,13 @@ export async function renderDesignedCanvas(canvas, modules, options = {}) {
 
 /**
  * @param {CanvasRenderingContext2D} ctx
- * @param {object} logo
+ * @param {Partial<import("./qr-style.js").QrStyleState["logo"]>} logo
  * @param {number} qrOffset
  * @param {number} qrSize
  */
 async function drawLogo(ctx, logo, qrOffset, qrSize) {
-  const img = await loadImageElement(logo.dataUrl);
-  const ratio = clampLogoRatio(logo.sizeRatio);
+  const img = await loadImageElement(/** @type {string} */ (logo.dataUrl));
+  const ratio = clampLogoRatio(/** @type {number} */ (logo.sizeRatio));
   const box = qrSize * ratio;
   const pad = Math.max(0, Number(logo.padding) || 0);
   const radius = Math.max(0, Number(logo.radius) || 0);
@@ -307,7 +307,7 @@ export function renderDesignedSVG(modules, options = {}) {
 
   const logo = options.logo;
   if (logo?.enabled && logo.dataUrl && isSafeImageDataUrl(logo.dataUrl)) {
-    const ratio = clampLogoRatio(logo.sizeRatio);
+    const ratio = clampLogoRatio(/** @type {number} */ (logo.sizeRatio));
     const box = qrSize * ratio;
     const cx = qrOffset + (qrSize - box) / 2;
     const cy = qrOffset + (qrSize - box) / 2;
@@ -434,6 +434,7 @@ export function downloadSVG(svgString, filename) {
 /**
  * @param {string} type
  * @param {number} size
+ * @param {string} ext
  */
 export function buildExportFilename(type, size, ext) {
   const safeType = String(type || "text").replace(/[^\w-]+/g, "").slice(0, 20) || "text";

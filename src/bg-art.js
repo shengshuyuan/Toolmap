@@ -6,6 +6,7 @@
  * - 只绘制一次（无动画），降低性能影响
  */
 
+/** @param {number} seed */
 function mulberry32(seed) {
   // 一个轻量 PRNG：相同 seed 可复现
   let t = seed >>> 0;
@@ -17,6 +18,11 @@ function mulberry32(seed) {
   };
 }
 
+/**
+ * @param {number} n
+ * @param {number} a
+ * @param {number} b
+ */
 function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
@@ -33,6 +39,11 @@ function hashSeedFromDay() {
   return h >>> 0;
 }
 
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} t
+ */
 function flowAngle(x, y, t) {
   // 一个“伪噪声”的流场：用三组正弦叠加模拟柔和的风向变化
   const a =
@@ -42,6 +53,7 @@ function flowAngle(x, y, t) {
   return a * Math.PI * 0.45;
 }
 
+/** @param {HTMLCanvasElement} canvas */
 function drawBackground(canvas) {
   const ctx = canvas.getContext("2d", { alpha: true });
   if (!ctx) return;

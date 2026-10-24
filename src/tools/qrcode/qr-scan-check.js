@@ -4,6 +4,8 @@
 
 import { contrastRatio, collectStyleWarnings, DEFAULT_MARGIN, WARN_LOGO_RATIO } from "./qr-style.js";
 
+/** @typedef {import("./qr-style.js").QrStyleState} QrStyleState */
+
 /**
  * @typedef {"pass"|"warn"|"fail"} ScanCheckLevel
  * @typedef {{ level: ScanCheckLevel, status: string, details: string[] }} ScanCheckResult
@@ -13,7 +15,7 @@ import { contrastRatio, collectStyleWarnings, DEFAULT_MARGIN, WARN_LOGO_RATIO } 
  * @param {object} params
  * @param {string} params.expected
  * @param {string|null} [params.decoded]
- * @param {object} params.style
+ * @param {QrStyleState} params.style
  * @param {Error|null} [params.error]
  * @returns {ScanCheckResult}
  */

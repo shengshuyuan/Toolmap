@@ -7,6 +7,7 @@
 
 import { createHistoryStore, isHistoryAvailable } from "./history-db.js";
 import { formatBytes } from "./format.js";
+import { STORE_CONFIGS } from "./store-configs.js";
 
 /**
  * @typedef {{
@@ -23,16 +24,9 @@ import { formatBytes } from "./format.js";
  * }} RecentItem
  */
 
-const STORES = {
-  "text-diff": () =>
-    createHistoryStore({ dbName: "toolmap-text-diff", storeName: "history", limit: 30 }),
-  "markdown-editor": () =>
-    createHistoryStore({ dbName: "toolmap-markdown", storeName: "documents", limit: 40 }),
-  "image-compress": () =>
-    createHistoryStore({ dbName: "toolmap-image-compress", storeName: "history", limit: 30 }),
-  "qrcode": () =>
-    createHistoryStore({ dbName: "toolmap-qrcode", storeName: "history", limit: 30 }),
-};
+const STORES = Object.fromEntries(
+  Object.entries(STORE_CONFIGS).map(([toolId, config]) => [toolId, () => createHistoryStore(config)])
+);
 
 /**
  * 获取所有工具的最近记录并归一化
@@ -272,7 +266,7 @@ export async function buildBackupPayload() {
     app: "Toolmap",
     schemaVersion: 2,
     exportedAt: new Date().toISOString(),
-    stores: {},
+    stores: /** @type {Record<string, any[]>} */ ({}),
   };
 
   for (const [toolId, getStore] of Object.entries(STORES)) {
@@ -280,7 +274,7 @@ export async function buildBackupPayload() {
       const store = getStore();
       const list = await store.list();
       const serializedList = await Promise.all(
-        list.map(async (record) => {
+        list.map(async (/** @type {any} */ record) => {
           if (!record || typeof record !== "object") return record;
           if (record.blob instanceof Blob) {
             const blobDataUrl = await blobToDataURL(record.blob);

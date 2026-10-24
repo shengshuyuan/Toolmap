@@ -8,7 +8,7 @@
 const EC_LEVELS = ["L", "M", "Q", "H"];
 
 /** 每个版本每个 EC 级别的数据容量（字节） */
-const DATA_CODEWORDS = [
+const DATA_CODEWORDS = /** @type {any} */ ([
   null, // placeholder for version 0
   [19,16,13,9],[34,28,22,16],[55,44,34,28],[80,64,48,32],
   [108,86,62,46],[136,108,76,60],[156,124,88,74],[194,154,110,90],
@@ -20,10 +20,10 @@ const DATA_CODEWORDS = [
   [1631,1267,911,745],[1735,1373,985,793],[1843,1455,1033,845],[1955,1541,1115,901],
   [2071,1631,1171,961],[2191,1725,1231,986],[2306,1812,1286,1054],[2434,1914,1354,1096],
   [2566,1992,1426,1142],[2702,2102,1502,1222],[2812,2216,1582,1276],[2956,2334,1666,1370],
-];
+]);
 
 /** 每个版本每个 EC 级别的 EC codewords per block */
-const EC_CODEWORDS_PER_BLOCK = [
+const EC_CODEWORDS_PER_BLOCK = /** @type {any} */ ([
   null,
   [7,10,13,17],[10,16,22,28],[15,26,18,22],[20,18,26,16],
   [26,24,18,22],[18,16,24,28],[20,18,18,24],[24,22,22,18],
@@ -35,10 +35,10 @@ const EC_CODEWORDS_PER_BLOCK = [
   [30,28,30,30],[30,30,30,30],[30,30,30,30],[30,30,30,30],
   [30,30,30,30],[30,30,30,30],[30,30,30,30],[30,30,30,30],
   [30,30,30,30],[30,30,30,30],[30,30,30,30],[30,30,30,30],
-];
+]);
 
 /** 每个版本每个 EC 级别的 block 结构: [numBlocks1, dataPerBlock1, numBlocks2, dataPerBlock2] */
-const EC_BLOCKS = [
+const EC_BLOCKS = /** @type {any} */ ([
   null,
   [[1,19,0,0],[1,16,0,0],[1,13,0,0],[1,9,0,0]],
   [[1,34,0,0],[1,28,0,0],[1,22,0,0],[1,16,0,0]],
@@ -80,10 +80,10 @@ const EC_BLOCKS = [
   [[4,122,18,123],[13,46,32,47],[48,24,14,25],[42,15,32,16]],
   [[20,117,4,118],[40,47,7,48],[43,24,22,25],[10,15,67,16]],
   [[19,118,6,119],[18,47,31,48],[34,24,34,25],[20,15,61,16]],
-];
+]);
 
 /** Alignment pattern 坐标（version 2-40） */
-const ALIGNMENT_POSITIONS = [
+const ALIGNMENT_POSITIONS = /** @type {any} */ ([
   null, [],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],
   [6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],
   [6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],
@@ -91,7 +91,7 @@ const ALIGNMENT_POSITIONS = [
   [6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],
   [6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],
   [6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170],
-];
+]);
 
 /* ── GF(256) 运算 ─────────────────────────────────────── */
 
@@ -111,13 +111,22 @@ function buildGfTables() {
 
 const GF = buildGfTables();
 
-/** GF(256) 乘法 */
+/**
+ * GF(256) 乘法
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
 function gfMul(a, b) {
   if (a === 0 || b === 0) return 0;
   return GF.exp[GF.log[a] + GF.log[b]];
 }
 
-/** 生成 Reed-Solomon 生成多项式 */
+/**
+ * 生成 Reed-Solomon 生成多项式
+ * @param {number} ecCount
+ * @returns {number[]}
+ */
 function rsGeneratorPoly(ecCount) {
   let poly = [1];
   for (let i = 0; i < ecCount; i++) {
@@ -131,7 +140,12 @@ function rsGeneratorPoly(ecCount) {
   return poly;
 }
 
-/** 计算 Reed-Solomon EC codewords */
+/**
+ * 计算 Reed-Solomon EC codewords
+ * @param {Uint8Array} data
+ * @param {number} ecCount
+ * @returns {Uint8Array}
+ */
 function rsEncode(data, ecCount) {
   const gen = rsGeneratorPoly(ecCount);
   const result = new Uint8Array(ecCount);
@@ -150,12 +164,21 @@ function rsEncode(data, ecCount) {
 
 /* ── 数据编码（Byte 模式） ────────────────────────────── */
 
-/** UTF-8 编码 */
+/**
+ * UTF-8 编码
+ * @param {string} text
+ * @returns {Uint8Array}
+ */
 function utf8Encode(text) {
   return new TextEncoder().encode(text);
 }
 
-/** 确定版本 */
+/**
+ * 确定版本
+ * @param {number} byteLen
+ * @param {string} ecLevel
+ * @returns {number}
+ */
 function determineVersion(byteLen, ecLevel) {
   const idx = EC_LEVELS.indexOf(ecLevel);
   for (let v = 1; v <= 40; v++) {
@@ -164,13 +187,20 @@ function determineVersion(byteLen, ecLevel) {
   throw new Error("数据过长，超出 QR Code 最大容量");
 }
 
-/** 生成数据位流 */
+/**
+ * 生成数据位流
+ * @param {Uint8Array} bytes
+ * @param {number} version
+ * @param {string} ecLevel
+ * @returns {Uint8Array}
+ */
 function encodeData(bytes, version, ecLevel) {
   const idx = EC_LEVELS.indexOf(ecLevel);
   const totalDataCodewords = DATA_CODEWORDS[version][idx];
   const charCountBits = version <= 9 ? 8 : 16;
 
   // 构建 bit 流
+  /** @type {number[]} */
   const bits = [];
 
   // 模式指示符: Byte = 0100
@@ -214,13 +244,21 @@ function encodeData(bytes, version, ecLevel) {
   return codewords;
 }
 
-/** 生成 EC codewords 并交织 */
+/**
+ * 生成 EC codewords 并交织
+ * @param {Uint8Array} dataCodewords
+ * @param {number} version
+ * @param {string} ecLevel
+ * @returns {number[]}
+ */
 function generateCodewords(dataCodewords, version, ecLevel) {
   const idx = EC_LEVELS.indexOf(ecLevel);
   const [nb1, db1, nb2, db2] = EC_BLOCKS[version][idx];
   const ecPerBlock = EC_CODEWORDS_PER_BLOCK[version][idx];
 
+  /** @type {Uint8Array[]} */
   const dataBlocks = [];
+  /** @type {Uint8Array[]} */
   const ecBlocks = [];
   let offset = 0;
 
@@ -238,6 +276,7 @@ function generateCodewords(dataCodewords, version, ecLevel) {
   }
 
   // 交织数据 codewords
+  /** @type {number[]} */
   const interleaved = [];
   const maxDataLen = Math.max(db1, db2);
   for (let i = 0; i < maxDataLen; i++) {
@@ -260,16 +299,32 @@ function generateCodewords(dataCodewords, version, ecLevel) {
 
 /* ── 矩阵构建 ────────────────────────────────────────── */
 
+/**
+ * @param {number} size
+ * @returns {Int8Array[]}
+ */
 function createMatrix(size) {
   return Array.from({ length: size }, () => new Int8Array(size)); // 0=未设置, 1=黑, -1=白
 }
 
+/**
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} row
+ * @param {number} col
+ * @param {boolean} isDark
+ */
 function setModule(modules, isFunction, row, col, isDark) {
   modules[row][col] = isDark ? 1 : -1;
   isFunction[row][col] = 1;
 }
 
-/** 放置 finder pattern（三个角） */
+/**
+ * 放置 finder pattern（三个角）
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} size
+ */
 function placeFinders(modules, isFunction, size) {
   const positions = [[0, 0], [0, size - 7], [size - 7, 0]];
   for (const [r0, c0] of positions) {
@@ -291,7 +346,12 @@ function placeFinders(modules, isFunction, size) {
   }
 }
 
-/** 放置 alignment patterns */
+/**
+ * 放置 alignment patterns
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} version
+ */
 function placeAlignments(modules, isFunction, version) {
   if (version < 2) return;
   const positions = ALIGNMENT_POSITIONS[version];
@@ -310,7 +370,12 @@ function placeAlignments(modules, isFunction, version) {
   }
 }
 
-/** 放置 timing patterns */
+/**
+ * 放置 timing patterns
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} size
+ */
 function placeTiming(modules, isFunction, size) {
   for (let i = 8; i < size - 8; i++) {
     if (isFunction[6][i]) continue;
@@ -320,7 +385,13 @@ function placeTiming(modules, isFunction, size) {
   }
 }
 
-/** 保留格式和版本信息区域 */
+/**
+ * 保留格式和版本信息区域
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} size
+ * @param {number} version
+ */
 function reserveFormatAndVersion(modules, isFunction, size, version) {
   // 格式信息：围绕 finder patterns
   for (let i = 0; i < 8; i++) {
@@ -347,7 +418,13 @@ function reserveFormatAndVersion(modules, isFunction, size, version) {
   }
 }
 
-/** 放置数据位 */
+/**
+ * 放置数据位
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number[]} dataBits
+ * @param {number} size
+ */
 function placeData(modules, isFunction, dataBits, size) {
   let bitIdx = 0;
   // 从右下角开始，向左上方蛇形扫描
@@ -369,6 +446,7 @@ function placeData(modules, isFunction, dataBits, size) {
 
 /* ── 掩码 ─────────────────────────────────────────────── */
 
+/** @type {Array<(r: number, c: number) => boolean>} */
 const MASK_FUNCTIONS = [
   (r, c) => (r + c) % 2 === 0,
   (r, c) => r % 2 === 0,
@@ -380,8 +458,15 @@ const MASK_FUNCTIONS = [
   (r, c) => ((r + c) % 2 + (r * c) % 3) % 2 === 0,
 ];
 
+/**
+ * @param {Int8Array[]} modules
+ * @param {Int8Array[]} isFunction
+ * @param {number} size
+ * @param {number} maskIdx
+ * @returns {Int8Array[]}
+ */
 function applyMask(modules, isFunction, size, maskIdx) {
-  const result = modules.map((row) => Int8Array.from(row));
+  const result = modules.map((/** @type {Int8Array} */ row) => Int8Array.from(row));
   const fn = MASK_FUNCTIONS[maskIdx];
   for (let r = 0; r < size; r++) {
     for (let c = 0; c < size; c++) {
@@ -392,7 +477,12 @@ function applyMask(modules, isFunction, size, maskIdx) {
   return result;
 }
 
-/** 计算掩码评分（越低越好） */
+/**
+ * 计算掩码评分（越低越好）
+ * @param {Int8Array[]} modules
+ * @param {number} size
+ * @returns {number}
+ */
 function evaluateMask(modules, size) {
   let score = 0;
 
@@ -457,6 +547,7 @@ const FORMAT_INFO_BITS = [
   [0x355f,0x3068,0x3f31,0x3a06,0x24b4,0x2183,0x2eda,0x2bed],
 ];
 
+/** @type {Record<string, number>} */
 const FORMAT_EC_BITS = { L: 1, M: 0, Q: 3, H: 2 };
 
 const VERSION_INFO_BITS = [
@@ -467,6 +558,12 @@ const VERSION_INFO_BITS = [
   0x27541,0x28c69,
 ];
 
+/**
+ * @param {Int8Array[]} modules
+ * @param {number} size
+ * @param {string} ecLevel
+ * @param {number} maskIdx
+ */
 function writeFormatInfo(modules, size, ecLevel, maskIdx) {
   const ecBits = FORMAT_EC_BITS[ecLevel];
   const bits = FORMAT_INFO_BITS[ecBits][maskIdx];
@@ -491,6 +588,11 @@ function writeFormatInfo(modules, size, ecLevel, maskIdx) {
   }
 }
 
+/**
+ * @param {Int8Array[]} modules
+ * @param {number} size
+ * @param {number} version
+ */
 function writeVersionInfo(modules, size, version) {
   if (version < 7) return;
   const bits = VERSION_INFO_BITS[version - 7];
@@ -527,6 +629,7 @@ export function encodeQR(text, options = {}) {
   const allCodewords = generateCodewords(dataCodewords, version, ecLevel);
 
   // 3. 转为 bit 数组
+  /** @type {number[]} */
   const dataBits = [];
   for (const cw of allCodewords) {
     for (let i = 7; i >= 0; i--) dataBits.push((cw >> i) & 1);
@@ -563,7 +666,7 @@ export function encodeQR(text, options = {}) {
   for (let r = 0; r < size; r++) {
     const row = [];
     for (let c = 0; c < size; c++) {
-      row.push(bestModules[r][c] === 1);
+      row.push(/** @type {Int8Array[]} */ (bestModules)[r][c] === 1);
     }
     result.push(row);
   }

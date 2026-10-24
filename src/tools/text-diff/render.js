@@ -13,9 +13,10 @@ import { charDiffHtml } from "./char-diff.js";
 /**
  * @param {HTMLElement} mount
  * @param {{lines: DiffLine[], diffCount: number, contentDiffCount?: number, formatDiffCount?: number}} result
+ * @param {{ granularity?: "char"|"word", ignoreCase?: boolean }} [options]
  * @returns {{ anchors: string[], anchorMeta: Record<string, { leftLine: number|null, rightLine: number|null }> }}
  */
-export function renderDiff(mount, result) {
+export function renderDiff(mount, result, options = {}) {
   const { lines } = result;
   mount.innerHTML = "";
 
@@ -75,7 +76,7 @@ export function renderDiff(mount, result) {
       tdL.classList.add("diff-side--empty");
       tdL.textContent = "—";
     } else if (row.op === "replace") {
-      const { leftHtml } = charDiffHtml(row.left ?? "", row.right ?? "");
+      const { leftHtml } = charDiffHtml(row.left ?? "", row.right ?? "", options);
       tdL.innerHTML = leftHtml;
     } else {
       tdL.textContent = row.left ?? "";
@@ -94,7 +95,7 @@ export function renderDiff(mount, result) {
       tdR.classList.add("diff-side--empty");
       tdR.textContent = "—";
     } else if (row.op === "replace") {
-      const { rightHtml } = charDiffHtml(row.left ?? "", row.right ?? "");
+      const { rightHtml } = charDiffHtml(row.left ?? "", row.right ?? "", options);
       tdR.innerHTML = rightHtml;
     } else {
       tdR.textContent = row.right ?? "";
@@ -118,6 +119,7 @@ export function renderDiff(mount, result) {
   return { anchors, anchorMeta };
 }
 
+/** @param {string} anchorId */
 export function focusAnchor(anchorId) {
   const el = document.getElementById(anchorId);
   if (!el) return;

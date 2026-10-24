@@ -14,6 +14,7 @@ import { loadPdfLib } from "./pdf-lib-loader.js";
  * @returns {{ x: number, y: number }}
  */
 export function calcPosition(pageW, pageH, textW, textH, position, padding = 40) {
+  /** @type {Record<string, { x: number, y: number }>} */
   const positions = {
     tl: { x: padding, y: pageH - textH - padding },
     tc: { x: (pageW - textW) / 2, y: pageH - textH - padding },

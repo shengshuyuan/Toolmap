@@ -41,7 +41,7 @@ export function downloadJSON(payload, filename) {
 }
 
 /**
- * @param {Object} record
+ * @param {any} record
  * @returns {Object}
  */
 function sanitizeTextRecord(record) {
@@ -54,7 +54,7 @@ function sanitizeTextRecord(record) {
 }
 
 /**
- * @param {Object} record
+ * @param {any} record
  * @returns {Promise<Object>}
  */
 async function sanitizeImageRecord(record) {

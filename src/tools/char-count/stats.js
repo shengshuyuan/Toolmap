@@ -1,3 +1,4 @@
+/** @param {unknown} text @returns {string} */
 function normalizeNewlines(text) {
   return String(text ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 }
@@ -31,16 +32,21 @@ function countCharCategories(text) {
 /**
  * 行数统计：与主流编辑器一致，尾部换行产生新行。
  * "a\n" → 2 行（VS Code 行为）
+ * @param {string} text
+ * @returns {{ lines: number, nonEmptyLines: number }}
  */
 function countLines(text) {
   if (text === "") return { lines: 0, nonEmptyLines: 0 };
   const parts = text.split("\n");
   // 不再 pop 尾部空串，"a\n" 的第二行（空行）也计入总行数
   const lines = parts.length;
-  const nonEmptyLines = parts.filter((line) => line.trim() !== "").length;
+  const nonEmptyLines = parts.filter((/** @type {string} */ line) => line.trim() !== "").length;
   return { lines, nonEmptyLines };
 }
 
+/**
+ * @param {unknown} input
+ */
 export function analyzeTextStats(input) {
   const text = String(input ?? "");
   const textForLines = normalizeNewlines(text);

@@ -2,7 +2,9 @@
  * QR Code 图片解码器 — 按需加载 jsQR
  */
 
+/** @type {any} */
 let jsQRLibrary = null;
+/** @type {Promise<any> | null} */
 let loadPromise = null;
 
 /**
@@ -73,6 +75,7 @@ export async function decodeFromImage(file) {
   canvas.width = img.width;
   canvas.height = img.height;
   const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("无法创建画布上下文");
   ctx.drawImage(img, 0, 0);
   return decodeFromCanvas(canvas);
 }

@@ -63,4 +63,32 @@ assert.deepEqual(toLines(""), [], "empty text should not be treated as a real bl
   assert.equal(result.lines.filter((line) => line.op === "delete").length, 1);
 }
 
+// 规则选项测试：忽略大小写
+{
+  const resDefault = diffLines("Hello World", "hello world");
+  assert.equal(resDefault.diffCount, 1);
+
+  const resIgnoreCase = diffLines("Hello World", "hello world", { ignoreCase: true });
+  assert.equal(resIgnoreCase.diffCount, 0);
+  assert.equal(resIgnoreCase.lines[0].op, "equal");
+  // 保持原文显示
+  assert.equal(resIgnoreCase.lines[0].left, "Hello World");
+  assert.equal(resIgnoreCase.lines[0].right, "hello world");
+}
+
+// 规则选项测试：忽略空白
+{
+  const left = "  const a = 1;  \n  let b = 2;  ";
+  const right = "const a = 1;\nlet b = 2;";
+
+  const resDefault = diffLines(left, right);
+  assert.equal(resDefault.diffCount, 2);
+
+  const resTrim = diffLines(left, right, { ignoreWhitespace: "trim" });
+  assert.equal(resTrim.diffCount, 0);
+
+  const resAll = diffLines("a   b   c", "abc", { ignoreWhitespace: "all" });
+  assert.equal(resAll.diffCount, 0);
+}
+
 console.log("diff tests passed");

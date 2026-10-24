@@ -21,6 +21,9 @@ import {
   saveTextHistoryRecord,
 } from "./history-store.js";
 import { exportTextHistory } from "../../shared/history-export.js";
+import { getTextDiffTemplate } from "./template.js";
+
+export { getTextDiffTemplate };
 
 const DEMO_LEFT = `会员权益说明 (v1.0)
 1. 免费用户每天可导出 3 次
@@ -35,186 +38,12 @@ const DEMO_RIGHT = `会员权益说明 (v2.0)
 4. 支持导出格式：CSV、JSON、PDF
 5. 企业版支持团队成员协作`;
 
-export function getTextDiffTemplate() {
-  return `
-  <div class="text-diff-tool panel panel--enter" aria-labelledby="diff-title">
-    <div class="diff-header-bar">
-      <div class="diff-header-bar__left">
-        <div class="diff-breadcrumb">文档与评审 / 文本比对</div>
-        <h1 id="diff-title" class="diff-page-title">文本比对</h1>
-        <p class="diff-page-subtitle">看清每一处修改。</p>
-      </div>
-      <div class="diff-header-bar__actions">
-        <button id="btnOpenHistory" class="btn btn--outline" type="button">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          历史记录
-        </button>
-        <button id="btnCompare" class="btn btn--primary" type="button">
-          开始比对
-        </button>
-      </div>
-    </div>
 
-    <div class="diff-control-bar">
-      <div class="diff-control-bar__left">
-        <div class="diff-view-tabs" role="tablist">
-          <button type="button" class="diff-tab-btn diff-tab-btn--active" id="tabViewSide" role="tab" aria-selected="true">左右对照</button>
-          <button type="button" class="diff-tab-btn" id="tabViewInline" role="tab" aria-selected="false">逐条查看</button>
-        </div>
-        <button type="button" class="btn btn--xs btn--subtle" id="btnBackToEdit" hidden>返回编辑</button>
-      </div>
-
-      <div class="diff-control-bar__right">
-        <label class="diff-switch-label" title="比对时忽略空格与空行差异（不修改原文）">
-          <input type="checkbox" id="chkIgnoreWhitespace" class="diff-switch-input" />
-          <span class="diff-switch-text">忽略空白</span>
-        </label>
-
-        <div class="diff-more-dropdown-wrap">
-          <button type="button" class="btn btn--sm btn--outline" id="btnMoreToggle">
-            更多 ▾
-          </button>
-          <div class="diff-more-menu" id="moreDropdownMenu" hidden>
-            <button type="button" class="diff-menu-item" id="btnClean">清空空行</button>
-            <button type="button" class="diff-menu-item" id="btnSwap">交换文本</button>
-            <button type="button" class="diff-menu-item" id="btnLoadDemo">载入需求变更示例</button>
-            <div class="diff-menu-divider"></div>
-            <button type="button" class="diff-menu-item diff-menu-item--danger" id="btnClear">清空全部文本</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="diffStaleBanner" class="diff-stale-banner" hidden>
-      <span>输入内容已更新，当前展示的为旧比对结果。点击「开始比对」重新计算。</span>
-    </div>
-
-    <!-- 舞台区域：编辑与差异同台切换 -->
-    <div class="diff-stage" id="diffStage">
-      <!-- 1. 编辑模式 -->
-      <div class="diff-stage-editor" id="stageEditor">
-        <div class="diff-editor-pane">
-          <div class="diff-pane-head">
-            <div class="diff-pane-head__left">
-              <span class="diff-pane-label">原文本</span>
-              <span class="diff-pane-sub">Original</span>
-            </div>
-            <div class="diff-pane-head__right">
-              <label class="diff-file-import-btn" title="导入本地文件">
-                <input type="file" id="fileInputLeft" accept=".txt,.md,.json,.js,.ts,.html,.css,.csv,.xml" hidden />
-                导入 ⭡
-              </label>
-              <button type="button" class="diff-pane-clear-btn" id="btnClearLeft">清空</button>
-            </div>
-          </div>
-          <div class="editor" aria-label="原文本编辑器">
-            <div id="leftGutter" class="editor__gutter" aria-hidden="true"></div>
-            <div class="editor__content">
-              <div id="leftHL" class="editor__hl" aria-hidden="true"></div>
-              <textarea
-                id="leftText"
-                class="textarea textarea--overlay"
-                wrap="off"
-                spellcheck="false"
-                placeholder="粘贴原始需求、说明或旧版代码…"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="diff-editor-pane">
-          <div class="diff-pane-head">
-            <div class="diff-pane-head__left">
-              <span class="diff-pane-label">对比文本</span>
-              <span class="diff-pane-sub">Changed</span>
-            </div>
-            <div class="diff-pane-head__right">
-              <label class="diff-file-import-btn" title="导入本地文件">
-                <input type="file" id="fileInputRight" accept=".txt,.md,.json,.js,.ts,.html,.css,.csv,.xml" hidden />
-                导入 ⭡
-              </label>
-              <button type="button" class="diff-pane-clear-btn" id="btnClearRight">清空</button>
-            </div>
-          </div>
-          <div class="editor" aria-label="对比文本编辑器">
-            <div id="rightGutter" class="editor__gutter" aria-hidden="true"></div>
-            <div class="editor__content">
-              <div id="rightHL" class="editor__hl" aria-hidden="true"></div>
-              <textarea
-                id="rightText"
-                class="textarea textarea--overlay"
-                wrap="off"
-                spellcheck="false"
-                placeholder="粘贴修改后的需求、新版说明或对比材料…"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2. 差异查看模式 -->
-      <div class="diff-stage-result" id="stageResult" hidden>
-        <div id="diffView" class="diff-view" role="region" aria-label="差异结果区">
-          <div class="diff-empty">还没有结果。点击上方「开始比对」。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 底部常驻栏：统计、定位导航、复制摘要 -->
-    <footer class="diff-bottom-bar" id="diffBottomBar">
-      <div class="diff-bottom-bar__left">
-        <div class="diff-stats-counts" id="diffStatsCounts">
-          修改 <b id="statModCount">0</b> · <span class="stat--add">新增 <b id="statAddCount">0</b></span> · <span class="stat--del">删除 <b id="statDelCount">0</b></span>
-        </div>
-        <div id="statusText" class="diff-status-tip">准备就绪。快捷键 ⌘/Ctrl + Enter。</div>
-        <div id="diffCount" hidden>0</div>
-      </div>
-
-      <div class="diff-bottom-bar__center">
-        <div class="diff-nav-pill">
-          <span id="statNavIndex">第 0 / 0 处</span>
-          <button id="btnPrev" class="diff-nav-btn" type="button" title="上一处修改" disabled>↑</button>
-          <button id="btnNext" class="diff-nav-btn" type="button" title="下一处修改" disabled>↓</button>
-        </div>
-      </div>
-
-      <div class="diff-bottom-bar__right">
-        <button id="btnCopy" class="btn btn--outline" type="button">
-          复制差异摘要
-        </button>
-      </div>
-    </footer>
-
-    <div id="compareHints" class="compare-hints" hidden></div>
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-    <!-- 历史记录抽屉 -->
-    <div id="historyDrawerBackdrop" class="drawer-backdrop" hidden></div>
-    <aside id="historyDrawer" class="text-history-drawer" aria-label="文本比对历史记录" hidden>
-      <div class="text-history">
-        <div class="text-history__head">
-          <div>
-            <h2 class="text-history__title">历史记录</h2>
-            <div id="textHistoryMeta" class="text-history__sub">保存两侧文本和比对摘要，仅当前浏览器本地可见。</div>
-          </div>
-          <button type="button" class="drawer-close-btn" id="btnCloseHistoryDrawer" aria-label="关闭历史记录">✕</button>
-        </div>
-
-        <div class="text-history__actions">
-          <button id="btnRefreshTextHistory" class="history-mini-btn" type="button">刷新</button>
-          <button id="btnExportTextHistory" class="history-mini-btn" type="button">导出</button>
-          <button id="btnClearTextHistory" class="history-mini-btn history-mini-btn--danger" type="button" disabled>清空历史</button>
-        </div>
-
-        <div id="textHistoryList" class="text-history__list">
-          <div class="diff-empty">比对完成后会自动保存到这里。</div>
-        </div>
-      </div>
-    </aside>
-  </div>
-`;
-}
-
+/**
+ * @param {ParentNode} root
+ * @param {string} id
+ * @returns {any} 模板内元素类型各异，调用处自行断言
+ */
 function getRequiredElement(root, id) {
   let el = root.querySelector(`#${id}`);
   if (!el && id === "statNavIndex") {
@@ -224,10 +53,12 @@ function getRequiredElement(root, id) {
   return el;
 }
 
+/** @param {HTMLElement & { _cleanup?: () => void }} mount */
 export function mountTextDiffTool(mount) {
   if (!(mount instanceof HTMLElement)) return;
   mount.innerHTML = getTextDiffTemplate();
 
+  /** @param {string} id @returns {any} */
   const $ = (id) => getRequiredElement(mount, id);
 
   const elLeft = /** @type {HTMLTextAreaElement} */ ($("leftText"));
@@ -296,17 +127,22 @@ export function mountTextDiffTool(mount) {
 
   let compareLock = false;
   const showToast = createToast(elToast, { showClass: "toast--show", duration: 3500 });
+  /** @type {any[]} */
   let textHistoryRecords = [];
   let isDiffMode = false;
   let viewMode = "side"; // 'side' | 'inline'
   let isDirtyAfterDiff = false;
+  // 卸载时在 _cleanup 里直接传给 removeEventListener（可能仍为 null），故用 any
+  /** @type {any} */
   let onDocClickCloseMore = null;
 
+  /** @param {string} text @param {string} [tone] */
   function setStatus(text, tone = "muted") {
     elStatus.textContent = text;
     elStatus.style.color = tone === "danger" ? "rgba(255,59,48,.88)" : "";
   }
 
+  /** @param {string} mode */
   function setStage(mode) {
     isDiffMode = mode === "diff";
     stageEditor.hidden = isDiffMode;
@@ -320,6 +156,7 @@ export function mountTextDiffTool(mount) {
     }
   }
 
+  /** @param {boolean} stale */
   function markDiffStale(stale) {
     isDirtyAfterDiff = stale;
     diffStaleBanner.hidden = !stale;
@@ -336,6 +173,7 @@ export function mountTextDiffTool(mount) {
     historyDrawerBackdrop.hidden = true;
   }
 
+  /** @param {string[]} [messages] */
   function renderCompareHints(messages = []) {
     if (!messages.length) {
       elCompareHints.hidden = true;
@@ -377,6 +215,7 @@ export function mountTextDiffTool(mount) {
     statNavIndex.textContent = `第 ${current} / ${total} 处`;
   }
 
+  /** @param {{ leftLine?: number | null, rightLine?: number | null } | null | undefined} meta */
   function locateFromMeta(meta) {
     const leftLine = meta?.leftLine ?? null;
     const rightLine = meta?.rightLine ?? null;
@@ -387,13 +226,15 @@ export function mountTextDiffTool(mount) {
     return { leftLine, rightLine, actualLeft, actualRight };
   }
 
+  /** @param {number} index */
   function goto(index) {
     if (comparison.nav.anchors.length === 0) return;
     const clamped = Math.max(0, Math.min(comparison.nav.anchors.length - 1, index));
     comparison.nav.activeIndex = clamped;
+    /** @type {any} */
     const anchor = comparison.nav.anchors[clamped];
     focusAnchor(anchor);
-    const located = locateFromMeta(comparison.anchorMeta[anchor]);
+    const located = locateFromMeta(/** @type {Record<string, any>} */ (comparison.anchorMeta)[anchor]);
     updateNavIndexDisplay();
     setStatus(`定位差异 ${clamped + 1}/${comparison.nav.anchors.length} · ${buildLocateStatus({
       expectedLeft: located.leftLine,
@@ -458,6 +299,7 @@ export function mountTextDiffTool(mount) {
     }
   }
 
+  /** @param {{ leftText: string, rightText: string, result: ReturnType<typeof diffLines> }} params */
   async function saveComparisonHistory({ leftText, rightText, result }) {
     if (!isTextHistoryAvailable()) return;
     try {
@@ -491,6 +333,7 @@ export function mountTextDiffTool(mount) {
     }
   }
 
+  /** @param {string} id */
   function restoreTextHistory(id) {
     const record = textHistoryRecords.find((item) => item.id === id);
     if (!record) return;
@@ -508,6 +351,7 @@ export function mountTextDiffTool(mount) {
     showToast("历史文本已恢复。");
   }
 
+  /** @param {string} id */
   async function copyTextHistorySummary(id) {
     const record = textHistoryRecords.find((item) => item.id === id);
     if (!record) return;
@@ -515,6 +359,7 @@ export function mountTextDiffTool(mount) {
     showToast(ok ? "历史摘要已复制。" : "复制失败了，请手动选择文本复制。");
   }
 
+  /** @param {string} id */
   async function removeTextHistory(id) {
     const ok = window.confirm("确定删除这条文本比对历史吗？这只会删除当前浏览器本地保存的记录。");
     if (!ok) return;
@@ -648,11 +493,16 @@ export function mountTextDiffTool(mount) {
     }
   }
 
+  /**
+   * @param {HTMLInputElement} inputEl
+   * @param {HTMLTextAreaElement} targetTextarea
+   * @param {ReturnType<typeof createEditorController>} editorController
+   */
   function handleFileInput(inputEl, targetTextarea, editorController) {
     const file = inputEl.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (/** @type {ProgressEvent<FileReader>} */ e) => {
       targetTextarea.value = String(e.target?.result || "");
       editorController.rememberValue();
       editorController.resetScroll();
@@ -704,7 +554,7 @@ export function mountTextDiffTool(mount) {
     onDocClickCloseMore = () => {
       moreDropdownMenu.hidden = true;
     };
-    btnMoreToggle.addEventListener("click", (e) => {
+    btnMoreToggle.addEventListener("click", (/** @type {MouseEvent} */ e) => {
       e.stopPropagation();
       moreDropdownMenu.hidden = !moreDropdownMenu.hidden;
     });
@@ -743,7 +593,7 @@ export function mountTextDiffTool(mount) {
     });
 
     // 快捷键 ⌘/Ctrl + Enter
-    mount.addEventListener("keydown", (ev) => {
+    mount.addEventListener("keydown", (/** @type {KeyboardEvent} */ ev) => {
       if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
         ev.preventDefault();
         onCompare();
@@ -769,6 +619,7 @@ export function mountTextDiffTool(mount) {
     btnClearTextHistory.addEventListener("click", removeAllTextHistory);
   }
 
+  /** @type {ReturnType<typeof setTimeout> | null} */
   let inputDebounceTimer = null;
   function bindEditorInputs() {
     function onInputChanged() {
@@ -790,6 +641,7 @@ export function mountTextDiffTool(mount) {
 
   function bindEditorScroll() {
     let lock = false;
+    /** @param {ReturnType<typeof createEditorController>} from @param {ReturnType<typeof createEditorController>} to */
     function sync(from, to) {
       if (lock) return;
       lock = true;
@@ -804,7 +656,7 @@ export function mountTextDiffTool(mount) {
   }
 
   function bindDiffClickLocate() {
-    elDiffView.addEventListener("click", (ev) => {
+    elDiffView.addEventListener("click", (/** @type {MouseEvent} */ ev) => {
       const target = /** @type {HTMLElement} */ (ev.target);
       const tr = target?.closest?.("tr.diff-row");
       if (!(tr instanceof HTMLElement)) return;
@@ -821,7 +673,7 @@ export function mountTextDiffTool(mount) {
   }
 
   function bindTextHistory() {
-    elTextHistoryList.addEventListener("click", (ev) => {
+    elTextHistoryList.addEventListener("click", (/** @type {MouseEvent} */ ev) => {
       const target = /** @type {HTMLElement} */ (ev.target);
       if (!(target instanceof HTMLElement)) return;
       const restoreId = target.getAttribute("data-text-history-restore");
@@ -863,6 +715,7 @@ export function mountTextDiffTool(mount) {
   currentTextDiffCleanup = mount._cleanup;
 }
 
+/** @type {(() => void) | null} */
 let currentTextDiffCleanup = null;
 
 export function unmountTextDiffTool() {

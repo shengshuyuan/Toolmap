@@ -5,6 +5,13 @@
 import { sanitizeUrl } from "./renderer.js";
 
 /**
+ * @typedef {{ type: "el", tag: string, attrs: Record<string, string>, children: HtmlNode[] }} HtmlElement
+ * @typedef {{ type: "text", text: string }} HtmlText
+ * @typedef {HtmlElement | HtmlText} HtmlNode
+ * @typedef {{ bold: boolean, italic: boolean, underline: boolean, strike: boolean }} InlineCtx
+ */
+
+/**
  * 删除危险节点与属性
  * @param {string} html
  * @returns {{ cleanedHtml: string, warning: boolean }}
@@ -19,6 +26,7 @@ export function sanitizeHtml(html) {
   const blocked = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "LINK", "META", "BASE", "FORM"]);
   let warning = /<(script|iframe|object|embed|style)\b/i.test(raw);
 
+  /** @param {Node} node */
   const walk = (node) => {
     const children = [...node.childNodes];
     for (const child of children) {
@@ -52,6 +60,10 @@ export function sanitizeHtml(html) {
   return { cleanedHtml: doc.body.innerHTML, warning };
 }
 
+/**
+ * @param {string} raw
+ * @returns {{ cleanedHtml: string, warning: boolean }}
+ */
 function sanitizeHtmlRegex(raw) {
   let s = raw
     .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
@@ -92,14 +104,15 @@ const BLOCK_TAGS = new Set([
   "footer", "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav",
   "ol", "p", "pre", "section", "table", "ul", "tr",
 ]);
+/** @type {Record<string, number>} */
 const FONT_SIZE_PX = { 1: 10, 2: 13, 3: 16, 4: 18, 5: 24, 6: 32, 7: 48 };
 
 /**
  * @param {string} html
- * @returns {{ type: "el", tag: string, attrs: Record<string, string>, children: any[] }}
+ * @returns {HtmlElement}
  */
 function parseHtml(html) {
-  /** @type {{ type: "el"; tag: string; attrs: Record<string, string>; children: any[]; }} */
+  /** @type {HtmlElement} */
   const root = { type: "el", tag: "body", attrs: {}, children: [] };
   const stack = [root];
   const s = String(html ?? "");
@@ -123,7 +136,7 @@ function parseHtml(html) {
         i += close[0].length;
         for (let k = stack.length - 1; k > 0; k--) {
           const popped = stack.pop();
-          if (popped.tag === tag) break;
+          if (popped?.tag === tag) break;
         }
         continue;
       }
@@ -135,7 +148,7 @@ function parseHtml(html) {
         continue;
       }
       const tag = open[1].toLowerCase();
-      /** @type {{ type: "el"; tag: string; attrs: Record<string, string>; children: any[]; }} */
+      /** @type {HtmlElement} */
       const el = { type: "el", tag, attrs: parseAttrs(open[2] || ""), children: [] };
       stack[stack.length - 1].children.push(el);
       i += open[0].length;
@@ -149,11 +162,20 @@ function parseHtml(html) {
   return root;
 }
 
+/**
+ * @param {HtmlElement[]} stack
+ * @param {string} text
+ * @returns {void}
+ */
 function pushText(stack, text) {
   if (!text) return;
   stack[stack.length - 1].children.push({ type: "text", text });
 }
 
+/**
+ * @param {string} raw
+ * @returns {Record<string, string>}
+ */
 function parseAttrs(raw) {
   /** @type {Record<string, string>} */
   const attrs = {};
@@ -166,6 +188,11 @@ function parseAttrs(raw) {
   return attrs;
 }
 
+/**
+ * @param {HtmlNode|null|undefined} node
+ * @param {string} tag
+ * @returns {HtmlElement|null}
+ */
 function findFirst(node, tag) {
   if (!node || node.type !== "el") return null;
   if (node.tag === tag) return node;
@@ -176,6 +203,11 @@ function findFirst(node, tag) {
   return null;
 }
 
+/**
+ * @param {HtmlNode|null|undefined} el
+ * @param {number} inheritedIndent
+ * @returns {string}
+ */
 function renderBlocks(el, inheritedIndent) {
   if (!el || el.type !== "el") return "";
   if (SKIP_TAGS.has(el.tag)) return "";
@@ -195,6 +227,11 @@ function renderBlocks(el, inheritedIndent) {
   return out;
 }
 
+/**
+ * @param {HtmlNode|null|undefined} el
+ * @param {number} inheritedIndent
+ * @returns {string}
+ */
 function renderBlockNode(el, inheritedIndent) {
   if (!el || el.type !== "el" || SKIP_TAGS.has(el.tag)) return "";
   const tag = el.tag;
@@ -210,6 +247,10 @@ function renderBlockNode(el, inheritedIndent) {
   return renderBlocks(el, inheritedIndent);
 }
 
+/**
+ * @param {HtmlNode|null|undefined} el
+ * @returns {boolean}
+ */
 function isParagraphLike(el) {
   if (!el || el.type !== "el") return false;
   if (/^h[1-6]$/.test(el.tag) || el.tag === "p") return true;
@@ -220,6 +261,11 @@ function isParagraphLike(el) {
   return !el.children.some((child) => child.type === "el" && BLOCK_TAGS.has(child.tag));
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {number} inheritedIndent
+ * @returns {string}
+ */
 function renderParagraph(el, inheritedIndent) {
   const plain = plainText(el).replace(/\s+/g, " ").trim();
   if (!plain && !el.children.some((child) => child.type === "el" && (child.tag === "img" || child.tag === "br"))) {
@@ -235,6 +281,10 @@ function renderParagraph(el, inheritedIndent) {
   return renderParagraphText(inline, chars);
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {string}
+ */
 function renderInlineContainer(el) {
   const own = styleContext(el);
   let inline = renderInlineNodes(el.children, own).replace(/[ \t\u00A0]+\n/g, "\n");
@@ -244,6 +294,11 @@ function renderInlineContainer(el) {
   return inline;
 }
 
+/**
+ * @param {string} text
+ * @param {number} indentCharsValue
+ * @returns {string}
+ */
 function renderParagraphText(text, indentCharsValue) {
   const raw = String(text ?? "");
   const prefix = indentPrefix(indentCharsValue, raw);
@@ -252,14 +307,24 @@ function renderParagraphText(text, indentCharsValue) {
   return `\n${prefix}${core}\n\n`;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {number} inheritedIndent
+ * @returns {string}
+ */
 function renderQuote(el, inheritedIndent) {
   const inner = renderBlocks(el, inheritedIndent).trim();
   if (!inner) return "";
   return `\n${inner.split("\n").map((line) => `> ${line}`).join("\n")}\n\n`;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {string} marker
+ * @returns {string}
+ */
 function renderList(el, marker) {
-  const items = el.children.filter((child) => child.type === "el" && child.tag === "li");
+  const items = /** @type {HtmlElement[]} */ (el.children.filter((child) => child.type === "el" && child.tag === "li"));
   if (!items.length) return "";
   const lines = items.map((li, index) => {
     const bullet = marker === "ol" ? `${index + 1}.` : "-";
@@ -271,7 +336,12 @@ function renderList(el, marker) {
   return `\n${lines.join("\n")}\n\n`;
 }
 
+/**
+ * @param {HtmlElement} li
+ * @returns {HtmlNode[]}
+ */
 function listItemNodes(li) {
+  /** @type {HtmlNode[]} */
   const nodes = [];
   for (const child of li.children) {
     if (child.type === "el" && child.tag === "p") nodes.push(...child.children);
@@ -280,6 +350,10 @@ function listItemNodes(li) {
   return nodes;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {string}
+ */
 function renderCodeBlock(el) {
   const code = findFirst(el, "code") || el;
   const lang = String(code.attrs?.class || "").match(/language-([\w-]+)/)?.[1] || "";
@@ -287,18 +361,25 @@ function renderCodeBlock(el) {
   return `\n\`\`\`${lang}\n${body}\n\`\`\`\n\n`;
 }
 
+/**
+ * @param {HtmlElement} table
+ * @returns {string}
+ */
 function renderTable(table) {
+  /** @type {HtmlElement[][]} */
   const rows = [];
+  /** @param {HtmlNode|null|undefined} node */
   const walk = (node) => {
     if (!node || node.type !== "el") return;
     if (node.tag === "tr") {
-      rows.push(node.children.filter((child) => child.type === "el" && (child.tag === "th" || child.tag === "td")));
+      rows.push(/** @type {HtmlElement[]} */ (node.children.filter((child) => child.type === "el" && (child.tag === "th" || child.tag === "td"))));
       return;
     }
     node.children.forEach(walk);
   };
   walk(table);
   if (!rows.length) return "";
+  /** @param {HtmlElement[]} row */
   const cells = (row) => row.map((cell) => renderInlineContainer(cell).replace(/\|/g, "\\|").replace(/\s+/g, " ").trim());
   const header = cells(rows[0]);
   const lines = [
@@ -309,6 +390,11 @@ function renderTable(table) {
   return `\n${lines.join("\n")}\n\n`;
 }
 
+/**
+ * @param {HtmlNode[]|null|undefined} nodes
+ * @param {InlineCtx} ctx
+ * @returns {string}
+ */
 function renderInlineNodes(nodes, ctx) {
   let out = "";
   for (const node of nodes || []) {
@@ -322,6 +408,11 @@ function renderInlineNodes(nodes, ctx) {
   return out;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {InlineCtx} ctx
+ * @returns {string}
+ */
 function renderInlineElement(el, ctx) {
   const tag = el.tag;
   if (tag === "br") return "\n";
@@ -361,6 +452,10 @@ function renderInlineElement(el, ctx) {
   return inner;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {InlineCtx}
+ */
 function styleContext(el) {
   const style = parseStyle(el?.attrs?.style || "");
   return {
@@ -371,6 +466,11 @@ function styleContext(el) {
   };
 }
 
+/**
+ * @param {string} text
+ * @param {string} mark
+ * @returns {string}
+ */
 function wrapMark(text, mark) {
   const lead = text.match(/^[ \t\u00A0]*/)?.[0] ?? "";
   const trail = text.match(/[ \t\u00A0]*$/)?.[0] ?? "";
@@ -382,10 +482,18 @@ function wrapMark(text, mark) {
   return `${lead}${mark}${core}${mark}${trail}`;
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function trimEdges(text) {
   return String(text ?? "").replace(/^[ \t\r\n\u00A0]+/, "").replace(/[ \t\r\n\u00A0]+$/, "");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function stripWrappingMarks(text) {
   let value = text.trim();
   const marks = ["**", "++", "~~", "*"];
@@ -405,6 +513,11 @@ function stripWrappingMarks(text) {
   return value;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {string} plain
+ * @returns {number}
+ */
 function inferHeadingLevel(el, plain) {
   const tagLevel = el.tag.match(/^h([1-6])$/);
   if (tagLevel) return Number(tagLevel[1]);
@@ -427,6 +540,10 @@ function inferHeadingLevel(el, plain) {
   return 0;
 }
 
+/**
+ * @param {string} token
+ * @returns {number}
+ */
 function headingLevelFromClass(token) {
   const named = token.match(/(?:^|[\s_-])(?:mso[-_\s]*)?heading[\s_-]*([1-6])\b/i);
   if (named) return Number(named[1]);
@@ -437,9 +554,13 @@ function headingLevelFromClass(token) {
   return 0;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {{ px: number|null, bold: boolean, align: string }}
+ */
 function presentation(el) {
   const own = readMetrics(el);
-  const elements = el.children.filter((child) => child.type === "el");
+  const elements = /** @type {HtmlElement[]} */ (el.children.filter((child) => child.type === "el"));
   const looseText = el.children.some((child) => child.type === "text" && normalizeText(child.text).trim());
   if (own.px == null && !looseText && elements.length === 1) {
     const inner = presentation(elements[0]);
@@ -456,6 +577,10 @@ function presentation(el) {
   };
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {{ px: number|null, bold: boolean, align: string }}
+ */
 function readMetrics(el) {
   const style = parseStyle(el.attrs.style || "");
   let px = fontSizePx(style);
@@ -469,6 +594,12 @@ function readMetrics(el) {
   };
 }
 
+/**
+ * @param {number|null} px
+ * @param {boolean} bold
+ * @param {number} length
+ * @returns {number}
+ */
 function levelFromSize(px, bold, length) {
   if (px == null) return 0;
   if (px >= 32) return 1;
@@ -479,9 +610,17 @@ function levelFromSize(px, bold, length) {
   return 0;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @returns {boolean}
+ */
 function subtreeAllBold(el) {
   let saw = false;
   let all = true;
+  /**
+   * @param {HtmlNode} node
+   * @param {boolean} bold
+   */
   const walk = (node, bold) => {
     if (node.type === "text") {
       if (!normalizeText(node.text).trim()) return;
@@ -498,15 +637,29 @@ function subtreeAllBold(el) {
   return saw && all;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {Record<string, string>} [style]
+ * @returns {boolean}
+ */
 function isBoldElement(el, style = parseStyle(el.attrs?.style || "")) {
   return el?.tag === "b" || el?.tag === "strong" || fontWeightBold(style);
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {Record<string, string>} [style]
+ * @returns {boolean}
+ */
 function isItalicElement(el, style = parseStyle(el.attrs?.style || "")) {
   const fontStyle = style["font-style"] || "";
   return el?.tag === "em" || el?.tag === "i" || fontStyle === "italic" || fontStyle === "oblique";
 }
 
+/**
+ * @param {Record<string, string>} style
+ * @returns {boolean}
+ */
 function fontWeightBold(style) {
   const weight = style["font-weight"];
   if (!weight) return false;
@@ -515,6 +668,10 @@ function fontWeightBold(style) {
   return Number.isFinite(numeric) && numeric >= 600;
 }
 
+/**
+ * @param {Record<string, string>} style
+ * @returns {number|null}
+ */
 function fontSizePx(style) {
   const raw = style["font-size"];
   if (!raw) return null;
@@ -528,13 +685,21 @@ function fontSizePx(style) {
   return value;
 }
 
+/**
+ * @param {HtmlElement} el
+ * @param {number} inheritedIndent
+ * @returns {number}
+ */
 function resolveIndent(el, inheritedIndent) {
   const own = indentChars(parseStyle(el.attrs.style || ""));
   if (own != null) return own;
   return inheritedIndent || 0;
 }
 
-/** @returns {number|null} null 表示元素自己没写缩进，沿用父级 */
+/**
+ * @param {Record<string, string>} style
+ * @returns {number|null} null 表示元素自己没写缩进，沿用父级
+ */
 function indentChars(style) {
   const hasIndent = Object.prototype.hasOwnProperty.call(style, "text-indent")
     || Object.prototype.hasOwnProperty.call(style, "mso-char-indent-count");
@@ -544,6 +709,10 @@ function indentChars(style) {
   return textIndentToChars(style["text-indent"] || "0");
 }
 
+/**
+ * @param {string} raw
+ * @returns {number}
+ */
 function textIndentToChars(raw) {
   const match = String(raw).trim().match(/^(-?[\d.]+)\s*(px|pt|em|rem|cm|mm|ch|ex)?$/i);
   if (!match) return 0;
@@ -559,16 +728,29 @@ function textIndentToChars(raw) {
   return 0;
 }
 
+/**
+ * @param {number} chars
+ * @param {string} original
+ * @returns {string}
+ */
 function indentPrefix(chars, original) {
   if (chars >= 1.5) return "\u3000\u3000";
   if (chars >= 0.75) return "\u3000";
   return (String(original || "").match(/^(?:\u3000|\u2003)+/) || [""])[0];
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function stripIndentFrom(text) {
   return text.replace(/^(?:[\u3000\u2002\u2003]|\s)+/, "");
 }
 
+/**
+ * @param {string|undefined} style
+ * @returns {Record<string, string>}
+ */
 function parseStyle(style) {
   /** @type {Record<string, string>} */
   const map = {};
@@ -582,6 +764,10 @@ function parseStyle(style) {
   return map;
 }
 
+/**
+ * @param {HtmlNode|null|undefined} node
+ * @returns {string}
+ */
 function plainText(node) {
   if (!node) return "";
   if (node.type === "text") return decodeEntities(node.text);
@@ -589,6 +775,10 @@ function plainText(node) {
   return node.children.map(plainText).join("");
 }
 
+/**
+ * @param {HtmlNode|null|undefined} node
+ * @returns {string}
+ */
 function rawText(node) {
   if (!node) return "";
   if (node.type === "text") return decodeEntities(node.text);
@@ -596,10 +786,18 @@ function rawText(node) {
   return node.children.map(rawText).join("");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function normalizeText(text) {
   return decodeEntities(text).replace(/[ \t\f\v\r\n\u00A0]+/g, " ");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function decodeEntities(text) {
   return String(text ?? "")
     .replace(/&#x([0-9a-f]+);/gi, (_, hex) => fromCodePoint(Number.parseInt(hex, 16)))
@@ -614,12 +812,20 @@ function decodeEntities(text) {
     .replace(/&amp;/gi, "&");
 }
 
+/**
+ * @param {number} value
+ * @returns {string}
+ */
 function fromCodePoint(value) {
   if (!Number.isFinite(value) || value < 0 || value > 0x10ffff) return "";
   if (value >= 0xd800 && value <= 0xdfff) return "";
   return String.fromCodePoint(value);
 }
 
+/**
+ * @param {string} markdown
+ * @returns {string}
+ */
 function tidyMarkdown(markdown) {
   return String(markdown || "")
     .replace(/[ \t\u00A0]+\n/g, "\n")

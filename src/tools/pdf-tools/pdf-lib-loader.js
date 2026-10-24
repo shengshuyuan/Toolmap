@@ -2,7 +2,9 @@
  * pdf-lib 按需加载器
  */
 
+/** @type {any} */
 let pdfLibModule = null;
+/** @type {Promise<any> | null} */
 let loadPromise = null;
 
 /**

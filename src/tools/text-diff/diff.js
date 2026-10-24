@@ -13,6 +13,8 @@
 
 /**
  * 把文本拆成行数组（保留空行由上层决定是否 sanitize）
+ * @param {unknown} text
+ * @returns {string[]}
  */
 export function toLines(text) {
   const s = String(text ?? "");
@@ -26,10 +28,44 @@ export function toLines(text) {
 }
 
 /**
+ * 比较函数构建器：支持忽略空白与大小写
+ * @param {{ ignoreWhitespace?: "none"|"trim"|"all"|"change", ignoreCase?: boolean }} options
+ */
+export function createLineComparator(options = {}) {
+  const { ignoreWhitespace = "none", ignoreCase = false } = options;
+  if (ignoreWhitespace === "none" && !ignoreCase) {
+    return (/** @type {unknown} */ a, /** @type {unknown} */ b) => a === b;
+  }
+  return (/** @type {unknown} */ a, /** @type {unknown} */ b) => {
+    let s1 = String(a ?? "");
+    let s2 = String(b ?? "");
+    if (ignoreCase) {
+      s1 = s1.toLowerCase();
+      s2 = s2.toLowerCase();
+    }
+    if (ignoreWhitespace === "all") {
+      s1 = s1.replace(/\s+/g, "");
+      s2 = s2.replace(/\s+/g, "");
+    } else if (ignoreWhitespace === "trim") {
+      s1 = s1.trim();
+      s2 = s2.trim();
+    } else if (ignoreWhitespace === "change") {
+      s1 = s1.trim().replace(/\s+/g, " ");
+      s2 = s2.trim().replace(/\s+/g, " ");
+    }
+    return s1 === s2;
+  };
+}
+
+/**
  * Myers diff 的核心：返回 edit script（insert/delete/equal）
  * 参考：Myers 1986，最短编辑路径。
  */
-function myersDiff(a, b) {
+function myersDiff(
+  /** @type {string[]} */ a,
+  /** @type {string[]} */ b,
+  /** @type {(x: unknown, y: unknown) => boolean} */ compFn = (x, y) => x === y
+) {
   const N = a.length;
   const M = b.length;
   const max = N + M;
@@ -60,7 +96,7 @@ function myersDiff(a, b) {
       }
       let y = x - k;
 
-      while (x < N && y < M && a[x] === b[y]) {
+      while (x < N && y < M && compFn(a[x], b[y])) {
         x++;
         y++;
       }
@@ -74,7 +110,13 @@ function myersDiff(a, b) {
   return { trace, d: max, offset };
 }
 
-function backtrack(trace, a, b, offset) {
+function backtrack(
+  /** @type {Int32Array[]} */ trace,
+  /** @type {string[]} */ a,
+  /** @type {string[]} */ b,
+  /** @type {number} */ offset,
+  /** @type {(x: unknown, y: unknown) => boolean} */ compFn = (x, y) => x === y
+) {
   const N = a.length;
   const M = b.length;
   let x = N;
@@ -102,7 +144,7 @@ function backtrack(trace, a, b, offset) {
     const prevX = v[prevK + offset];
     const prevY = prevX - prevK;
 
-    while (x > prevX && y > prevY) {
+    while (x > prevX && y > prevY && compFn(a[x - 1], b[y - 1])) {
       script.push({ op: "equal", left: a[x - 1], right: b[y - 1] });
       x--;
       y--;
@@ -161,29 +203,43 @@ function coalesceReplace(script) {
   return out;
 }
 
+/** @param {unknown} text */
 function stripWhitespace(text) {
   return String(text ?? "").replace(/\s+/g, "");
 }
 
-function classifyDiffLine(line) {
+/**
+ * @param {DiffLine} line
+ * @param {(x: unknown, y: unknown) => boolean} [compFn]
+ */
+function classifyDiffLine(line, compFn) {
   if (line.op === "equal") return undefined;
   if (line.op === "insert") return String(line.right ?? "").trim() === "" ? "format" : "content";
   if (line.op === "delete") return String(line.left ?? "").trim() === "" ? "format" : "content";
+  if (compFn && compFn(line.left, line.right)) return "format";
   return stripWhitespace(line.left) === stripWhitespace(line.right) ? "format" : "content";
 }
 
-function annotateDiffTypes(lines) {
+/**
+ * @param {DiffLine[]} lines
+ * @param {(x: unknown, y: unknown) => boolean} [compFn]
+ * @returns {DiffLine[]}
+ */
+function annotateDiffTypes(lines, compFn) {
   return lines.map((line) => {
-    const diffType = classifyDiffLine(line);
+    const diffType = classifyDiffLine(line, compFn);
     return diffType ? { ...line, diffType } : line;
   });
 }
 
 /**
- * 对外：计算行级 diff。
+ * 对外：计算行级 diff。支持忽略空白与大小写等高级规则。
+ * @param {string} leftText
+ * @param {string} rightText
+ * @param {{ ignoreWhitespace?: "none"|"trim"|"all"|"change", ignoreCase?: boolean }} [options]
  * @returns {{ lines: DiffLine[], diffCount: number, contentDiffCount: number, formatDiffCount: number }}
  */
-export function diffLines(leftText, rightText) {
+export function diffLines(leftText, rightText, options = {}) {
   const left = toLines(leftText);
   const right = toLines(rightText);
 
@@ -193,9 +249,10 @@ export function diffLines(leftText, rightText) {
     throw new Error(`文本行数过多（>${HARD_MAX} 行），建议分段比对。`);
   }
 
-  const { trace, offset } = myersDiff(left, right);
-  const script = backtrack(trace, left, right, offset);
-  const lines = annotateDiffTypes(coalesceReplace(script));
+  const compFn = createLineComparator(options);
+  const { trace, offset } = myersDiff(left, right, compFn);
+  const script = backtrack(trace, left, right, offset, compFn);
+  const lines = annotateDiffTypes(coalesceReplace(script), compFn);
 
   let diffCount = 0;
   let contentDiffCount = 0;

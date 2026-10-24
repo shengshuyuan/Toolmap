@@ -1,5 +1,9 @@
 import { closeImageSource, createBitmap } from "./utils.js";
 
+/**
+ * @param {File | Blob} file
+ * @returns {Promise<{ width: number, height: number }>}
+ */
 export async function readImageMeta(file) {
   const bitmap = await createBitmap(file);
   const width = bitmap.width;

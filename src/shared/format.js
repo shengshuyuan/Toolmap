@@ -1,3 +1,7 @@
+/**
+ * @param {unknown} bytes
+ * @returns {string}
+ */
 export function formatBytes(bytes) {
   const n = Number(bytes) || 0;
   if (n < 1024) return `${n} B`;
@@ -11,6 +15,10 @@ export function formatBytes(bytes) {
   return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)} ${unit}`;
 }
 
+/**
+ * @param {number} value
+ * @returns {string}
+ */
 export function formatPercent(value) {
   if (!Number.isFinite(value)) return "0%";
   return `${Math.max(0, value).toFixed(1)}%`;

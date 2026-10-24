@@ -25,6 +25,7 @@ export function renderMarkdown(md) {
     let inTask = false;
     let inQuote = false;
     let inTable = false;
+    /** @type {string[]} */
     let tableRows = [];
 
     const closeLists = () => {
@@ -174,25 +175,30 @@ export function renderMarkdown(md) {
   }
 }
 
+/**
+ * @param {string[]} rows
+ * @returns {string}
+ */
 function renderTable(rows) {
   if (!rows.length) return "";
+  /** @param {string} row */
   const parseRow = (row) =>
     row
       .trim()
       .replace(/^\|/, "")
       .replace(/\|$/, "")
       .split("|")
-      .map((c) => c.trim());
+      .map((/** @type {string} */ c) => c.trim());
 
   const header = parseRow(rows[0]);
   let bodyStart = 1;
   if (rows[1] && /^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)+\|?\s*$/.test(rows[1])) {
     bodyStart = 2;
   }
-  const thead = `<thead><tr>${header.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead>`;
-  const bodyRows = rows.slice(bodyStart).map((r) => {
+  const thead = `<thead><tr>${header.map((/** @type {string} */ c) => `<th>${inline(c)}</th>`).join("")}</tr></thead>`;
+  const bodyRows = rows.slice(bodyStart).map((/** @type {string} */ r) => {
     const cells = parseRow(r);
-    return `<tr>${cells.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`;
+    return `<tr>${cells.map((/** @type {string} */ c) => `<td>${inline(c)}</td>`).join("")}</tr>`;
   });
   return `<div class="md-table-wrap"><table class="md-table">${thead}<tbody>${bodyRows.join("")}</tbody></table></div>`;
 }
@@ -205,7 +211,7 @@ function renderTable(rows) {
 function paragraphHtml(line) {
   const match = String(line ?? "").match(/^((?:\u3000|\u2003){1,8})([\s\S]*)$/);
   const indent = match ? [...match[1]].length : 0;
-  const content = indent ? match[2] : line;
+  const content = match && indent ? match[2] : line;
   if (String(content ?? "").trim() === "") return "";
   const style = indent ? ` style="text-indent:${indent}em"` : "";
   return `<p${style}>${inline(content)}</p>`;
@@ -217,7 +223,9 @@ function paragraphHtml(line) {
  */
 export function inline(text) {
   let s = escapeHtml(String(text ?? ""));
+  /** @type {string[]} */
   const holders = [];
+  /** @param {string} html */
   const hold = (html) => {
     const token = `\uE000${holders.length}\uE001`;
     holders.push(html);
@@ -242,6 +250,10 @@ export function inline(text) {
   return s.replace(/\uE000(\d+)\uE001/g, (_, index) => holders[Number(index)] ?? "");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function applyMarks(text) {
   let s = text;
   s = s.replace(/\+\+([^+]+)\+\+/g, "<u>$1</u>");
@@ -263,6 +275,7 @@ function applyMarks(text) {
  * @returns {string}
  */
 export function cleanMarkdownEscapes(text) {
+  /** @type {string[]} */
   const holders = [];
   let s = String(text ?? "");
   // 1. 保留代码块
@@ -281,6 +294,10 @@ export function cleanMarkdownEscapes(text) {
   return s.replace(/\uE000(\d+)\uE001/g, (_, i) => holders[Number(i)] ?? "");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 function unescapeHtml(text) {
   return String(text ?? "")
     .replace(/&quot;/g, "\"")
@@ -307,6 +324,10 @@ export function sanitizeUrl(url) {
   return null;
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 export function escapeHtml(text) {
   return String(text ?? "")
     .replace(/&/g, "&amp;")
@@ -316,10 +337,18 @@ export function escapeHtml(text) {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 export function escapeAttr(text) {
   return escapeHtml(text).replace(/`/g, "&#96;");
 }
 
+/**
+ * @param {string} text
+ * @returns {string}
+ */
 export function slugify(text) {
   return String(text || "")
     .trim()

@@ -10,8 +10,13 @@ const pdfToolsCss = await readFile(new URL("src/tools/pdf-tools/pdf-tools.css", 
 const mdEditorCss = await readFile(new URL("src/tools/markdown-editor/markdown-editor.css", root), "utf8");
 const searchModalJs = await readFile(new URL("src/search-modal.js", root), "utf8");
 const recentViewJs = await readFile(new URL("src/recent-view.js", root), "utf8");
-const qrcodeJs = await readFile(new URL("src/tools/qrcode/index.js", root), "utf8");
-const textDiffJs = await readFile(new URL("src/tools/text-diff/index.js", root), "utf8");
+// 工具的 HTML 模板已拆到 template.js，这里把模板与逻辑拼在一起做源码级契约检查
+const readToolSource = async (tool) =>
+  (await readFile(new URL(`src/tools/${tool}/index.js`, root), "utf8")) +
+  "\n" +
+  (await readFile(new URL(`src/tools/${tool}/template.js`, root), "utf8"));
+const qrcodeJs = await readToolSource("qrcode");
+const textDiffJs = await readToolSource("text-diff");
 
 // 1. [hidden] 契约测试：必须具备 display: none !important
 assert.ok(appCss.includes("[hidden] { display: none !important; }"), "app.css 必须包含全局 [hidden] 强制隐藏规则");
@@ -48,7 +53,7 @@ assert.ok(mdEditorCss.includes("grid-template-columns: 1fr !important;"), "Markd
 // 5. 全局 ⌘K 冲突防护与 Markdown 隔离（P1 #6）
 const appJs = await readFile(new URL("src/app.js", root), "utf8");
 assert.ok(appJs.includes("target.isContentEditable ||\n        target.tagName === \"INPUT\" ||\n        target.tagName === \"TEXTAREA\""), "全局快捷键必须跳过可编辑元素");
-const mdJs = await readFile(new URL("src/tools/markdown-editor/index.js", root), "utf8");
+const mdJs = await readToolSource("markdown-editor");
 assert.ok(mdJs.includes("e.stopPropagation();\n      applyFormat(\"link\");"), "Markdown 快捷键必须阻止冒泡");
 
 // 6. 搜索首次打开异步刷新与无障碍语义（P1 #7 & P2 #10）

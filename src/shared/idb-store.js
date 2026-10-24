@@ -5,6 +5,7 @@
 export function createIdbStore(options) {
   const { dbName, dbVersion = 1, storeName = "history", errorMessage = "操作失败" } = options;
 
+  /** @type {boolean | undefined} */
   let availabilityCache = undefined;
 
   function isAvailable() {
@@ -29,10 +30,17 @@ export function createIdbStore(options) {
     });
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @param {IDBTransactionMode} mode
+   * @param {(store: IDBObjectStore) => IDBRequest | void} action
+   * @returns {Promise<any>}
+   */
   function txDone(db, mode, action) {
     return new Promise((resolve, reject) => {
       const tx = db.transaction(storeName, mode);
       const store = tx.objectStore(storeName);
+      /** @type {any} */
       let requestResult;
       try {
         const request = action(store);
@@ -52,14 +60,26 @@ export function createIdbStore(options) {
     });
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @returns {Promise<any[]>}
+   */
   function readAll(db) {
     return txDone(db, "readonly", (store) => store.getAll());
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @param {any} record
+   */
   function putRecord(db, record) {
     return txDone(db, "readwrite", (store) => store.put(record));
   }
 
+  /**
+   * @param {IDBDatabase} db
+   * @param {number} limit
+   */
   async function trimHistory(db, limit) {
     const records = await readAll(db);
     const overflow = records.sort((a, b) => b.createdAt - a.createdAt).slice(limit);
@@ -79,6 +99,10 @@ export function createIdbStore(options) {
     }
   }
 
+  /**
+   * @param {any} record
+   * @param {number} limit
+   */
   async function save(record, limit) {
     const db = await openDB();
     try {
@@ -89,6 +113,7 @@ export function createIdbStore(options) {
     }
   }
 
+  /** @param {string} id */
   async function remove(id) {
     const db = await openDB();
     try {

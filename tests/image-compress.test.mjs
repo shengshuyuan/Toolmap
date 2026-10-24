@@ -84,7 +84,9 @@ assert.equal(getHistoryUsage([historyRecord]), historyBlob.size);
 
 const appCss = await readFile(new URL("../assets/app.css", import.meta.url), "utf8");
 const toolCss = await readFile(new URL("../src/tools/image-compress/image-compress.css", import.meta.url), "utf8");
-const imageTool = await readFile(new URL("../src/tools/image-compress/index.js", import.meta.url), "utf8");
+const imageTool =
+  (await readFile(new URL("../src/tools/image-compress/index.js", import.meta.url), "utf8")) +
+  (await readFile(new URL("../src/tools/image-compress/template.js", import.meta.url), "utf8"));
 assert.match(appCss, /\.tool-mount\[hidden\]\{display:none !important\}/);
 assert.match(toolCss, /\.image-compress-tool \.image-history/);
 assert.match(imageTool, /<label class="image-btn image-btn--primary image-pick-label" for="icFileInput">选择图片<\/label>/);

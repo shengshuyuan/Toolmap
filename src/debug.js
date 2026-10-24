@@ -11,11 +11,20 @@ export function parseDebugScopes(search = "") {
     .filter(Boolean);
 }
 
+/**
+ * @param {string} scope
+ * @param {{ search?: string }} [options]
+ * @returns {boolean}
+ */
 export function isDebugEnabled(scope, { search = undefined } = {}) {
   const scopes = parseDebugScopes(search ?? globalThis.location?.search ?? "");
   return scopes.includes("*") || scopes.includes(scope);
 }
 
+/**
+ * @param {string} scope
+ * @param {...unknown} args
+ */
 export function debugLog(scope, ...args) {
   if (!isDebugEnabled(scope)) return;
   console.debug(`[${scope}]`, ...args);

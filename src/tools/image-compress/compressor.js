@@ -1,5 +1,20 @@
 import { getModeSettings, getOutputMime, buildOutputName, closeImageSource, createBitmap } from "./utils.js";
 
+/**
+ * @typedef {import("./utils.js").CompressSettings} CompressSettings
+ * @typedef {import("./utils.js").CompressResult} CompressResult
+ * @typedef {import("./utils.js").ImageSource} ImageSource
+ * @typedef {{ quality: number, maxEdge: number, adaptive: boolean }} CompressionCandidate
+ * @typedef {{ width: number, height: number, resized: boolean }} TargetSize
+ * @typedef {{ blob: Blob, target: TargetSize, adaptive: boolean }} EncodeAttempt
+ */
+
+/**
+ * @param {number} width
+ * @param {number} height
+ * @param {number | string} maxEdge
+ * @returns {TargetSize}
+ */
 export function calculateTargetSize(width, height, maxEdge) {
   const limit = Number(maxEdge) || 0;
   if (!limit || Math.max(width, height) <= limit) return { width, height, resized: false };
@@ -12,6 +27,11 @@ export function calculateTargetSize(width, height, maxEdge) {
   };
 }
 
+/**
+ * @param {File} file
+ * @param {CompressSettings} settings
+ * @returns {Promise<CompressResult>}
+ */
 export async function compressImageFile(file, settings) {
   const bitmap = await createBitmap(file);
   const originalWidth = bitmap.width;
@@ -28,6 +48,7 @@ export async function compressImageFile(file, settings) {
     height: originalHeight,
   });
 
+  /** @type {EncodeAttempt | null} */
   let best = null;
   try {
     for (const candidate of candidates) {
@@ -69,6 +90,10 @@ export async function compressImageFile(file, settings) {
   };
 }
 
+/**
+ * @param {{ mode: string, outputMime: string, maxEdge: number | string, quality: number, width: number, height: number }} params
+ * @returns {CompressionCandidate[]}
+ */
 export function buildCompressionCandidates({ mode, outputMime, maxEdge, quality, width, height }) {
   const baseEdge = Number(maxEdge) || 0;
   const candidates = [{ quality, maxEdge: baseEdge, adaptive: false }];
@@ -82,6 +107,10 @@ export function buildCompressionCandidates({ mode, outputMime, maxEdge, quality,
   return dedupeCandidates(candidates);
 }
 
+/**
+ * @param {CompressionCandidate[]} candidates
+ * @returns {CompressionCandidate[]}
+ */
 function dedupeCandidates(candidates) {
   const seen = new Set();
   return candidates.filter((candidate) => {
@@ -92,6 +121,12 @@ function dedupeCandidates(candidates) {
   });
 }
 
+/**
+ * @param {ImageSource} bitmap
+ * @param {string} outputMime
+ * @param {CompressionCandidate} candidate
+ * @returns {Promise<EncodeAttempt>}
+ */
 async function encodeCandidate(bitmap, outputMime, candidate) {
   const target = calculateTargetSize(bitmap.width, bitmap.height, candidate.maxEdge);
   const canvas = document.createElement("canvas");
@@ -113,6 +148,12 @@ async function encodeCandidate(bitmap, outputMime, candidate) {
   };
 }
 
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param {string} type
+ * @param {number} quality
+ * @returns {Promise<Blob>}
+ */
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(

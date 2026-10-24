@@ -71,7 +71,7 @@ export function validateOutputSize(value) {
 }
 
 /**
- * @param {object} style
+ * @param {QrStyleState} style
  * @returns {number}
  */
 export function resolveOutputSize(style) {
@@ -106,7 +106,7 @@ export function parseHexColor(hex) {
  * @param {{ r: number, g: number, b: number }} c
  */
 export function relativeLuminance(c) {
-  const f = (v) => {
+  const f = (/** @type {number} */ v) => {
     const s = v / 255;
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
   };
@@ -131,7 +131,7 @@ export function contrastRatio(fg, bg) {
 
 /**
  * 导出用：清理历史里的 Logo 大图，仅保留缩略状态
- * @param {object} style
+ * @param {QrStyleState} style
  */
 export function serializeStyleForHistory(style) {
   const base = createDefaultStyle();
@@ -163,7 +163,7 @@ export function serializeStyleForHistory(style) {
 
 /**
  * 启发式可扫描风险（不含实际解码）
- * @param {object} style
+ * @param {QrStyleState} style
  * @param {{ hasContent?: boolean }} [meta]
  * @returns {string[]}
  */

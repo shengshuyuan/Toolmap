@@ -1,6 +1,12 @@
 import { APP_TITLE, APP_VERSION, BUILD_LABEL } from "./config/app-meta.js";
 import { createLatestNavigationQueue } from "./navigation-state.js";
-import { escapeHtml } from "./shared/escape.js";
+import { html } from "./shared/html.js";
+
+/**
+ * @typedef {Object} ShowToolOptions
+ * @property {boolean} [updateHash]
+ * @property {string | null} [restoreId]
+ */
 
 /**
  * 启动入口：动态加载注册表与 Shell，管理工具与工作台生命周期
@@ -21,8 +27,10 @@ async function bootstrap() {
   const mountingTools = new Map();
   const loadedModules = new Map();
   const navigationQueue = createLatestNavigationQueue();
+  /** @type {string | null} */
   let currentToolKey = null;
 
+  /** @param {string} id */
   function $(id) {
     return document.getElementById(id);
   }
@@ -54,6 +62,7 @@ async function bootstrap() {
     if (mountsRoot) mountsRoot.innerHTML = renderToolMountMarkup(TOOL_REGISTRY);
   }
 
+  /** @param {string} toolKey */
   function setShellCopy(toolKey) {
     const tool = getToolById(toolKey);
     if (tool) {
@@ -67,6 +76,7 @@ async function bootstrap() {
     }
   }
 
+  /** @param {string} toolKey */
   function updateSwitch(toolKey) {
     // 工具按钮
     document.querySelectorAll("[data-tool-target]").forEach((button) => {
@@ -86,16 +96,54 @@ async function bootstrap() {
     });
   }
 
+  const styleLoads = new Map();
+
+  /**
+   * 按需注入工具专属样式；样式加载失败不阻塞工具挂载（无样式仍可用）。
+   * @param {import('./tool-registry.js').ToolConfig} tool
+   */
+  function ensureToolStyles(tool) {
+    if (!tool.cssPath) return Promise.resolve();
+    if (styleLoads.has(tool.id)) return styleLoads.get(tool.id);
+    const href = new URL(`${tool.cssPath}?v=${APP_VERSION}`, import.meta.url).href;
+    const promise = /** @type {Promise<void>} */ (new Promise((resolve) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      link.dataset.toolStyle = tool.id;
+      link.addEventListener("load", () => resolve(undefined), { once: true });
+      link.addEventListener(
+        "error",
+        () => {
+          console.warn(`[style] ${tool.id} stylesheet failed to load`);
+          resolve(undefined);
+        },
+        { once: true }
+      );
+      document.head.appendChild(link);
+    }));
+    styleLoads.set(tool.id, promise);
+    return promise;
+  }
+
+  /** @param {import('./tool-registry.js').ToolConfig} tool */
   async function loadToolModule(tool) {
     if (loadedModules.has(tool.id)) return loadedModules.get(tool.id);
-    const promise = import(`${tool.importPath}?v=${APP_VERSION}`).catch((err) => {
-      loadedModules.delete(tool.id);
-      throw err;
-    });
+    const promise = Promise.all([
+      import(`${tool.importPath}?v=${APP_VERSION}`),
+      ensureToolStyles(tool),
+    ])
+      .then(([mod]) => mod)
+      .catch((err) => {
+        loadedModules.delete(tool.id);
+        styleLoads.delete(tool.id);
+        throw err;
+      });
     loadedModules.set(tool.id, promise);
     return promise;
   }
 
+  /** @param {string} toolKey */
   async function unmountTool(toolKey) {
     if (toolKey === "workbench" || toolKey === "recent" || toolKey === "data-manage") {
       mountedTools.delete(toolKey);
@@ -126,6 +174,7 @@ async function bootstrap() {
     mountedTools.delete(toolKey);
   }
 
+  /** @param {string} toolKey */
   function focusToolHeading(toolKey) {
     const mountId = toolKey === "workbench"
       ? "workbenchMount"
@@ -147,13 +196,17 @@ async function bootstrap() {
     }
   }
 
+  /**
+   * @param {string} key
+   * @param {{ restoreId?: string | null }} [options]
+   */
   async function mountViewOrTool(key, options = {}) {
     if (key === "workbench") {
       const mount = $("workbenchMount");
       if (mount) {
         const { mountWorkbench } = await import(`./workbench.js?v=${APP_VERSION}`);
         await mountWorkbench(mount, {
-          onNavigate: (tgt, opts) => showTool(tgt, opts),
+          onNavigate: (/** @type {string} */ tgt, /** @type {ShowToolOptions} */ opts) => showTool(tgt, opts),
           onOpenSearch: () => searchModal.open(),
         });
       }
@@ -166,7 +219,7 @@ async function bootstrap() {
       if (mount) {
         const { mountRecentView } = await import(`./recent-view.js?v=${APP_VERSION}`);
         await mountRecentView(mount, {
-          onNavigate: (tgt, opts) => showTool(tgt, opts),
+          onNavigate: (/** @type {string} */ tgt, /** @type {ShowToolOptions} */ opts) => showTool(tgt, opts),
         });
       }
       mountedTools.add("recent");
@@ -178,7 +231,7 @@ async function bootstrap() {
       if (mount) {
         const { mountDataManageView } = await import(`./data-manage.js?v=${APP_VERSION}`);
         await mountDataManageView(mount, {
-          onNavigate: (tgt, opts) => showTool(tgt, opts),
+          onNavigate: (/** @type {string} */ tgt, /** @type {ShowToolOptions} */ opts) => showTool(tgt, opts),
         });
       }
       mountedTools.add("data-manage");
@@ -209,7 +262,7 @@ async function bootstrap() {
         await mountFn(mount);
       } catch (err) {
         console.error(`[mount] ${tool.id} failed:`, err);
-        mount.innerHTML = `<div class="tool-error">工具加载失败：${escapeHtml(err.message)}</div>`;
+        mount.innerHTML = html`<div class="tool-error">工具加载失败：${err.message}</div>`.toString();
         return;
       }
       mountedTools.add(key);
@@ -223,8 +276,12 @@ async function bootstrap() {
     }
   }
 
+  /**
+   * @param {string} toolKey
+   * @param {ShowToolOptions} [options]
+   */
   function showTool(toolKey, { updateHash = true, restoreId = null } = {}) {
-    return navigationQueue.run(async (isLatest) => {
+    return navigationQueue.run(async (/** @type {() => boolean} */ isLatest) => {
       if (!isLatest()) return;
 
       const validKeys = ["workbench", "recent", "data-manage", ...getToolIds()];
@@ -251,7 +308,7 @@ async function bootstrap() {
         { id: "workbenchMount", key: "workbench" },
         { id: "recentMount", key: "recent" },
         { id: "dataManageMount", key: "data-manage" },
-        ...TOOL_REGISTRY.map((t) => ({ id: t.mountId, key: t.id })),
+        ...TOOL_REGISTRY.map((/** @type {import('./tool-registry.js').ToolConfig} */ t) => ({ id: t.mountId, key: t.id })),
       ];
 
       allMounts.forEach(({ id, key: mKey }) => {
@@ -272,7 +329,7 @@ async function bootstrap() {
 
   // 快捷全局搜索弹窗
   const searchModal = createSearchModal({
-    onNavigate: (tgt, opts) => showTool(tgt, opts),
+    onNavigate: (/** @type {string} */ tgt, /** @type {ShowToolOptions} */ opts) => showTool(tgt, opts),
   });
 
   // 移动端侧栏抽屉
@@ -352,6 +409,6 @@ bootstrap().catch((err) => {
   console.error("[Toolmap] bootstrap failed:", err);
   const mounts = document.getElementById("toolMounts");
   if (mounts) {
-    mounts.innerHTML = `<div class="tool-error">应用启动失败：${String(err?.message || err)}</div>`;
+    mounts.innerHTML = html`<div class="tool-error">应用启动失败：${String(err?.message || err)}</div>`.toString();
   }
 });

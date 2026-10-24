@@ -1,27 +1,26 @@
 import { summarizeDiffLines } from "./summary.js";
 import { createHistoryStore, isHistoryAvailable } from "../../shared/history-db.js";
+import { STORE_CONFIGS } from "../../shared/store-configs.js";
 
-export const TEXT_HISTORY_LIMIT = 30;
+export const TEXT_HISTORY_LIMIT = STORE_CONFIGS["text-diff"].limit;
 export { isHistoryAvailable as isTextHistoryAvailable };
 
 const encoder = new TextEncoder();
-const store = createHistoryStore({
-  dbName: "toolmap-text-diff",
-  storeName: "history",
-  limit: TEXT_HISTORY_LIMIT,
-});
+const store = createHistoryStore(STORE_CONFIGS["text-diff"]);
 
 export function openTextHistoryDB() {
-  return store._openDB?.() ?? Promise.reject(new Error("不支持的操作。"));
+  return /** @type {any} */ (store)._openDB?.() ?? Promise.reject(new Error("不支持的操作。"));
 }
 
 export const listTextHistory = () => store.list();
+/** @param {Object} record */
 export const saveTextHistoryRecord = (record) => store.save(record);
+/** @param {string} id */
 export const deleteTextHistoryRecord = (id) => store.remove(id);
 export const clearTextHistory = () => store.clear();
 
 /**
- * @param {{ leftText: string, rightText: string, result: Object }} params
+ * @param {{ leftText: string, rightText: string, result: { lines?: import("./diff.js").DiffLine[], diffCount?: number, contentDiffCount?: number, formatDiffCount?: number } }} params
  * @returns {Object}
  */
 export function createTextHistoryRecord({ leftText, rightText, result }) {
@@ -43,7 +42,7 @@ export function createTextHistoryRecord({ leftText, rightText, result }) {
   };
 }
 
-/** @param {Array<Object>} records @returns {number} */
+/** @param {Array<{ leftText?: string, rightText?: string }>} records @returns {number} */
 export function getTextHistoryUsage(records) {
   return records.reduce((sum, item) => {
     return sum + encoder.encode(item.leftText || "").length + encoder.encode(item.rightText || "").length;

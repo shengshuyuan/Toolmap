@@ -50,4 +50,18 @@ import { charDiffHtml } from "../src/tools/text-diff/char-diff.js";
   assert.ok(rightHtml.includes("球"));
 }
 
+// word-level granularity
+{
+  const { leftHtml, rightHtml } = charDiffHtml("The quick brown fox", "The fast brown fox", { granularity: "word" });
+  assert.ok(leftHtml.includes('<mark class="diff-char--del">quick</mark>'));
+  assert.ok(rightHtml.includes('<mark class="diff-char--ins">fast</mark>'));
+}
+
+// ignoreCase in charDiffHtml
+{
+  const { leftHtml, rightHtml } = charDiffHtml("Hello", "hello", { ignoreCase: true });
+  assert.ok(!leftHtml.includes("<mark"));
+  assert.ok(!rightHtml.includes("<mark"));
+}
+
 console.log("char-diff tests passed");

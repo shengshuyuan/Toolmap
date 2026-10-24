@@ -20,11 +20,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
+      # typecheck 最快，放最前面尽早失败
       - name: Type check
         run: npm run typecheck
 
-      - name: Build
-        run: npm run build
+      # npm test 的 pretest 会先执行完整生产构建校验（verify:build）
+      - name: Run tests
+        run: npm test

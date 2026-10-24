@@ -1,70 +1,15 @@
-const CACHE_NAME = "toolmap-v8";
+// CACHE_NAME 与 PRECACHE_URLS 由 scripts/build.mjs 在构建时生成到 dist/sw.js，
+// 这里只保留可运行的最小模板，请勿手动维护完整列表。
+const CACHE_NAME = "toolmap-dev";
+// vendor 大文件（pdf-lib / jsqr）不进入安装期预缓存，首次使用时单独缓存，并跨版本保留
+const VENDOR_CACHE = "toolmap-vendor-v1";
 const PRECACHE_URLS = [
   "/",
-  "/assets/app.css",
-  "/assets/og-image.svg",
-  "/favicon.svg",
   "/index.html",
-  "/manifest.json",
-  "/src/app-shell.js",
-  "/src/app.js",
-  "/src/bg-art.js",
-  "/src/config/app-meta.js",
-  "/src/debug.js",
-  "/src/navigation-state.js",
-  "/src/shared/clipboard.js",
-  "/src/shared/escape.js",
-  "/src/shared/format.js",
-  "/src/shared/history-db.js",
-  "/src/shared/history-export.js",
-  "/src/shared/idb-store.js",
-  "/src/shared/toast.js",
-  "/src/tool-registry.js",
-  "/src/tools/char-count/char-count.css",
-  "/src/tools/char-count/index.js",
-  "/src/tools/char-count/stats.js",
-  "/src/tools/image-compress/compressor.js",
-  "/src/tools/image-compress/download.js",
-  "/src/tools/image-compress/history-store.js",
-  "/src/tools/image-compress/image-compress.css",
-  "/src/tools/image-compress/image-meta.js",
-  "/src/tools/image-compress/index.js",
-  "/src/tools/image-compress/utils.js",
-  "/src/tools/markdown-editor/document-store.js",
-  "/src/tools/markdown-editor/export.js",
-  "/src/tools/markdown-editor/html-import.js",
-  "/src/tools/markdown-editor/index.js",
-  "/src/tools/markdown-editor/markdown-editor.css",
-  "/src/tools/markdown-editor/outline.js",
-  "/src/tools/markdown-editor/renderer.js",
-  "/src/tools/pdf-tools/index.js",
-  "/src/tools/pdf-tools/pdf-lib-loader.js",
-  "/src/tools/pdf-tools/pdf-merge.js",
-  "/src/tools/pdf-tools/pdf-split.js",
-  "/src/tools/pdf-tools/pdf-tools.css",
-  "/src/tools/pdf-tools/pdf-watermark.js",
-  "/src/tools/qrcode/index.js",
-  "/src/tools/qrcode/qr-decode.js",
-  "/src/tools/qrcode/qr-encode.js",
-  "/src/tools/qrcode/qr-render.js",
-  "/src/tools/qrcode/qr-scan-check.js",
-  "/src/tools/qrcode/qr-style.js",
-  "/src/tools/qrcode/qrcode.css",
-  "/src/tools/text-diff/char-diff.js",
-  "/src/tools/text-diff/clipboard.js",
-  "/src/tools/text-diff/diagnostics.js",
-  "/src/tools/text-diff/diff.js",
-  "/src/tools/text-diff/editor.js",
-  "/src/tools/text-diff/history-store.js",
-  "/src/tools/text-diff/index.js",
-  "/src/tools/text-diff/render.js",
-  "/src/tools/text-diff/sanitize.js",
-  "/src/tools/text-diff/state.js",
-  "/src/tools/text-diff/summary.js",
-  "/src/tools/text-diff/text-diff.css",
+  "/favicon.svg",
+  "/assets/app.css",
   "/sw.js",
-  "/vendor/jsqr.min.js",
-  "/vendor/pdf-lib.min.js"
+  "/manifest.json"
 ];
 
 self.addEventListener("install", (event) => {
@@ -77,7 +22,11 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((names) =>
-      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+      Promise.all(
+        names
+          .filter((n) => n !== CACHE_NAME && n !== VENDOR_CACHE)
+          .map((n) => caches.delete(n))
+      )
     )
   );
   self.clients.claim();
@@ -85,6 +34,7 @@ self.addEventListener("activate", (event) => {
 
 /**
  * JS/CSS：网络优先，避免发版后仍命中旧 tool-registry 导致导航缺工具
+ * vendor 第三方库：缓存优先（独立缓存，跨版本保留），未命中时网络获取并回写
  * 其它静态资源：缓存优先，网络回写
  */
 self.addEventListener("fetch", (event) => {
@@ -95,6 +45,22 @@ self.addEventListener("fetch", (event) => {
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
+
+  if (url.pathname.startsWith("/vendor/")) {
+    event.respondWith(
+      caches.open(VENDOR_CACHE).then((cache) =>
+        cache.match(event.request, { ignoreSearch: true }).then(
+          (cached) =>
+            cached ||
+            fetch(event.request).then((response) => {
+              if (response.ok) cache.put(event.request, response.clone());
+              return response;
+            })
+        )
+      )
     );
     return;
   }

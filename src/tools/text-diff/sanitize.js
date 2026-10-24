@@ -5,6 +5,9 @@
 /**
  * 统一换行符（Windows/Unix/Mac 旧格式）
  * 为什么这么写：不同系统复制来的文本换行不同，会影响 diff 的行对齐。
+ *
+ * @param {unknown} text
+ * @returns {string}
  */
 export function normalizeNewlines(text) {
   return String(text ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -14,6 +17,9 @@ export function normalizeNewlines(text) {
  * 删除空行（包含只含空格/Tab 的行）
  * - 不改动非空内容
  * - 保留原本的行顺序
+ *
+ * @param {unknown} text
+ * @returns {string}
  */
 export function removeBlankLines(text) {
   const normalized = normalizeNewlines(text);

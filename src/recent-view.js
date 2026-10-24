@@ -3,7 +3,7 @@
  */
 
 import { listAllRecentRecords, deleteRecentRecord, clearAllLocalData, exportAllBackupData } from "./shared/recent-index.js";
-import { escapeHtml } from "./shared/escape.js";
+import { escapeHtml, escapeAttr } from "./shared/escape.js";
 
 /**
  * @param {HTMLElement} mount
@@ -41,6 +41,7 @@ export async function mountRecentView(mount, { onNavigate }) {
   `;
 
   let currentFilter = "all";
+  /** @type {Array<any>} */
   let allRecords = [];
 
   async function refresh() {
@@ -74,7 +75,7 @@ export async function mountRecentView(mount, { onNavigate }) {
         minute: "2-digit",
       });
       return `
-        <article class="recent-card" data-tool="${item.toolId}" data-record-id="${item.recordId}">
+        <article class="recent-card" data-tool="${escapeAttr(item.toolId)}" data-record-id="${escapeAttr(item.recordId)}">
           <div class="recent-card__body">
             <div class="recent-card__top">
               <span class="recent-card__badge">${escapeHtml(item.toolLabel)}</span>
@@ -85,8 +86,8 @@ export async function mountRecentView(mount, { onNavigate }) {
             <div class="recent-card__summary">${escapeHtml(item.summary)}</div>
           </div>
           <div class="recent-card__actions">
-            ${item.restorable ? `<button type="button" class="btn btn--sm btn--primary recent-action-open" data-tool="${item.toolId}" data-record-id="${item.recordId}">继续编辑</button>` : `<button type="button" class="btn btn--sm btn--secondary recent-action-view" data-tool="${item.toolId}">前往工具</button>`}
-            <button type="button" class="btn btn--sm btn--danger-subtle recent-action-del" data-tool="${item.toolId}" data-record-id="${item.recordId}">删除</button>
+            ${item.restorable ? `<button type="button" class="btn btn--sm btn--primary recent-action-open" data-tool="${escapeAttr(item.toolId)}" data-record-id="${escapeAttr(item.recordId)}">继续编辑</button>` : `<button type="button" class="btn btn--sm btn--secondary recent-action-view" data-tool="${escapeAttr(item.toolId)}">前往工具</button>`}
+            <button type="button" class="btn btn--sm btn--danger-subtle recent-action-del" data-tool="${escapeAttr(item.toolId)}" data-record-id="${escapeAttr(item.recordId)}">删除</button>
           </div>
         </article>
       `;

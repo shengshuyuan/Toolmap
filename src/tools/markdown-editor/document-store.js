@@ -3,8 +3,9 @@
  */
 
 import { createHistoryStore, isHistoryAvailable } from "../../shared/history-db.js";
+import { STORE_CONFIGS } from "../../shared/store-configs.js";
 
-export const MAX_DOCUMENTS = 40;
+export const MAX_DOCUMENTS = STORE_CONFIGS["markdown-editor"].limit;
 export const MAX_DOC_CHARS = 500_000;
 
 /**
@@ -29,19 +30,15 @@ export const MAX_DOC_CHARS = 500_000;
  */
 export function createDocumentStore() {
   if (!isHistoryAvailable()) return null;
-  const store = createHistoryStore({
-    dbName: "toolmap-markdown",
-    storeName: "documents",
-    limit: MAX_DOCUMENTS,
-  });
+  const store = createHistoryStore(STORE_CONFIGS["markdown-editor"]);
 
   return {
     available: true,
     list: async () => {
       const docs = await store.list();
-      return docs.sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
+      return docs.sort((/** @type {MdDocument} */ a, /** @type {MdDocument} */ b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0));
     },
-    get: (id) => store.get(id),
+    get: (/** @type {string} */ id) => store.get(id),
     async save(input) {
       const now = Date.now();
       const content = String(input.content ?? "").slice(0, MAX_DOC_CHARS);
@@ -57,7 +54,7 @@ export function createDocumentStore() {
       await store.save(doc);
       return doc;
     },
-    remove: (id) => store.remove(id),
+    remove: (/** @type {string} */ id) => store.remove(id),
     clear: () => store.clear(),
   };
 }

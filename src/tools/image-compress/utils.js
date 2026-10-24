@@ -1,5 +1,70 @@
+/**
+ * @typedef {ImageBitmap | HTMLImageElement} ImageSource
+ */
+
+/**
+ * @typedef {Object} CompressSettings
+ * @property {string} mode
+ * @property {number} quality
+ * @property {string} outputFormat
+ * @property {number} maxEdge
+ */
+
+/**
+ * @typedef {Object} CompressResult
+ * @property {Blob} blob
+ * @property {string | null} url
+ * @property {string} fileName
+ * @property {string} type
+ * @property {number} width
+ * @property {number} height
+ * @property {boolean} resized
+ * @property {boolean} keptOriginal
+ * @property {boolean} adaptive
+ * @property {number} originalSize
+ * @property {number} outputSize
+ * @property {number} savedBytes
+ * @property {number} savedRatio
+ */
+
+/**
+ * @typedef {Object} ImageMetaInfo
+ * @property {number} width
+ * @property {number} height
+ * @property {boolean} [error]
+ */
+
+/**
+ * @typedef {Object} ImageItem
+ * @property {string} id
+ * @property {File} file
+ * @property {string} originalUrl
+ * @property {CompressResult | null} result
+ * @property {string} status
+ * @property {string} error
+ * @property {ImageMetaInfo} meta
+ */
+
+/**
+ * @typedef {Object} HistoryMeta
+ * @property {string} id
+ * @property {number} createdAt
+ * @property {string} originalName
+ * @property {string} outputName
+ * @property {number} originalSize
+ * @property {number} outputSize
+ * @property {number} savedRatio
+ * @property {string} originalType
+ * @property {string} outputType
+ * @property {number | null} originalWidth
+ * @property {number | null} originalHeight
+ * @property {number} outputWidth
+ * @property {number} outputHeight
+ */
+
 export const SUPPORTED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
+/** @param {unknown} bytes @returns {string} */
 export function formatBytes(bytes) {
   const n = Number(bytes) || 0;
   if (!Number.isFinite(n) || n < 0) return "0 B";
@@ -14,16 +79,19 @@ export function formatBytes(bytes) {
   return `${value >= 10 ? value.toFixed(1) : value.toFixed(2)} ${unit}`;
 }
 
+/** @param {number} value @returns {string} */
 export function formatPercent(value) {
   if (!Number.isFinite(value)) return "0%";
   return `${Math.max(0, value).toFixed(1)}%`;
 }
 
+/** @param {unknown} name @returns {string} */
 export function getFileExtension(name) {
   const match = String(name ?? "").match(/\.([a-z0-9]+)$/i);
   return match ? match[1].toLowerCase() : "";
 }
 
+/** @param {string} type @returns {string} */
 export function mimeToExtension(type) {
   if (type === "image/jpeg") return "jpg";
   if (type === "image/png") return "png";
@@ -31,6 +99,7 @@ export function mimeToExtension(type) {
   return "img";
 }
 
+/** @param {string} type @returns {string} */
 export function mimeToLabel(type) {
   if (type === "image/jpeg") return "JPG";
   if (type === "image/png") return "PNG";
@@ -38,6 +107,7 @@ export function mimeToLabel(type) {
   return "Image";
 }
 
+/** @param {unknown} name @returns {string} */
 export function sanitizeFilename(name) {
   return String(name ?? "image")
     .replace(/\.[^.]+$/, "")
@@ -48,10 +118,12 @@ export function sanitizeFilename(name) {
     .slice(0, 90) || "image";
 }
 
+/** @param {unknown} originalName @param {string} mimeType @param {string} [suffix] @returns {string} */
 export function buildOutputName(originalName, mimeType, suffix = "-compressed") {
   return `${sanitizeFilename(originalName)}${suffix}.${mimeToExtension(mimeType)}`;
 }
 
+/** @param {string} mode */
 export function getModeSettings(mode) {
   if (mode === "lossless") {
     return {
@@ -89,12 +161,14 @@ export function getModeSettings(mode) {
   };
 }
 
+/** @param {string} fileType @param {string} outputFormat @param {string} mode @returns {string} */
 export function getOutputMime(fileType, outputFormat, mode) {
   if (mode === "lossless") return fileType || "image/png";
   if (outputFormat === "webp") return "image/webp";
   return fileType || "image/png";
 }
 
+/** @param {File | null | undefined} file */
 export function isSupportedImage(file) {
   return file && SUPPORTED_TYPES.has(file.type);
 }

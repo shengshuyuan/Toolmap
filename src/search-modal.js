@@ -17,12 +17,25 @@ export const TASK_SHORTCUTS = [
 ];
 
 /**
+ * @typedef {Object} SearchItem
+ * @property {string} type
+ * @property {string} title
+ * @property {string} [desc]
+ * @property {string} toolId
+ * @property {string} [iconSvg]
+ * @property {string} badge
+ * @property {string} [recordId]
+ */
+
+/**
  * 根据查询词匹配工具、任务推荐和最近记录
  * @param {string} query
  * @param {{ tools?: any[], tasks?: any[], recents?: any[] }} [options]
+ * @returns {SearchItem[]}
  */
 export function filterSearchCandidates(query, { tools = TOOL_REGISTRY, tasks = TASK_SHORTCUTS, recents = [] } = {}) {
   const q = (query || "").trim().toLowerCase();
+  /** @type {SearchItem[]} */
   const matches = [];
 
   if (!q) {
@@ -54,7 +67,7 @@ export function filterSearchCandidates(query, { tools = TOOL_REGISTRY, tasks = T
     const inLabel = (t.buttonLabel || "").toLowerCase().includes(q);
     const inTitle = (t.title || "").toLowerCase().includes(q);
     const inHint = (t.hint || "").toLowerCase().includes(q);
-    const inKeywords = (t.keywords || []).some((kw) => (kw || "").toLowerCase().includes(q));
+    const inKeywords = (t.keywords || []).some((/** @type {string} */ kw) => (kw || "").toLowerCase().includes(q));
     if (inLabel || inTitle || inHint || inKeywords) {
       matches.push({
         type: "tool",
@@ -71,7 +84,7 @@ export function filterSearchCandidates(query, { tools = TOOL_REGISTRY, tasks = T
   for (const task of tasks) {
     const inTitle = (task.title || "").toLowerCase().includes(q);
     const inDesc = (task.desc || "").toLowerCase().includes(q);
-    const inKeywords = (task.keywords || []).some((kw) => (kw || "").toLowerCase().includes(q));
+    const inKeywords = (task.keywords || []).some((/** @type {string} */ kw) => (kw || "").toLowerCase().includes(q));
     if (inTitle || inDesc || inKeywords) {
       matches.push({
         type: "task",
@@ -102,8 +115,11 @@ export function filterSearchCandidates(query, { tools = TOOL_REGISTRY, tasks = T
   return matches;
 }
 
+/**
+ * @param {{ onNavigate: (toolId: string, opts?: { restoreId?: string }) => any }} options
+ */
 export function createSearchModal({ onNavigate }) {
-  let modalEl = document.getElementById("searchModal");
+  let modalEl = /** @type {HTMLElement} */ (document.getElementById("searchModal"));
   if (!modalEl) {
     modalEl = document.createElement("div");
     modalEl.id = "searchModal";
@@ -130,12 +146,15 @@ export function createSearchModal({ onNavigate }) {
   }
 
   const input = /** @type {HTMLInputElement} */ (modalEl.querySelector("#searchModalInput"));
-  const resultsEl = modalEl.querySelector("#searchModalResults");
+  const resultsEl = /** @type {HTMLElement} */ (modalEl.querySelector("#searchModalResults"));
   const closeBtn = modalEl.querySelector("#searchModalClose");
 
   let activeIndex = 0;
+  /** @type {SearchItem[]} */
   let currentItems = [];
+  /** @type {any[]} */
   let recentRecordsCache = [];
+  /** @type {any} */
   let previouslyFocusedElement = null;
 
   function open() {
@@ -167,6 +186,7 @@ export function createSearchModal({ onNavigate }) {
     }
   }
 
+  /** @param {string} query */
   function renderResults(query) {
     const matches = filterSearchCandidates(query, {
       tools: TOOL_REGISTRY,
@@ -220,6 +240,7 @@ export function createSearchModal({ onNavigate }) {
     }
   }
 
+  /** @param {SearchItem | undefined} item */
   function executeItem(item) {
     if (!item) return;
     close();

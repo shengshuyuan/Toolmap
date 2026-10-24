@@ -17,6 +17,7 @@
  * @property {string[]} keywords
  * @property {string} iconSvg
  * @property {string} importPath
+ * @property {string} cssPath 工具专属样式，首次挂载前按需注入（相对 src/）
  * @property {string} exportName
  */
 
@@ -40,6 +41,7 @@ export const TOOL_REGISTRY = [
     keywords: ["文本比对", "比较", "差异", "diff", "需求对比", "需求变更", "代码比对", "原文", "改动"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>`,
     importPath: "./tools/text-diff/index.js",
+    cssPath: "./tools/text-diff/text-diff.css",
     exportName: "mountTextDiffTool",
   },
   {
@@ -60,6 +62,7 @@ export const TOOL_REGISTRY = [
     keywords: ["图片压缩", "压缩", "图片变小", "webp", "jpg", "png", "体积", "瘦身", "批量"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
     importPath: "./tools/image-compress/index.js",
+    cssPath: "./tools/image-compress/image-compress.css",
     exportName: "mountImageCompressTool",
   },
   {
@@ -80,6 +83,7 @@ export const TOOL_REGISTRY = [
     keywords: ["字符统计", "字数", "count", "统计", "字节", "长度", "行数", "段落", "utf-8"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
     importPath: "./tools/char-count/index.js",
+    cssPath: "./tools/char-count/char-count.css",
     exportName: "mountCharCountTool",
   },
   {
@@ -100,6 +104,7 @@ export const TOOL_REGISTRY = [
     keywords: ["二维码", "qrcode", "qr", "扫码", "识别", "名片", "wifi", "logo", "生成"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`,
     importPath: "./tools/qrcode/index.js",
+    cssPath: "./tools/qrcode/qrcode.css",
     exportName: "mountQrcodeTool",
   },
   {
@@ -120,6 +125,7 @@ export const TOOL_REGISTRY = [
     keywords: ["markdown", "md", "文档", "写作", "预览", "大纲", "导出", "编辑"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="7 15 7 9 10 12 13 9 13 15"/><polyline points="17 9 17 15 15 13"/></svg>`,
     importPath: "./tools/markdown-editor/index.js",
+    cssPath: "./tools/markdown-editor/markdown-editor.css",
     exportName: "mountMarkdownEditorTool",
   },
   {
@@ -140,6 +146,7 @@ export const TOOL_REGISTRY = [
     keywords: ["pdf", "pdf合并", "pdf拆分", "加水印", "合并pdf", "拆分pdf", "水印"],
     iconSvg: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13v-1h2a1 1 0 0 1 1 1v0a1 1 0 0 1-1 1H9"/></svg>`,
     importPath: "./tools/pdf-tools/index.js",
+    cssPath: "./tools/pdf-tools/pdf-tools.css",
     exportName: "mountPdfToolsTool",
   },
 ];

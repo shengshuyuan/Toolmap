@@ -84,14 +84,20 @@ export function getCharCountTemplate() {
 `;
 }
 
+/**
+ * @param {ParentNode} root
+ * @param {string} id
+ * @returns {HTMLElement}
+ */
 function $(root, id) {
   const el = root.querySelector(`#${id}`);
   if (!el) throw new Error(`字符统计工具缺少节点：#${id}`);
-  return el;
+  return /** @type {HTMLElement} */ (el);
 }
 
 
 
+/** @param {HTMLElement} mount */
 export function mountCharCountTool(mount) {
   if (!(mount instanceof HTMLElement)) return;
   mount.innerHTML = getCharCountTemplate();

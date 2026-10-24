@@ -2,6 +2,10 @@ const encoder = new TextEncoder();
 
 const MAX_ZIP_TOTAL = 500 * 1024 * 1024;
 
+/**
+ * @param {Blob} blob
+ * @param {string} fileName
+ */
 export function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -13,6 +17,10 @@ export function downloadBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * @param {Array<{ blob: Blob, name: string }>} files
+ * @returns {Promise<Blob>}
+ */
 export async function buildZip(files) {
   let totalSize = 0;
   for (const file of files) {
@@ -22,7 +30,9 @@ export async function buildZip(files) {
     }
   }
 
+  /** @type {Uint8Array<ArrayBuffer>[]} */
   const localParts = [];
+  /** @type {Uint8Array<ArrayBuffer>[]} */
   const centralParts = [];
   let offset = 0;
 
@@ -86,6 +96,10 @@ export async function buildZip(files) {
   return new Blob([...localParts, ...centralParts, end], { type: "application/zip" });
 }
 
+/**
+ * @param {Uint8Array<ArrayBuffer>[]} parts
+ * @returns {Uint8Array<ArrayBuffer>}
+ */
 function concatParts(parts) {
   const total = parts.reduce((sum, part) => sum + part.length, 0);
   const out = new Uint8Array(total);
@@ -97,6 +111,7 @@ function concatParts(parts) {
   return out;
 }
 
+/** @param {number} value @returns {Uint8Array<ArrayBuffer>} */
 function u16(value) {
   const out = new Uint8Array(2);
   const view = new DataView(out.buffer);
@@ -104,6 +119,7 @@ function u16(value) {
   return out;
 }
 
+/** @param {number} value @returns {Uint8Array<ArrayBuffer>} */
 function u32(value) {
   const out = new Uint8Array(4);
   const view = new DataView(out.buffer);
@@ -121,6 +137,7 @@ const crcTable = (() => {
   return table;
 })();
 
+/** @param {Uint8Array} bytes @returns {number} */
 export function crc32(bytes) {
   let crc = 0xffffffff;
   for (let i = 0; i < bytes.length; i++) {

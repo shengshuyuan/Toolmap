@@ -1,9 +1,15 @@
 import { normalizeNewlines } from "./sanitize.js";
 
+/** @param {HTMLElement} el */
 function maxScrollTop(el) {
   return Math.max(1, el.scrollHeight - el.clientHeight);
 }
 
+/**
+ * @param {unknown} text
+ * @param {number} lineNumber
+ * @returns {number}
+ */
 function findCharIndexOfLine(text, lineNumber) {
   if (!lineNumber || lineNumber <= 1) return 0;
   const t = String(text ?? "");
@@ -26,6 +32,10 @@ function findCharIndexOfLine(text, lineNumber) {
   return t.length;
 }
 
+/**
+ * @param {HTMLTextAreaElement} textarea
+ * @returns {number}
+ */
 function getCaretLineNumber(textarea) {
   const t = String(textarea.value ?? "");
   const idx = Math.max(0, Math.min(textarea.selectionStart ?? 0, t.length));
@@ -42,6 +52,10 @@ function getCaretLineNumber(textarea) {
   return line;
 }
 
+/**
+ * @param {HTMLTextAreaElement} textarea
+ * @returns {string[]}
+ */
 function toDisplayLines(textarea) {
   const text = normalizeNewlines(textarea.value ?? "");
   const lines = text.split("\n");
@@ -49,13 +63,22 @@ function toDisplayLines(textarea) {
   return lines.length === 0 ? [""] : lines;
 }
 
+/**
+ * @param {unknown} previous
+ * @param {unknown} next
+ * @returns {boolean}
+ */
 function shouldResetHorizontalScroll(previous, next) {
   return Math.abs(String(next ?? "").length - String(previous ?? "").length) > 1;
 }
 
+/**
+ * @param {{ textarea: HTMLTextAreaElement, gutter: HTMLElement, highlight: HTMLElement }} params
+ */
 export function createEditorController({ textarea, gutter, highlight }) {
   /** @type {Set<number>} */
   let changedSet = new Set();
+  /** @type {number|null} */
   let focusLine = null;
   let overlayRAF = 0;
   let overlayTimer = 0;
@@ -74,6 +97,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     highlight.querySelector(".editor__line--focus")?.classList.remove("editor__line--focus");
   }
 
+  /** @param {number|null|undefined} [lineNumber] */
   function applyFocus(lineNumber = focusLine) {
     clearFocus();
     if (!lineNumber || lineNumber < 1) return;
@@ -103,6 +127,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     applyFocus();
   }
 
+  /** @param {{ debounce?: boolean }} [options] */
   function scheduleRender({ debounce = false } = {}) {
     window.clearTimeout(overlayTimer);
     if (overlayRAF) cancelAnimationFrame(overlayRAF);
@@ -119,6 +144,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     else run();
   }
 
+  /** @param {Iterable<number>} lines */
   function setChangedLines(lines) {
     changedSet = new Set(lines);
     scheduleRender();
@@ -134,6 +160,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     lastValue = textarea.value ?? "";
   }
 
+  /** @param {{ onDirty?: () => void }} params */
   function handleInput({ onDirty }) {
     const next = textarea.value ?? "";
     const shouldResetScroll = shouldResetHorizontalScroll(lastValue, next);
@@ -143,6 +170,10 @@ export function createEditorController({ textarea, gutter, highlight }) {
     if (shouldResetScroll) requestAnimationFrame(resetScroll);
   }
 
+  /**
+   * @param {number} lineNumber
+   * @returns {number|null}
+   */
   function scrollToLine(lineNumber) {
     if (!lineNumber || lineNumber < 1) return null;
     const idx = findCharIndexOfLine(textarea.value ?? "", lineNumber);
@@ -155,6 +186,7 @@ export function createEditorController({ textarea, gutter, highlight }) {
     return actual;
   }
 
+  /** @param {number|null|undefined} lineNumber */
   function flashLine(lineNumber) {
     focusLine = lineNumber ?? null;
     applyFocus(focusLine);
@@ -191,6 +223,10 @@ export function createEditorController({ textarea, gutter, highlight }) {
   };
 }
 
+/**
+ * @param {{ textarea: HTMLTextAreaElement, syncOverlayScroll: () => void }} from
+ * @param {{ textarea: HTMLTextAreaElement, syncOverlayScroll: () => void }} to
+ */
 export function syncEditorPairScroll(from, to) {
   const ratio = from.textarea.scrollTop / maxScrollTop(from.textarea);
   to.textarea.scrollTop = ratio * (to.textarea.scrollHeight - to.textarea.clientHeight);

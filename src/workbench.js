@@ -4,7 +4,7 @@
  */
 
 import { TOOL_REGISTRY } from "./tool-registry.js";
-import { escapeHtml } from "./shared/escape.js";
+import { escapeHtml, escapeAttr } from "./shared/escape.js";
 import { getLatestRestorableDraft, listAllRecentRecords } from "./shared/recent-index.js";
 
 /**
@@ -75,7 +75,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
   `;
 
   // 绑定搜索点击
-  const searchTrigger = mount.querySelector("#wbSearchTrigger");
+  const searchTrigger = /** @type {HTMLElement | null} */ (mount.querySelector("#wbSearchTrigger"));
   if (searchTrigger) {
     searchTrigger.addEventListener("click", () => onOpenSearch?.());
     searchTrigger.addEventListener("keydown", (/** @type {KeyboardEvent} */ e) => {
@@ -87,7 +87,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
   }
 
   // 绑定常用工具卡片点击
-  mount.querySelectorAll(".wb-tool-card").forEach((card) => {
+  /** @type {NodeListOf<HTMLElement>} */ (mount.querySelectorAll(".wb-tool-card")).forEach((card) => {
     const toolId = card.getAttribute("data-tool-target");
     if (!toolId) return;
     const trigger = () => onNavigate(toolId);
@@ -144,7 +144,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
               minute: "2-digit",
             });
             return `
-            <div class="wb-recent-item" data-tool="${item.toolId}" data-record-id="${item.recordId}" role="button" tabindex="0">
+            <div class="wb-recent-item" data-tool="${escapeAttr(item.toolId)}" data-record-id="${escapeAttr(item.recordId)}" role="button" tabindex="0">
               <div class="wb-recent-item__left">
                 <span class="wb-recent-item__tag">${escapeHtml(item.toolLabel)}</span>
                 <span class="wb-recent-item__title">${escapeHtml(item.title)}</span>
@@ -159,7 +159,7 @@ export async function mountWorkbench(mount, { onNavigate, onOpenSearch }) {
           })
           .join("");
 
-        recentList.querySelectorAll(".wb-recent-item").forEach((row) => {
+        /** @type {NodeListOf<HTMLElement>} */ (recentList.querySelectorAll(".wb-recent-item")).forEach((row) => {
           const tId = row.getAttribute("data-tool");
           const rId = row.getAttribute("data-record-id");
           if (!tId) return;

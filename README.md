@@ -14,8 +14,8 @@
 
 - **零后端** — 纯静态站点，所有处理在浏览器本地完成，无服务器、无 API、无数据上传
 - **隐私优先** — 你的文本、图片、数据永远不会离开你的设备
-- **PWA 支持** — 可安装到桌面，离线可用
-- **按需加载** — ES Module 架构，工具间代码隔离，切换时动态加载
+- **PWA 支持** — 可安装到桌面，离线可用（应用壳层与全部工具代码随安装预缓存；PDF 工具、二维码识别依赖的第三方库在首次使用后缓存）
+- **按需加载** — ES Module 架构，工具间代码与样式隔离，切换时动态加载
 - **移动端适配** — 响应式布局，手机/平板/桌面均可使用
 - **历史记录** — IndexedDB 本地存储，支持导出备份
 
@@ -152,7 +152,7 @@ node --test 'tests/*.test.mjs' 'tests/**/*.test.mjs'
 .
 ├── index.html                 # 站点入口
 ├── manifest.json              # PWA 配置
-├── sw.js                      # Service Worker
+├── sw.js                      # Service Worker 模板（完整预缓存列表在构建时生成）
 ├── vercel.json                # Vercel 部署配置
 ├── assets/
 │   └── app.css                # 全局样式
@@ -161,23 +161,28 @@ node --test 'tests/*.test.mjs' 'tests/**/*.test.mjs'
 │   ├── app-shell.js           # Shell 逻辑（标题/导航切换）
 │   ├── bg-art.js              # 背景动画
 │   ├── tool-registry.js       # 工具注册表
+│   ├── boot/                  # 页面启动脚本（early / main / register-sw，满足无内联脚本的 CSP）
 │   ├── config/
 │   │   └── app-meta.js        # 版本号 & 应用元信息
 │   ├── shared/                # 共享模块
 │   │   ├── clipboard.js       # 剪贴板操作
 │   │   ├── escape.js          # HTML 转义
+│   │   ├── html.js            # 默认转义的 html`` 模板标签
 │   │   ├── format.js          # 格式化工具（文件大小等）
 │   │   ├── history-db.js      # IndexedDB 历史记录封装
 │   │   ├── history-export.js  # 历史记录导出
 │   │   ├── idb-store.js       # IndexedDB 底层事务封装
+│   │   ├── store-configs.js   # 各工具 IndexedDB 库名/条数上限的唯一来源
 │   │   └── toast.js           # Toast 提示组件
 │   └── tools/
 │       ├── text-diff/         # 文本比对工具
 │       ├── image-compress/    # 图片压缩工具
 │       └── char-count/        # 字符统计工具
+├── docs/                      # 需求、规划、设计与审查文档
 ├── tests/                     # 测试文件
 └── scripts/
-    └── build.mjs              # esbuild 构建脚本
+    ├── build.mjs              # esbuild 构建脚本（压缩、生成 SW 预缓存、注入 modulepreload）
+    └── verify-build.mjs       # 校验构建不会改动源码
 ```
 
 ---
@@ -186,12 +191,12 @@ node --test 'tests/*.test.mjs' 'tests/**/*.test.mjs'
 
 ### 工具隔离
 
-每个工具放在 `src/tools/<tool-name>/` 下，拥有独立的模板、状态、事件和业务模块。`index.html` 只放站点外壳和挂载点，不包含具体工具的 DOM。
+每个工具放在 `src/tools/<tool-name>/` 下，拥有独立的模板（`template.js`）、样式、状态、事件和业务模块。`index.html` 只放站点外壳和挂载点，不包含具体工具的 DOM。
 
 新增工具只需：
 
 1. 在 `src/tools/<name>/` 下创建工具模块，导出 `mount` 函数
-2. 在 `src/tool-registry.js` 注册工具配置
+2. 在 `src/tool-registry.js` 注册工具配置（含 `importPath` 与按需加载的 `cssPath`）
 3. 工具会自动出现在导航栏，按需加载
 
 ### 技术栈
