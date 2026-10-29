@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**隐私优先的在线工具箱 — 所有计算全程在浏览器本地完成，不上传任何数据。**
+**把文本比对、图片压缩、二维码、Markdown 和 PDF 整理放进一个浏览器工具箱，减少寻找和切换小工具的时间。**
 
 [在线体验](https://toolmap.vercel.app/) · [功能介绍](#-工具一览) · [本地运行](#-快速开始) · [部署](#-部署)
 
@@ -10,10 +10,18 @@
 
 ---
 
+适合经常处理文案、需求、图片和文档的产品经理、运营、设计与开发者。选择工具 → 粘贴文本或打开本地文件 → 预览处理结果 → 复制或下载即可。
+
+![Toolmap 工具使用流程](./docs/images/project-overview.svg)
+
+*功能流程示意，非界面截图。*
+
+文本和文件处理逻辑在浏览器内运行，没有业务后端上传接口。浏览页面仍会请求站点资源；本地历史受当前浏览器存储与清理操作影响，需要长期保存时请导出备份。
+
 ## ✨ 特性
 
 - **零后端** — 纯静态站点，所有处理在浏览器本地完成，无服务器、无 API、无数据上传
-- **隐私优先** — 你的文本、图片、数据永远不会离开你的设备
+- **隐私优先** — 工具不通过业务接口上传输入的文本和文件
 - **PWA 支持** — 可安装到桌面，离线可用（应用壳层与全部工具代码随安装预缓存；PDF 工具、二维码识别依赖的第三方库在首次使用后缓存）
 - **按需加载** — ES Module 架构，工具间代码与样式隔离，切换时动态加载
 - **移动端适配** — 响应式布局，手机/平板/桌面均可使用
@@ -73,6 +81,10 @@
 | 扫描自检 | 生成后本地回读，提示对比度、留白、Logo 等风险 |
 | 导出 | PNG / SVG（含外框与 Logo），历史记录本地保存 |
 
+### 📄 PDF 工具
+
+在浏览器中合并、拆分 PDF 或添加水印，处理后下载结果。当前工具入口和实现位于 `src/tools/pdf-tools/`。
+
 ### ✍️ Markdown 创作台
 
 纯前端 Markdown 编辑环境：导入、实时预览、本地草稿与安全导出。
@@ -124,7 +136,7 @@ npm run build
 npm test
 
 # 或使用 node 直接运行
-node --test 'tests/*.test.mjs' 'tests/**/*.test.mjs'
+node --test tests/*.mjs
 ```
 
 ---
@@ -135,14 +147,14 @@ node --test 'tests/*.test.mjs' 'tests/**/*.test.mjs'
 
 1. 把项目推到 GitHub
 2. 打开 [Vercel](https://vercel.com) → Add New → Project → 选择仓库
-3. Framework Preset 选 "Other"，Build Command 和 Output Directory 留空
+3. Framework Preset 选 "Other"，Build Command 填 `npm run build`，Output Directory 填 `dist`（与 `vercel.json` 一致）
 4. Deploy
 
 项目已包含 `vercel.json`，自动配置了缓存策略和安全响应头（CSP / HSTS / X-Frame-Options / Permissions-Policy）。
 
 ### 其他平台
 
-这是纯静态站点，任何静态托管服务都能部署：Netlify、Cloudflare Pages、GitHub Pages、S3 + CloudFront 等。直接把项目根目录作为静态文件目录即可。
+这是纯静态站点，任何静态托管服务都能部署：Netlify、Cloudflare Pages、GitHub Pages、S3 + CloudFront 等。推荐运行 `npm run build` 后发布 `dist/`，以使用生成的压缩资源与预缓存列表。
 
 ---
 
