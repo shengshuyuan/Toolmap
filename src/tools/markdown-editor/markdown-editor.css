@@ -1,7 +1,7 @@
 .markdown-editor-tool.md-panel{
   border-radius: var(--r2);
   border: 1px solid var(--line);
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow2);
   padding: var(--pad);
   position: relative;
@@ -14,7 +14,7 @@
 .markdown-editor-tool .md-head{
   display:flex; justify-content:space-between; gap:16px; align-items:flex-start; margin-bottom:12px; flex-wrap:wrap;
 }
-.markdown-editor-tool .md-title{margin:0; font-size:22px; font-weight:700}
+.markdown-editor-tool .md-title{margin:0; font-size:26px; font-weight:800; letter-spacing:-0.03em}
 .markdown-editor-tool .md-lead{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.55}
 .markdown-editor-tool .md-head-actions{display:flex; gap:8px; flex-wrap:wrap}
 .markdown-editor-tool .md-sr-only{

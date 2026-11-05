@@ -1,14 +1,14 @@
 .char-count-tool.char-panel{
   border-radius: calc(var(--r) + 6px);
   border: 1px solid var(--line);
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow);
   padding: var(--pad-lg);
   backdrop-filter: blur(16px);
 }
 .char-count-tool.char-panel--enter{animation: enter .34s ease-out both}
 .char-count-tool .char-head{display:flex; align-items:flex-start; justify-content:space-between; gap:18px}
-.char-count-tool .char-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-weight:700}
+.char-count-tool .char-title{margin:0; font-size:26px; letter-spacing:-0.03em; font-weight:800}
 .char-count-tool .char-lead{margin:7px 0 0; max-width:72ch; color:var(--muted); font-size:13px; line-height:1.6}
 
 .char-count-tool .char-editor{

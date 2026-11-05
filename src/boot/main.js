@@ -1,4 +1,5 @@
 import { APP_VERSION } from "../config/app-meta.js";
+import "../bg-art.js";
 
 const VERSION_KEY = "toolmap-seen-version";
 const prevVersion = localStorage.getItem(VERSION_KEY);

@@ -1,7 +1,7 @@
 .pdf-tools-tool.pdf-panel{
   border-radius: var(--r2);
   border: 1px solid var(--line);
-  background: var(--card);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow2);
   padding: var(--pad);
 }
@@ -10,7 +10,7 @@
 }
 .pdf-tools-tool.pdf-panel--enter{animation: enter .34s ease-out both}
 .pdf-tools-tool .pdf-head{margin-bottom: 14px}
-.pdf-tools-tool .pdf-title{margin:0; font-size:22px; letter-spacing:-0.01em; font-weight:700}
+.pdf-tools-tool .pdf-title{margin:0; font-size:26px; letter-spacing:-0.03em; font-weight:800}
 .pdf-tools-tool .pdf-lead{margin:7px 0 0; color:var(--muted); font-size:13px; line-height:1.6}
 
 .pdf-tools-tool .pdf-tabs{display:flex; gap:4px; margin:16px 0 12px; background:var(--bg); border-radius:var(--r2); padding:4px; border:1px solid var(--line)}
@@ -23,7 +23,8 @@
 
 .pdf-tools-tool .pdf-upload-zone{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:36px 24px; border:2px dashed var(--line); border-radius:var(--r);
+  padding:36px 24px; border:1px dashed rgba(106,155,204,0.42); border-radius:18px;
+  background:rgba(255,255,255,0.48);
   cursor:pointer; transition:all .2s; text-align:center;
 }
 .pdf-tools-tool .pdf-upload-zone:focus{
@@ -32,7 +33,7 @@
   box-shadow:0 0 0 4px var(--accent-soft);
 }
 .pdf-tools-tool .pdf-upload-zone:hover,.pdf-tools-tool .pdf-upload-zone--drag{border-color:var(--accent); background:var(--accent-soft)}
-.pdf-tools-tool .pdf-upload-icon{color:var(--muted2); margin-bottom:10px}
+.pdf-tools-tool .pdf-upload-icon{color:var(--accent-blue); margin-bottom:10px}
 .pdf-tools-tool .pdf-upload-text{margin:0; font-size:15px; font-weight:600; color:var(--text)}
 .pdf-tools-tool .pdf-upload-hint{margin:6px 0 0; font-size:12px; color:var(--muted2)}
 

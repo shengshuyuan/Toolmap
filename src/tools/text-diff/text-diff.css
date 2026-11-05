@@ -34,9 +34,9 @@
 .text-diff-tool .diff-page-title {
   margin: 0;
   font-size: 26px;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .text-diff-tool .diff-page-subtitle {
