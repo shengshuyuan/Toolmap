@@ -72,8 +72,8 @@
 }
 .char-count-tool .char-btn:hover{transform:translateY(-1px); box-shadow:var(--shadow2)}
 .char-count-tool .char-btn:active{transform:translateY(0)}
-.char-count-tool .char-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff}
-.char-count-tool .char-btn--primary:hover{background:#FF7A4D}
+.char-count-tool .char-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.char-count-tool .char-btn--primary:hover{background:#FF7A4D; box-shadow:var(--btn-primary-shadow)}
 .char-count-tool .char-toast{
   max-width:360px;
   margin-left:auto;

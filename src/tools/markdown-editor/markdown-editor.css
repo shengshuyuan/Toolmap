@@ -27,8 +27,9 @@
 }
 .markdown-editor-tool .md-btn:hover{border-color:var(--accent); color:var(--accent)}
 .markdown-editor-tool .md-btn--sm{padding:5px 10px; font-size:12px}
-.markdown-editor-tool .md-btn--primary{background:var(--accent); border-color:rgba(255,100,43,.7); color:#fff}
-.markdown-editor-tool .md-btn--primary:hover{background:#FF7A4D; color:#fff}
+.markdown-editor-tool .md-btn--primary{background:var(--accent); border-color:rgba(255,100,43,.7); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.markdown-editor-tool .md-btn--primary:hover{background:#FF7A4D; color:#fff; box-shadow:var(--btn-primary-shadow)}
+.markdown-editor-tool .md-btn--primary:disabled{box-shadow:none}
 
 .markdown-editor-tool .md-toolbar{
   display:flex; gap:10px; align-items:center; justify-content:space-between;

@@ -114,8 +114,8 @@
 .image-compress-tool .image-btn:hover{transform:translateY(-1px); box-shadow:var(--shadow2)}
 .image-compress-tool .image-btn:active{transform:translateY(0)}
 .image-compress-tool .image-btn:disabled{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none}
-.image-compress-tool .image-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff}
-.image-compress-tool .image-btn--primary:hover{background:#FF7A4D}
+.image-compress-tool .image-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.image-compress-tool .image-btn--primary:hover{background:#FF7A4D; box-shadow:var(--btn-primary-shadow)}
 .image-compress-tool .image-pick-label{user-select:none}
 .image-compress-tool .image-toast{
   max-width:360px;

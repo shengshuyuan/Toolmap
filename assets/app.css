@@ -15,6 +15,7 @@
   --muted2: rgba(20, 20, 19, 0.48);
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
   --shadow2: 0 4px 14px rgba(0, 0, 0, 0.04);
+  --btn-primary-shadow: 0 1px 1px rgba(180, 60, 20, 0.16), 0 8px 16px rgba(255, 100, 43, 0.16);
 
   /* 主操作与辅助色 */
   --accent: #FF642B;
@@ -129,6 +130,7 @@ body {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
   background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
   backdrop-filter: blur(18px) saturate(1.2);
   border-right: 1px solid var(--line);
   display: flex;
@@ -361,6 +363,7 @@ body {
   justify-content: space-between;
   padding: 12px 16px;
   background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
   position: sticky;
@@ -442,27 +445,15 @@ body {
   user-select: none;
 }
 
-.btn--primary,
-.char-btn--primary,
-.image-btn--primary,
-.md-btn--primary,
-.pdf-btn--primary {
+.btn--primary {
   background: var(--accent);
   color: #ffffff;
-  box-shadow: 0 1px 1px rgba(180, 60, 20, 0.16), 0 8px 16px rgba(255, 100, 43, 0.16);
+  box-shadow: var(--btn-primary-shadow);
 }
-.btn--primary:hover:not(:disabled),
-.char-btn--primary:hover:not(:disabled),
-.image-btn--primary:hover:not(:disabled),
-.md-btn--primary:hover:not(:disabled),
-.pdf-btn--primary:hover:not(:disabled) {
+.btn--primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
-.btn--primary:disabled,
-.char-btn--primary:disabled,
-.image-btn--primary:disabled,
-.md-btn--primary:disabled,
-.pdf-btn--primary:disabled {
+.btn--primary:disabled {
   box-shadow: none;
 }
 
@@ -1117,7 +1108,7 @@ body {
   justify-content: center;
 }
 
-.data-action-card:last-child .data-action-card__icon {
+.data-action-card--danger .data-action-card__icon {
   background: var(--danger-soft);
   color: var(--danger);
 }
@@ -1363,6 +1354,10 @@ body {
     transform: translateX(-100%);
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
+    /* 抽屉盖在页面上，必须不透明，否则会把后面的遮罩糊进菜单 */
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
   .sidebar--open {
     transform: translateX(0);
@@ -1383,7 +1378,10 @@ body {
   }
   .sidebar-backdrop {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: var(--sidebar-w);
     background: rgba(0, 0, 0, 0.4);
     z-index: 85;
   }
