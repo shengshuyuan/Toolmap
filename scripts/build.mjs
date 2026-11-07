@@ -9,7 +9,7 @@ const DIST = join(ROOT, "dist");
 const JS_TARGET = "es2020";
 
 const JS_DIRS = ["src"];
-const STATIC_FILES = ["index.html", "manifest.json", "favicon.svg"];
+const STATIC_FILES = ["index.html", "manifest.json", "favicon.svg", "_headers"];
 const STATIC_DIRS = ["assets", "vendor"];
 const META_FILE = "src/config/app-meta.js";
 

@@ -62,7 +62,7 @@ input:focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 [tabindex="0"]:focus-visible {
-  outline: 2px solid var(--primary, #e25c34);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -1218,6 +1218,13 @@ body {
   flex-direction: column;
   overflow: hidden;
   animation: modalEnter 0.15s ease-out;
+}
+
+/* 各工具面板首次出现时的淡入（工具 CSS 里的 animation: enter 依赖它）。
+   不用 transform：留下的 transform 会让面板里 position:fixed 的元素定位错位 */
+@keyframes enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes modalEnter {

@@ -148,7 +148,7 @@
 .qrcode-tool .qr-btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
 .qrcode-tool .qr-btn:disabled{opacity:.5; cursor:not-allowed}
 .qrcode-tool .qr-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
-.qrcode-tool .qr-btn--primary:hover:not(:disabled){background:#FF7A4D; color:#fff; box-shadow:var(--btn-primary-shadow)}
+.qrcode-tool .qr-btn--primary:hover:not(:disabled){background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .qrcode-tool .qr-btn--primary:disabled{box-shadow:none}
 .qrcode-tool .qr-btn--sm{padding:4px 10px; font-size:11px}
 
@@ -220,4 +220,9 @@
   .qrcode-tool .qr-option-row{gap:8px 14px}
   .qrcode-tool .qr-preview-frame{width:160px; height:160px}
   .qrcode-tool .qr-scan-result{grid-template-columns:1fr}
+}
+
+/* 触屏设备上把小按钮放大到便于手指点按 */
+@media (pointer: coarse){
+  .qrcode-tool .qr-history-del{width:40px; height:40px}
 }

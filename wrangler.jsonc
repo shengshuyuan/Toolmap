@@ -1,0 +1,10 @@
+// Cloudflare 发布配置：把 npm run build 生成的 dist/ 作为静态网站发布到 toolmap.sherone.app
+// 发布命令：npm run deploy:cf
+{
+  "name": "toolmap",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist"
+  },
+  "routes": [{ "pattern": "toolmap.sherone.app", "custom_domain": true }]
+}

@@ -644,6 +644,65 @@
   color: var(--danger);
 }
 
+/* 底部浮动提示（复制、保存等操作的结果） */
+.text-diff-tool .toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 120;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: rgba(20, 20, 19, 0.88);
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 8px 24px rgba(20, 20, 19, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 8px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.text-diff-tool .toast--show {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+/* 结果表里每行差异前的小标签 */
+.text-diff-tool .diff-type {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  vertical-align: 1px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.text-diff-tool .diff-type--content {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+}
+
+.text-diff-tool .diff-type--format {
+  background: var(--accent-blue-soft);
+  color: #3f6f9e;
+}
+
+/* 触屏设备上把小按钮放大到便于手指点按 */
+@media (pointer: coarse) {
+  .text-diff-tool .diff-nav-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 /* 响应式调整 */
 @media (max-width: 900px) {
   .text-diff-tool .diff-stage-editor {

@@ -1,6 +1,6 @@
 {
   "name": "toolmap",
-  "version": "0.6.12",
+  "version": "0.6.13",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,8 @@
     "verify:build": "node scripts/verify-build.mjs",
     "typecheck": "tsc --noEmit --project jsconfig.json",
     "pretest": "npm run verify:build",
-    "test": "node --test tests/*.mjs"
+    "test": "node --test tests/*.mjs",
+    "deploy:cf": "npm run build && npx --yes wrangler@4 deploy"
   },
   "devDependencies": {
     "esbuild": "^0.25.0",

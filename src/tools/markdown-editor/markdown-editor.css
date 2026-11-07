@@ -28,7 +28,7 @@
 .markdown-editor-tool .md-btn:hover{border-color:var(--accent); color:var(--accent)}
 .markdown-editor-tool .md-btn--sm{padding:5px 10px; font-size:12px}
 .markdown-editor-tool .md-btn--primary{background:var(--accent); border-color:rgba(255,100,43,.7); color:#fff; box-shadow:var(--btn-primary-shadow)}
-.markdown-editor-tool .md-btn--primary:hover{background:#FF7A4D; color:#fff; box-shadow:var(--btn-primary-shadow)}
+.markdown-editor-tool .md-btn--primary:hover{background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .markdown-editor-tool .md-btn--primary:disabled{box-shadow:none}
 
 .markdown-editor-tool .md-toolbar{
@@ -296,12 +296,12 @@
 }
 .markdown-editor-tool .md-exit-fullscreen:hover{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
 
-/* 沉浸式：隐藏站级导航装饰 */
-html.toolmap-md-immersive .site-header,
-html.toolmap-md-immersive .footer,
-html.toolmap-md-immersive .bg{display:none !important}
-html.toolmap-md-immersive body{background:var(--bg)}
-html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
+/* 沉浸式：隐藏侧栏、手机顶栏和页脚，背后页面不再滚动 */
+html.toolmap-md-immersive .sidebar,
+html.toolmap-md-immersive .sidebar-backdrop,
+html.toolmap-md-immersive .mobile-topbar,
+html.toolmap-md-immersive .app-footer{display:none !important}
+html.toolmap-md-immersive body{background:var(--bg); overflow:hidden}
 .markdown-editor-tool.md-is-fullscreen{
   position:fixed; inset:0; z-index:50;
   min-height:100vh; border-radius:0;
@@ -312,7 +312,8 @@ html.toolmap-md-immersive .container{width:min(1400px, calc(100% - 20px))}
   from{opacity:.85; transform:scale(.995)}
   to{opacity:1; transform:scale(1)}
 }
-.markdown-editor-tool.md-is-fullscreen .md-head{margin-bottom:6px}
+.markdown-editor-tool.md-is-fullscreen .md-head{margin-bottom:6px; padding-right:96px}
+.markdown-editor-tool.md-is-fullscreen #mdFullscreenBtn{display:none}
 .markdown-editor-tool.md-is-fullscreen .md-head-actions .md-btn{padding:5px 10px; font-size:12px}
 .markdown-editor-tool.md-is-fullscreen .md-workspace{flex:1; min-height:0}
 .markdown-editor-tool.md-is-fullscreen .md-editor,

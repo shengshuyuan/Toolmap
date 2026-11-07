@@ -124,7 +124,7 @@
 .pdf-tools-tool .pdf-btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
 .pdf-tools-tool .pdf-btn:disabled{opacity:.5; cursor:not-allowed}
 .pdf-tools-tool .pdf-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
-.pdf-tools-tool .pdf-btn--primary:hover:not(:disabled){background:#FF7A4D; color:#fff; box-shadow:var(--btn-primary-shadow)}
+.pdf-tools-tool .pdf-btn--primary:hover:not(:disabled){background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .pdf-tools-tool .pdf-btn--primary:disabled{box-shadow:none}
 
 .pdf-tools-tool .pdf-toast{
@@ -137,4 +137,10 @@
 @media (max-width: 480px){
   .pdf-tools-tool .pdf-form-row--inline{flex-direction:column; align-items:flex-start}
   .pdf-tools-tool .pdf-range{width:100%}
+}
+
+/* 触屏设备上把小按钮放大到便于手指点按 */
+@media (pointer: coarse){
+  .pdf-tools-tool .pdf-move-btn,
+  .pdf-tools-tool .pdf-file-remove{width:40px; height:40px}
 }

@@ -115,7 +115,7 @@
 .image-compress-tool .image-btn:active{transform:translateY(0)}
 .image-compress-tool .image-btn:disabled{opacity:.45; cursor:not-allowed; transform:none; box-shadow:none}
 .image-compress-tool .image-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
-.image-compress-tool .image-btn--primary:hover{background:#FF7A4D; box-shadow:var(--btn-primary-shadow)}
+.image-compress-tool .image-btn--primary:hover{background:var(--accent-hover); box-shadow:var(--btn-primary-shadow)}
 .image-compress-tool .image-pick-label{user-select:none}
 .image-compress-tool .image-toast{
   max-width:360px;
@@ -275,4 +275,9 @@
   .image-compress-tool .image-drop__icon{width: 36px; height: 36px}
   .image-compress-tool .image-drop__title{font-size: 15px}
   .image-compress-tool .image-settings{padding: 10px}
+}
+
+/* 触屏设备上把小按钮放大到便于手指点按 */
+@media (pointer: coarse){
+  .image-compress-tool .image-mini-btn{min-height:40px; padding:8px 12px}
 }
