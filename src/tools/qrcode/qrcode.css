@@ -1,7 +1,7 @@
 .qrcode-tool.qr-panel{
   border-radius: calc(var(--r) + 6px);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper) / 0.9);
   box-shadow: var(--shadow);
   padding: var(--pad-lg);
   backdrop-filter: blur(16px);
@@ -30,7 +30,7 @@
 .qrcode-tool .qr-group{
   border:1px solid var(--line);
   border-radius:var(--r2);
-  background:rgba(255,255,255,.35);
+  background:rgb(var(--paper) / .35);
   padding:12px 14px;
 }
 .qrcode-tool .qr-group-title{
@@ -109,7 +109,7 @@
 .qrcode-tool .qr-hint--center{text-align:center}
 .qrcode-tool .qr-muted{font-size:12px; color:var(--muted2)}
 .qrcode-tool .qr-field-error{margin:4px 0 0; font-size:12px; color:var(--danger)}
-.qrcode-tool .qr-field-warn{margin:4px 0 0; font-size:12px; color:#b45309}
+.qrcode-tool .qr-field-warn{margin:4px 0 0; font-size:12px; color:var(--text-amber)}
 .qrcode-tool .qr-range{flex:1; min-width:100px}
 .qrcode-tool .qr-logo-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
 
@@ -121,7 +121,7 @@
 .qrcode-tool .qr-preview-frame{
   position:relative;
   width:min(100%, 280px); height:280px; border:1px solid var(--line); border-radius:var(--r2);
-  display:flex; align-items:center; justify-content:center; background:#fff; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; background:var(--card); overflow:hidden;
 }
 .qrcode-tool .qr-canvas{display:none; max-width:100%; max-height:100%; image-rendering:pixelated}
 .qrcode-tool .qr-canvas.is-visible{display:block}
@@ -135,19 +135,19 @@
   width:100%; max-width:280px; padding:8px 10px; border-radius:10px; font-size:12px; line-height:1.45; text-align:center;
   border:1px solid var(--line); background:var(--bg);
 }
-.qrcode-tool .qr-check--pass{border-color:rgba(120,140,93,.35); background:rgba(120,140,93,.12); color:rgba(69,87,46,.95)}
-.qrcode-tool .qr-check--warn{border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.12); color:#92400e}
-.qrcode-tool .qr-check--fail{border-color:rgba(255,59,48,.35); background:rgba(255,59,48,.08); color:rgba(190,38,30,.95)}
+.qrcode-tool .qr-check--pass{border-color:rgba(120,140,93,.35); background:rgba(120,140,93,.12); color:var(--text-green)}
+.qrcode-tool .qr-check--warn{border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.12); color:var(--text-amber)}
+.qrcode-tool .qr-check--fail{border-color:rgba(255,59,48,.35); background:rgba(255,59,48,.08); color:var(--text-red)}
 .qrcode-tool .qr-download-group{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
 
 .qrcode-tool .qr-btn{
-  padding:8px 16px; border:1px solid var(--line); border-radius:var(--r2);
-  background:var(--bg); color:var(--text); font-size:13px; font-weight:600;
+  min-height:36px; padding:8px 16px; border:1px solid var(--btn-border); border-radius:var(--btn-radius);
+  background:var(--btn-bg); color:var(--text); font-size:13px; font-weight:600;
   cursor:pointer; transition:all .15s; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
 }
 .qrcode-tool .qr-btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
 .qrcode-tool .qr-btn:disabled{opacity:.5; cursor:not-allowed}
-.qrcode-tool .qr-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.qrcode-tool .qr-btn--primary{border-color:var(--accent); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .qrcode-tool .qr-btn--primary:hover:not(:disabled){background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .qrcode-tool .qr-btn--primary:disabled{box-shadow:none}
 .qrcode-tool .qr-btn--sm{padding:4px 10px; font-size:11px}
@@ -197,7 +197,7 @@
   border:1px solid var(--line); border-radius:var(--r2); cursor:pointer; transition:all .15s;
 }
 .qrcode-tool .qr-history-item:hover{border-color:var(--accent); background:var(--accent-soft)}
-.qrcode-tool .qr-history-thumb{width:40px; height:40px; border-radius:6px; border:1px solid var(--line); image-rendering:pixelated; object-fit:contain; background:#fff}
+.qrcode-tool .qr-history-thumb{width:40px; height:40px; border-radius:6px; border:1px solid var(--line); image-rendering:pixelated; object-fit:contain; background:var(--card)}
 .qrcode-tool .qr-history-meta{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px}
 .qrcode-tool .qr-history-type{font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase}
 .qrcode-tool .qr-history-content{font-size:13px; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}

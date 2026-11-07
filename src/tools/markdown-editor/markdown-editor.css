@@ -1,7 +1,7 @@
 .markdown-editor-tool.md-panel{
   border-radius: var(--r2);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper) / 0.9);
   box-shadow: var(--shadow2);
   padding: var(--pad);
   position: relative;
@@ -22,12 +22,12 @@
 }
 
 .markdown-editor-tool .md-btn{
-  padding:8px 12px; border:1px solid var(--line); border-radius:var(--r2);
-  background:var(--bg); color:var(--text); font-size:13px; font-weight:600; cursor:pointer;
+  min-height:36px; padding:8px 12px; border:1px solid var(--btn-border); border-radius:var(--btn-radius);
+  background:var(--btn-bg); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s;
 }
 .markdown-editor-tool .md-btn:hover{border-color:var(--accent); color:var(--accent)}
-.markdown-editor-tool .md-btn--sm{padding:5px 10px; font-size:12px}
-.markdown-editor-tool .md-btn--primary{background:var(--accent); border-color:rgba(255,100,43,.7); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.markdown-editor-tool .md-btn--sm{min-height:30px; padding:5px 10px; font-size:12px}
+.markdown-editor-tool .md-btn--primary{background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .markdown-editor-tool .md-btn--primary:hover{background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .markdown-editor-tool .md-btn--primary:disabled{box-shadow:none}
 
@@ -41,7 +41,7 @@
 }
 .markdown-editor-tool .md-tb{
   flex-shrink:0; padding:6px 10px; border:1px solid var(--line); border-radius:999px;
-  background:rgba(255,255,255,.55); font-size:12px; font-weight:600; cursor:pointer; color:var(--text);
+  background:rgb(var(--paper) / .55); font-size:12px; font-weight:600; cursor:pointer; color:var(--text);
 }
 .markdown-editor-tool .md-tb:hover{border-color:var(--accent); color:var(--accent)}
 .markdown-editor-tool .md-mode-switch{display:flex; gap:4px; background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:3px}
@@ -58,7 +58,7 @@
   background:var(--bg); font-size:14px; font-weight:600;
 }
 .markdown-editor-tool .md-save-status{font-size:12px; color:var(--muted2)}
-.markdown-editor-tool .md-save-status.is-dirty{color:#b45309}
+.markdown-editor-tool .md-save-status.is-dirty{color:var(--text-amber)}
 .markdown-editor-tool .md-save-status.is-saving{color:var(--accent)}
 .markdown-editor-tool .md-save-status.is-saved{color:var(--accent-green,#788c5d)}
 .markdown-editor-tool .md-sync-label{font-size:12px; color:var(--muted); display:flex; gap:6px; align-items:center}
@@ -75,7 +75,7 @@
   border:1px solid var(--line);
   border-radius:var(--r2);
   overflow:hidden;
-  background:rgba(255,255,255,.4);
+  background:rgb(var(--paper) / .4);
   position:relative;
 }
 .markdown-editor-tool[data-mode="edit"] .md-workspace{
@@ -91,7 +91,7 @@
 
 .markdown-editor-tool .md-outline{
   width:180px;
-  border-right:1px solid var(--line); background:rgba(250,249,245,.85); padding:10px; overflow:auto;
+  border-right:1px solid var(--line); background:rgb(var(--sand) / .85); padding:10px; overflow:auto;
   transition:width .2s ease, padding .2s ease;
   position:relative;
 }
@@ -172,7 +172,7 @@
   min-width:0;
   min-height:0;
   overflow:auto;
-  background:rgba(255,255,255,.55);
+  background:rgb(var(--paper) / .55);
 }
 .markdown-editor-tool .md-preview{
   padding:16px 18px;
@@ -208,7 +208,7 @@
 .markdown-editor-tool .md-preview del,
 .markdown-editor-tool .md-preview s{text-decoration:line-through}
 .markdown-editor-tool .md-preview code{
-  background:rgba(20,20,19,.06); padding:1px 6px; border-radius:6px; font-size:.92em;
+  background:rgb(var(--ink) / .06); padding:1px 6px; border-radius:6px; font-size:.92em;
 }
 .markdown-editor-tool .md-preview pre.md-code{
   position:relative; background:#1e1e1e; color:#f3f3f3; padding:12px 14px; border-radius:12px; overflow:auto;
@@ -226,18 +226,18 @@
 .markdown-editor-tool .md-preview table.md-table{border-collapse:collapse; width:100%; margin:0; min-width:480px}
 .markdown-editor-tool .md-preview table.md-table th,
 .markdown-editor-tool .md-preview table.md-table td{border:1px solid var(--line); padding:8px 10px}
-.markdown-editor-tool .md-preview table.md-table th{background:rgba(250,249,245,.9); font-weight:700}
+.markdown-editor-tool .md-preview table.md-table th{background:rgb(var(--sand) / .9); font-weight:700}
 .markdown-editor-tool .md-preview blockquote{
   margin:1em 0; padding:.6em 1em; border-left:4px solid var(--accent); border-radius:0 10px 10px 0;
   background:rgba(255,100,43,.04); color:var(--muted);
 }
 .markdown-editor-tool .md-preview a{
-  color: #3240FC;
+  color: var(--link);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 .markdown-editor-tool .md-preview a:hover{
-  color: #1f2dc9;
+  color: var(--link-hover);
   text-decoration: underline;
 }
 .markdown-editor-tool .md-preview .md-empty,

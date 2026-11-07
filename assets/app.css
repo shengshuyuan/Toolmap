@@ -5,16 +5,27 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light;
+  /* 三种基础色的 RGB 数值：墨色（文字/描边）、纸面（卡片）、沙色（浅底）。
+     深色模式只需改这三个值，所有 rgb(var(--ink) / 透明度) 写法会自动跟着变 */
+  --ink: 20 20 19;
+  --paper: 255 255 255;
+  --sand: 250 249 245;
+  --toast-bg: rgba(20, 20, 19, 0.88);
   /* 配色体系保持不变：Anthropic 暖色调 */
   --bg: #faf9f5;
   --card: #ffffff;
-  --card-subtle: rgba(250, 249, 245, 0.78);
+  --card-subtle: rgb(var(--sand) / 0.78);
   --line: #e8e6dc;
-  --text: rgba(20, 20, 19, 0.92);
-  --muted: rgba(20, 20, 19, 0.66);
-  --muted2: rgba(20, 20, 19, 0.48);
+  --text: rgb(var(--ink) / 0.92);
+  --muted: rgb(var(--ink) / 0.66);
+  --muted2: rgb(var(--ink) / 0.48);
   --shadow: 0 16px 36px rgba(0, 0, 0, 0.06);
   --shadow2: 0 4px 14px rgba(0, 0, 0, 0.04);
+  /* 所有按钮共用的外观（工作台和各工具的按钮都读这几个值） */
+  --btn-radius: 10px;
+  --btn-bg: var(--card);
+  --btn-border: var(--line);
   --btn-primary-shadow: 0 1px 1px rgba(180, 60, 20, 0.16), 0 8px 16px rgba(255, 100, 43, 0.16);
 
   /* 主操作与辅助色 */
@@ -27,6 +38,15 @@
   --accent-green-soft: rgba(120, 140, 93, 0.14);
   --danger: #ff3b30;
   --danger-soft: rgba(255, 59, 48, 0.10);
+
+  /* 带含义的文字色（状态标签、提示、链接） */
+  --text-blue: rgba(55, 97, 137, 0.96);
+  --text-green: rgba(85, 104, 61, 0.96);
+  --text-red: rgba(190, 38, 30, 0.92);
+  --text-orange: rgba(180, 72, 31, 0.98);
+  --text-amber: #b45309;
+  --link: #3240fc;
+  --link-hover: #1f2dc9;
 
   /* 尺寸与间距规范 */
   --sidebar-w: 216px;
@@ -41,6 +61,36 @@
   /* 代码编辑区 */
   --code-font-size: 13px;
   --code-line-height: 20px;
+}
+
+/* 深色模式：手动选择深色，或「跟随系统」且系统为深色时生效（由 theme.js 写入 data-theme） */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: 238 235 226;
+  --paper: 38 37 34;
+  --sand: 30 29 27;
+  --toast-bg: rgba(64, 62, 57, 0.96);
+  --bg: #1b1a18;
+  --card: #262522;
+  --line: #3a3833;
+  --shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  --shadow2: 0 4px 14px rgba(0, 0, 0, 0.28);
+  --btn-primary-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 8px 16px rgba(255, 100, 43, 0.18);
+  --accent-hover: #ff7d4d;
+  --accent-soft: rgba(255, 100, 43, 0.18);
+  --accent-blue: #8db6de;
+  --accent-blue-soft: rgba(106, 155, 204, 0.2);
+  --accent-green: #a3b886;
+  --accent-green-soft: rgba(120, 140, 93, 0.22);
+  --danger: #ff6961;
+  --danger-soft: rgba(255, 69, 58, 0.16);
+  --text-blue: #9cc3ea;
+  --text-green: #b5cc96;
+  --text-red: #ff8a80;
+  --text-orange: #ffab85;
+  --text-amber: #fbbf6a;
+  --link: #8fa8ff;
+  --link-hover: #b3c4ff;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,14 +147,14 @@ body {
   border-radius: var(--r);
   border: 1px solid rgba(255, 59, 48, 0.25);
   background: rgba(255, 59, 48, 0.08);
-  color: rgba(17, 17, 17, 0.86);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.55;
 }
 .file-warning code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgb(var(--paper) / 0.7);
+  border: 1px solid var(--line);
   padding: 1px 6px;
   border-radius: 6px;
 }
@@ -129,7 +179,7 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  background: rgba(255, 255, 255, 0.88);
+  background: rgb(var(--paper) / 0.88);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
   backdrop-filter: blur(18px) saturate(1.2);
   border-right: 1px solid var(--line);
@@ -212,8 +262,8 @@ body {
 }
 
 .sidebar__search-btn:hover {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.2);
+  background: var(--card);
+  border-color: rgb(var(--ink) / 0.2);
   color: var(--text);
 }
 
@@ -226,7 +276,7 @@ body {
 .sidebar__search-kbd {
   font-family: inherit;
   font-size: 11px;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 1px 5px;
@@ -345,6 +395,11 @@ body {
   color: var(--text);
 }
 
+.sidebar__theme-btn {
+  margin-left: auto;
+  margin-right: 6px;
+}
+
 /* 主内容舞台容器 */
 .app-main {
   flex: 1;
@@ -362,7 +417,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgb(var(--paper) / 0.92);
   -webkit-backdrop-filter: blur(16px);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
@@ -435,7 +490,7 @@ body {
   gap: 6px;
   height: 38px;
   padding: 0 16px;
-  border-radius: var(--r-sm);
+  border-radius: var(--btn-radius);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -458,17 +513,18 @@ body {
 }
 
 .btn--secondary {
-  background: #ffffff;
-  border-color: var(--line);
+  background: var(--btn-bg);
+  border-color: var(--btn-border);
   color: var(--text);
 }
 .btn--secondary:hover:not(:disabled) {
-  border-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .btn--outline {
   background: transparent;
-  border-color: var(--line);
+  border-color: var(--btn-border);
   color: var(--text);
 }
 .btn--outline:hover:not(:disabled) {
@@ -499,7 +555,7 @@ body {
 }
 .btn--subtle:hover:not(:disabled) {
   color: var(--text);
-  background: rgba(0, 0, 0, 0.04);
+  background: rgb(var(--ink) / 0.04);
 }
 
 .btn--sm {
@@ -565,12 +621,12 @@ body {
   margin-top: 20px;
   display: flex;
   align-items: center;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 14px 18px;
   gap: 12px;
-  box-shadow: 0 1px 2px rgba(20, 20, 19, 0.04), 0 10px 28px rgba(20, 20, 19, 0.05);
+  box-shadow: 0 1px 2px rgb(var(--ink) / 0.04), 0 10px 28px rgb(var(--ink) / 0.05);
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -602,7 +658,7 @@ body {
 
 /* 继续上次工作卡片 */
 .wb-resume {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 18px 22px;
@@ -666,7 +722,7 @@ body {
 }
 
 .wb-tool-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 20px;
@@ -724,7 +780,7 @@ body {
 
 /* 最近使用列表 */
 .wb-recent-list {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
@@ -875,7 +931,7 @@ body {
 .filter-pill {
   appearance: none;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--card);
   color: var(--muted);
   padding: 6px 14px;
   border-radius: 20px;
@@ -887,13 +943,13 @@ body {
 }
 
 .filter-pill:hover {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: rgb(var(--ink) / 0.2);
   color: var(--text);
 }
 
 .filter-pill--active {
   background: var(--text);
-  color: #ffffff;
+  color: var(--bg);
   border-color: var(--text);
 }
 
@@ -904,7 +960,7 @@ body {
 }
 
 .recent-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 16px 20px;
@@ -969,7 +1025,7 @@ body {
   padding: 48px 24px;
   text-align: center;
   color: var(--muted);
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
   line-height: 1.6;
@@ -979,7 +1035,7 @@ body {
 .data-privacy-banner {
   display: flex;
   gap: 16px;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 18px 22px;
@@ -1006,7 +1062,7 @@ body {
 
 .data-card,
 .data-stats-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 20px;
@@ -1081,7 +1137,7 @@ body {
 }
 
 .data-action-card {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 20px;
@@ -1168,7 +1224,7 @@ body {
   font-size: 11px;
   font-weight: 500;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--card);
   color: var(--muted);
 }
 .capability-pill--safe {
@@ -1210,7 +1266,7 @@ body {
 
 .search-modal {
   width: min(580px, 94vw);
-  background: #ffffff;
+  background: var(--card);
   border-radius: 14px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
   border: 1px solid var(--line);
@@ -1301,7 +1357,7 @@ body {
 .search-item__badge {
   font-size: 10px;
   font-weight: 700;
-  background: rgba(0, 0, 0, 0.06);
+  background: rgb(var(--ink) / 0.06);
   color: var(--muted);
   padding: 1px 5px;
   border-radius: 4px;
@@ -1334,7 +1390,7 @@ body {
   color: var(--muted2);
 }
 .search-modal__footer kbd {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   padding: 1px 4px;
   border-radius: 3px;
@@ -1362,7 +1418,7 @@ body {
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 8px 0 30px rgba(0, 0, 0, 0.15);
     /* 抽屉盖在页面上，必须不透明，否则会把后面的遮罩糊进菜单 */
-    background: #ffffff;
+    background: var(--card);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

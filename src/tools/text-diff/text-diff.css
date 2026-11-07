@@ -3,6 +3,55 @@
    遵循设计稿 02-text-diff.png 与交接文档规范
    ========================================================================== */
 
+/* 文本比对专用颜色：浅色 / 深色两套 */
+.text-diff-tool {
+  --td-editor-bg: #fafafa;
+  --td-gutter-bg: #f4f5f6;
+  --td-ln-text: #9aa2ae;
+  --td-ln-bg: #f8f9fa;
+  --td-empty-text: #ccc;
+  --td-del-bg: #ffebe9;
+  --td-del-text: #cf222e;
+  --td-del-ln: #ffd7d5;
+  --td-ins-bg: #e6ffec;
+  --td-ins-text: #1a7f37;
+  --td-ins-ln: #ccffd8;
+  --td-rep-old-bg: #fff0eb;
+  --td-rep-old-text: #bf360c;
+  --td-rep-new-bg: #e8f5e9;
+  --td-rep-new-text: #1b5e20;
+  --td-char-del-bg: #ffc1b8;
+  --td-char-del-text: #900;
+  --td-char-ins-bg: #acf2bd;
+  --td-char-ins-text: #005a18;
+  --td-format-text: #3f6f9e;
+  --td-warn-text: #b84318;
+}
+
+:root[data-theme="dark"] .text-diff-tool {
+  --td-editor-bg: #22211e;
+  --td-gutter-bg: #1e1d1b;
+  --td-ln-text: #7d7a72;
+  --td-ln-bg: #1e1d1b;
+  --td-empty-text: #5c5a54;
+  --td-del-bg: rgba(248, 81, 73, 0.14);
+  --td-del-text: #ff8a80;
+  --td-del-ln: rgba(248, 81, 73, 0.24);
+  --td-ins-bg: rgba(46, 160, 67, 0.15);
+  --td-ins-text: #7ee2a0;
+  --td-ins-ln: rgba(46, 160, 67, 0.26);
+  --td-rep-old-bg: rgba(255, 120, 60, 0.13);
+  --td-rep-old-text: #ffab85;
+  --td-rep-new-bg: rgba(46, 160, 67, 0.13);
+  --td-rep-new-text: #9be3b0;
+  --td-char-del-bg: rgba(248, 81, 73, 0.4);
+  --td-char-del-text: #ffd2cc;
+  --td-char-ins-bg: rgba(46, 160, 67, 0.42);
+  --td-char-ins-text: #d3f9dd;
+  --td-format-text: #9cc3ea;
+  --td-warn-text: #ffab85;
+}
+
 .text-diff-tool {
   display: flex;
   flex-direction: column;
@@ -57,7 +106,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 8px 14px;
@@ -92,7 +141,7 @@
 }
 
 .text-diff-tool .diff-tab-btn--active {
-  background: #ffffff;
+  background: var(--card);
   color: var(--text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
@@ -121,7 +170,7 @@
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
@@ -143,7 +192,7 @@
 }
 
 .text-diff-tool .diff-menu-item:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: rgb(var(--ink) / 0.04);
 }
 
 .text-diff-tool .diff-menu-item--danger {
@@ -160,7 +209,7 @@
 .text-diff-tool .diff-stale-banner {
   background: rgba(255, 100, 43, 0.10);
   border: 1px solid rgba(255, 100, 43, 0.3);
-  color: #b84318;
+  color: var(--td-warn-text);
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 13px;
@@ -181,7 +230,7 @@
 }
 
 .text-diff-tool .diff-editor-pane {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 14px;
@@ -250,7 +299,7 @@
   grid-template-columns: 48px 1fr;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fafafa;
+  background: var(--td-editor-bg);
   overflow: hidden;
   height: 420px;
   min-height: 280px;
@@ -261,9 +310,9 @@
   grid-column: 1;
   grid-row: 1;
   padding: 12px 6px 12px 4px;
-  background: #f4f5f6;
+  background: var(--td-gutter-bg);
   border-right: 1px solid var(--line);
-  color: #9aa2ae;
+  color: var(--td-ln-text);
   font-size: 12px;
   line-height: var(--code-line-height);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -310,7 +359,7 @@
 
 /* 差异结果区 */
 .text-diff-tool .diff-stage-result {
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   overflow: hidden;
@@ -340,15 +389,15 @@
 }
 
 .text-diff-tool .diff-row {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgb(var(--ink) / 0.04);
 }
 
 .text-diff-tool .diff-table__ln {
   width: 44px;
   padding: 3px 8px;
   text-align: right;
-  color: #9aa2ae;
-  background: #f8f9fa;
+  color: var(--td-ln-text);
+  background: var(--td-ln-bg);
   border-right: 1px solid var(--line);
   user-select: none;
   font-size: 11px;
@@ -363,46 +412,46 @@
 }
 
 .text-diff-tool .diff-side--empty {
-  color: #ccc;
-  background: rgba(0, 0, 0, 0.02);
+  color: var(--td-empty-text);
+  background: rgb(var(--ink) / 0.02);
 }
 
 /* 增删改高亮颜色 */
 .text-diff-tool .diff-row--delete .diff-table__cell:nth-child(2) {
-  background: #ffebe9;
-  color: #cf222e;
+  background: var(--td-del-bg);
+  color: var(--td-del-text);
 }
 .text-diff-tool .diff-row--delete .diff-table__ln:nth-child(1) {
-  background: #ffd7d5;
+  background: var(--td-del-ln);
 }
 
 .text-diff-tool .diff-row--insert .diff-table__cell:nth-child(4) {
-  background: #e6ffec;
-  color: #1a7f37;
+  background: var(--td-ins-bg);
+  color: var(--td-ins-text);
 }
 .text-diff-tool .diff-row--insert .diff-table__ln:nth-child(3) {
-  background: #ccffd8;
+  background: var(--td-ins-ln);
 }
 
 .text-diff-tool .diff-row--replace .diff-table__cell:nth-child(2) {
-  background: #fff0eb;
-  color: #bf360c;
+  background: var(--td-rep-old-bg);
+  color: var(--td-rep-old-text);
 }
 .text-diff-tool .diff-row--replace .diff-table__cell:nth-child(4) {
-  background: #e8f5e9;
-  color: #1b5e20;
+  background: var(--td-rep-new-bg);
+  color: var(--td-rep-new-text);
 }
 
 .text-diff-tool .diff-char--del {
-  background: #ffc1b8;
-  color: #900;
+  background: var(--td-char-del-bg);
+  color: var(--td-char-del-text);
   border-radius: 2px;
   padding: 0 2px;
 }
 
 .text-diff-tool .diff-char--ins {
-  background: #acf2bd;
-  color: #005a18;
+  background: var(--td-char-ins-bg);
+  color: var(--td-char-ins-text);
   border-radius: 2px;
   padding: 0 2px;
 }
@@ -421,7 +470,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 18px;
@@ -435,11 +484,11 @@
 }
 
 .text-diff-tool .stat--add {
-  color: #1a7f37;
+  color: var(--td-ins-text);
 }
 
 .text-diff-tool .stat--del {
-  color: #cf222e;
+  color: var(--td-del-text);
 }
 
 .text-diff-tool .diff-status-tip {
@@ -464,7 +513,7 @@
 .text-diff-tool .diff-nav-btn {
   appearance: none;
   border: 1px solid var(--line);
-  background: #ffffff;
+  background: var(--card);
   color: var(--text);
   width: 26px;
   height: 26px;
@@ -502,7 +551,7 @@
   top: 0;
   bottom: 0;
   width: min(440px, 90vw);
-  background: #ffffff;
+  background: var(--card);
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.15);
   z-index: 101;
   display: flex;
@@ -599,7 +648,7 @@
 }
 
 .text-diff-tool .text-history-row:hover {
-  background: #ffffff;
+  background: var(--card);
   box-shadow: var(--shadow2);
 }
 
@@ -653,11 +702,11 @@
   max-width: min(420px, calc(100vw - 32px));
   padding: 10px 16px;
   border-radius: 12px;
-  background: rgba(20, 20, 19, 0.88);
+  background: var(--toast-bg);
   color: #fff;
   font-size: 13px;
   line-height: 1.45;
-  box-shadow: 0 8px 24px rgba(20, 20, 19, 0.18);
+  box-shadow: 0 8px 24px rgb(var(--ink) / 0.18);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -692,7 +741,7 @@
 
 .text-diff-tool .diff-type--format {
   background: var(--accent-blue-soft);
-  color: #3f6f9e;
+  color: var(--td-format-text);
 }
 
 /* 触屏设备上把小按钮放大到便于手指点按 */

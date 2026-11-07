@@ -1,7 +1,7 @@
 .pdf-tools-tool.pdf-panel{
   border-radius: var(--r2);
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.9);
+  background: rgb(var(--paper) / 0.9);
   box-shadow: var(--shadow2);
   padding: var(--pad);
 }
@@ -24,7 +24,7 @@
 .pdf-tools-tool .pdf-upload-zone{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:36px 24px; border:1px dashed rgba(106,155,204,0.42); border-radius:18px;
-  background:rgba(255,255,255,0.48);
+  background:rgb(var(--paper) / 0.48);
   cursor:pointer; transition:all .2s; text-align:center;
 }
 .pdf-tools-tool .pdf-upload-zone:focus{
@@ -117,13 +117,13 @@
 
 .pdf-tools-tool .pdf-pane-actions{display:flex; gap:8px; margin-top:12px}
 .pdf-tools-tool .pdf-btn{
-  padding:8px 16px; border:1px solid var(--line); border-radius:var(--r2);
-  background:var(--bg); color:var(--text); font-size:13px; font-weight:600;
+  min-height:36px; padding:8px 16px; border:1px solid var(--btn-border); border-radius:var(--btn-radius);
+  background:var(--btn-bg); color:var(--text); font-size:13px; font-weight:600;
   cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; justify-content:center;
 }
 .pdf-tools-tool .pdf-btn:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
 .pdf-tools-tool .pdf-btn:disabled{opacity:.5; cursor:not-allowed}
-.pdf-tools-tool .pdf-btn--primary{border-color:rgba(255,100,43,.70); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
+.pdf-tools-tool .pdf-btn--primary{border-color:var(--accent); background:var(--accent); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .pdf-tools-tool .pdf-btn--primary:hover:not(:disabled){background:var(--accent-hover); color:#fff; box-shadow:var(--btn-primary-shadow)}
 .pdf-tools-tool .pdf-btn--primary:disabled{box-shadow:none}
 
