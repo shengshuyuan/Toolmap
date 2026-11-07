@@ -30,6 +30,34 @@ export function calcPosition(pageW, pageH, textW, textH, position, padding = 40)
 }
 
 /**
+ * 用浏览器画布把水印文字画成透明背景的 PNG（支持中文和 emoji）
+ * @param {string} text
+ * @param {number} fontSize - PDF 里的字号（单位：pt）
+ * @param {string} color - #RRGGBB
+ * @returns {Promise<{ png: ArrayBuffer, width: number, height: number }>} width/height 为 PDF 中的尺寸
+ */
+async function renderTextToPng(text, fontSize, color) {
+  const scale = 3;
+  const font = `600 ${fontSize * scale}px -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif`;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("浏览器不支持画布，无法生成水印");
+  ctx.font = font;
+  const textW = Math.ceil(ctx.measureText(text).width) || fontSize * scale;
+  const textH = Math.ceil(fontSize * scale * 1.3);
+  canvas.width = textW;
+  canvas.height = textH;
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 0, textH / 2);
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("水印图片生成失败"))), "image/png");
+  });
+  return { png: await blob.arrayBuffer(), width: textW / scale, height: textH / scale };
+}
+
+/**
  * 给 PDF 添加水印
  * @param {File} file - 源 PDF
  * @param {{
@@ -45,7 +73,7 @@ export function calcPosition(pageW, pageH, textW, textH, position, padding = 40)
  */
 export async function addWatermark(file, options, onProgress) {
   const PDFLib = await loadPdfLib();
-  const { PDFDocument, rgb, degrees } = PDFLib;
+  const { PDFDocument, degrees } = PDFLib;
 
   const {
     text,
@@ -60,27 +88,27 @@ export async function addWatermark(file, options, onProgress) {
   const doc = await PDFDocument.load(bytes);
   const pages = doc.getPages();
 
-  // 解析颜色 hex → rgb
-  const r = parseInt(color.slice(1, 3), 16) / 255;
-  const g = parseInt(color.slice(3, 5), 16) / 255;
-  const b = parseInt(color.slice(5, 7), 16) / 255;
+  // PDF 标准字体不含中文，所以先把文字画成图片再贴到每一页
+  const stamp = await renderTextToPng(text, fontSize, color);
+  const image = await doc.embedPng(stamp.png);
+  const w = stamp.width;
+  const h = stamp.height;
+  const rad = (rotation * Math.PI) / 180;
 
   const total = pages.length;
   for (let i = 0; i < total; i++) {
     const page = pages[i];
     const { width, height } = page.getSize();
 
-    // 估算文字宽度（每个字符约 0.6 * fontSize）
-    const textWidth = text.length * fontSize * 0.6;
-    const textHeight = fontSize;
-
-    const pos = calcPosition(width, height, textWidth, textHeight, position);
-
-    page.drawText(text, {
-      x: pos.x,
-      y: pos.y,
-      size: fontSize,
-      color: rgb(r, g, b),
+    const pos = calcPosition(width, height, w, h, position);
+    // pdf-lib 绕左下角旋转；这里换算成绕水印中心旋转，位置才不会偏
+    const cx = pos.x + w / 2;
+    const cy = pos.y + h / 2;
+    page.drawImage(image, {
+      x: cx - ((w / 2) * Math.cos(rad) - (h / 2) * Math.sin(rad)),
+      y: cy - ((w / 2) * Math.sin(rad) + (h / 2) * Math.cos(rad)),
+      width: w,
+      height: h,
       opacity,
       rotate: degrees(rotation),
     });

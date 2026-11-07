@@ -161,10 +161,19 @@ export function mountImageCompressTool(mount) {
     busy = true;
     els.compress.disabled = true;
     const settings = getSettings();
-    const total = items.length;
+    const settingsKey = JSON.stringify(settings);
+    // 已按同一设置压缩过的图片跳过，避免重复压缩、重复写历史
+    const pending = items.filter((item) => !(item.status === "done" && item.settingsKey === settingsKey));
+    if (!pending.length) {
+      busy = false;
+      els.compress.disabled = false;
+      showToast("这些图片已经按当前设置压缩过了。改设置或添加新图片后再压缩。");
+      return;
+    }
+    const total = pending.length;
     try {
-      for (let idx = 0; idx < items.length; idx++) {
-        const item = items[idx];
+      for (let idx = 0; idx < pending.length; idx++) {
+        const item = pending[idx];
         els.compress.textContent = `压缩中 ${idx + 1}/${total}`;
         item.status = "processing";
         item.error = "";
@@ -172,6 +181,7 @@ export function mountImageCompressTool(mount) {
         try {
           if (item.result?.url) URL.revokeObjectURL(item.result.url);
           item.result = await compressImageFile(item.file, settings);
+          item.settingsKey = settingsKey;
           item.status = "done";
           selectedId = item.id;
           await saveCompressedHistory(item);
@@ -337,7 +347,7 @@ export function mountImageCompressTool(mount) {
           <span>压缩后</span>
           ${
             result
-              ? `<img src="${result.url}" alt="压缩后预览" /><strong>${formatBytes(result.outputSize)}</strong>`
+              ? `<img src="${result.url || item.originalUrl}" alt="压缩后预览" /><strong>${formatBytes(result.outputSize)}</strong>`
               : `<div class="image-preview-card__placeholder">待压缩</div><strong>-</strong>`
           }
         </div>

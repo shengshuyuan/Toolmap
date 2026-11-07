@@ -110,10 +110,15 @@ export function createHistoryStore({ dbName, storeName = "history", limit = 30 }
     return txDone(db, "readwrite", (store) => store.put(record));
   }
 
-  /** @param {IDBDatabase} db */
+  /**
+   * 超出上限时删除最久没动过的记录；可编辑的记录（如 Markdown 草稿）以 updatedAt 为准
+   * @param {IDBDatabase} db
+   */
   async function trimHistory(db) {
     const records = await readAll(db);
-    const overflow = records.sort((a, b) => b.createdAt - a.createdAt).slice(limit);
+    /** @param {any} r */
+    const recency = (r) => r.updatedAt || r.createdAt || 0;
+    const overflow = records.sort((a, b) => recency(b) - recency(a)).slice(limit);
     if (!overflow.length) return;
     await txDone(db, "readwrite", (store) => {
       /** @type {IDBRequest[]} */

@@ -43,6 +43,7 @@
  * @property {string} status
  * @property {string} error
  * @property {ImageMetaInfo} meta
+ * @property {string} [settingsKey] 上次压缩用的设置快照，用于跳过重复压缩
  */
 
 /**

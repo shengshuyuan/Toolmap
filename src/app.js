@@ -23,6 +23,8 @@ async function bootstrap() {
     `./search-modal.js?v=${APP_VERSION}`
   );
 
+  /** 每次进入都重新挂载的外壳视图（工作台 / 最近 / 数据管理），其余工具切走后保持挂载 */
+  const SHELL_VIEWS = new Set(["workbench", "recent", "data-manage"]);
   const mountedTools = new Set();
   const mountingTools = new Map();
   const loadedModules = new Map();
@@ -174,6 +176,22 @@ async function bootstrap() {
     mountedTools.delete(toolKey);
   }
 
+  /**
+   * 工具被切走但保持挂载时调用，让工具退出全屏等影响整页的状态
+   * @param {string} toolKey
+   */
+  function hideTool(toolKey) {
+    const tool = getToolById(toolKey);
+    const mount = tool ? $(tool.mountId) : null;
+    if (mount && typeof mount._onHide === "function") {
+      try {
+        mount._onHide();
+      } catch (err) {
+        console.warn(`[hide] ${toolKey} failed:`, err);
+      }
+    }
+  }
+
   /** @param {string} toolKey */
   function focusToolHeading(toolKey) {
     const mountId = toolKey === "workbench"
@@ -249,6 +267,8 @@ async function bootstrap() {
       } else if (key === "markdown-editor") {
         sessionStorage.setItem("toolmap_restore_markdown", options.restoreId);
       }
+      // 工具已挂载时，恢复记录只在挂载时读取，所以重新挂载一次
+      if (mountedTools.has(key)) await unmountTool(key);
     }
 
     if (mountedTools.has(key)) return;
@@ -290,14 +310,19 @@ async function bootstrap() {
       updateSwitch(key);
       setShellCopy(key);
 
+      // 工具切走时保持挂载（只隐藏），回来时输入内容还在；首页等视图每次重新挂载以刷新数据
       if (currentToolKey && currentToolKey !== key) {
-        await unmountTool(currentToolKey);
+        if (SHELL_VIEWS.has(currentToolKey)) {
+          await unmountTool(currentToolKey);
+        } else {
+          hideTool(currentToolKey);
+        }
         if (!isLatest()) return;
       }
 
       await mountViewOrTool(key, { restoreId });
       if (!isLatest()) {
-        if (key !== currentToolKey) await unmountTool(key);
+        if (key !== currentToolKey && SHELL_VIEWS.has(key)) await unmountTool(key);
         return;
       }
 

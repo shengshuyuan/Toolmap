@@ -142,15 +142,20 @@ export function mountPdfToolsTool(mount) {
   }
 
   function renderMergeList() {
-    if (mergeFiles.length === 0) {
+    const hasFiles = mergeFiles.length > 0;
+    // 已有文件时上传区变成紧凑的「继续添加」条，仍可点击或拖入
+    els.mergeUpload.classList.toggle("pdf-upload-zone--compact", hasFiles);
+    const uploadText = els.mergeUpload.querySelector(".pdf-upload-text");
+    if (uploadText) {
+      uploadText.textContent = hasFiles ? "+ 继续添加 PDF（可拖入）" : "拖拽 PDF 文件到此处，或点击选择";
+    }
+    if (!hasFiles) {
       els.mergeList.hidden = true;
-      els.mergeUpload.hidden = false;
       els.mergeBtn.disabled = true;
       els.mergeClear.hidden = true;
       return;
     }
     els.mergeList.hidden = false;
-    els.mergeUpload.hidden = true;
     els.mergeBtn.disabled = mergeFiles.length < 2;
     els.mergeClear.hidden = false;
 

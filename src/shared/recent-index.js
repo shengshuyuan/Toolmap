@@ -110,7 +110,7 @@ export async function listAllRecentRecords() {
     const qrStore = STORES["qrcode"]();
     const qrRecords = await qrStore.list();
     for (const r of qrRecords) {
-      const content = String(r.text || "").trim();
+      const content = String(r.content || r.text || "").trim();
       results.push({
         id: `qr-${r.id}`,
         toolId: "qrcode",

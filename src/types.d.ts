@@ -1,5 +1,6 @@
 interface HTMLElement {
   _cleanup?: () => void;
+  _onHide?: () => void;
   _qrStore?: {
     save(record: unknown): Promise<unknown>;
     list(): Promise<any[]>;

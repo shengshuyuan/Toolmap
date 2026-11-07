@@ -1,7 +1,7 @@
 import { renderMarkdown, cleanMarkdownEscapes } from "./renderer.js";
 import { htmlToMarkdown } from "./html-import.js";
 import { buildOutline } from "./outline.js";
-import { createDocumentStore, extractTitle, MAX_DOC_CHARS } from "./document-store.js";
+import { createDocumentStore, extractTitle, MAX_DOC_CHARS, MAX_DOCUMENTS } from "./document-store.js";
 import { exportMarkdownFile, exportHtmlFile, buildSafeHtmlDocument, safeFilename } from "./export.js";
 import { analyzeTextStats } from "../char-count/stats.js";
 import { createToast } from "../../shared/toast.js";
@@ -16,7 +16,7 @@ const MODE_KEY = "toolmap-md-view-mode";
 
 
 /**
- * @param {HTMLElement & { _cleanup?: () => void }} mount
+ * @param {HTMLElement & { _cleanup?: () => void, _onHide?: () => void }} mount
  */
 export function mountMarkdownEditorTool(mount) {
   if (!(mount instanceof HTMLElement)) return;
@@ -264,8 +264,26 @@ export function mountMarkdownEditorTool(mount) {
     clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (saveTimer));
     setSaveStatus("正在保存…", "is-saving");
     saveTimer = setTimeout(() => {
+      saveTimer = null;
       saveDoc().catch(() => setSaveStatus("保存失败", "is-error"));
     }, 700);
+  }
+
+  function cancelPendingSave() {
+    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (saveTimer));
+    saveTimer = null;
+  }
+
+  /** 切换文档、离开工具或页面隐藏前，把还在等待的自动保存立刻写入 */
+  async function flushPendingSave() {
+    if (!saveTimer) return;
+    cancelPendingSave();
+    try {
+      await saveDoc();
+    } catch (err) {
+      console.warn("[markdown] flush save failed:", err);
+      setSaveStatus("保存失败", "is-error");
+    }
   }
 
   async function saveDoc() {
@@ -277,15 +295,23 @@ export function mountMarkdownEditorTool(mount) {
     const title = titleInput.value.trim() || extractTitle(content) || "未命名文档";
     titleInput.value = title;
     let createdAt;
+    /** @type {{ id: string, title: string } | null} */
+    let willDrop = null;
     if (currentId) {
       const prev = await store.get(currentId);
       createdAt = prev?.createdAt;
+    } else {
+      const docs = await store.list();
+      if (docs.length >= MAX_DOCUMENTS) willDrop = docs[docs.length - 1];
     }
     const doc = await store.save({ id: currentId || undefined, title, content, createdAt });
     currentId = doc.id;
     dirty = false;
     setSaveStatus("已保存", "is-saved");
     await refreshDocList();
+    if (willDrop) {
+      showToast(`草稿已满 ${MAX_DOCUMENTS} 份，已删除最久没编辑的「${willDrop.title || "未命名"}」`);
+    }
   }
 
   async function refreshDocList() {
@@ -315,6 +341,7 @@ export function mountMarkdownEditorTool(mount) {
   /** @param {string} id */
   async function openDoc(id) {
     if (!store) return;
+    await flushPendingSave();
     const doc = await store.get(id);
     if (!doc) return;
     currentId = doc.id;
@@ -324,6 +351,7 @@ export function mountMarkdownEditorTool(mount) {
   }
 
   function newDoc() {
+    cancelPendingSave();
     currentId = null;
     titleInput.value = "";
     setContent("", { markDirty: false });
@@ -337,6 +365,8 @@ export function mountMarkdownEditorTool(mount) {
     if (!file) return;
     const name = file.name || "document";
     const text = await file.text();
+    await flushPendingSave();
+    currentId = null;
     const lower = name.toLowerCase();
     if (/\.(html?|htm)$/i.test(lower) || /text\/html/i.test(file.type)) {
       const result = htmlToMarkdown(text);
@@ -431,8 +461,21 @@ export function mountMarkdownEditorTool(mount) {
   }
   outlineToggle.addEventListener("click", toggleOutline);
 
-  $("#mdSaveBtn").addEventListener("click", () => saveDoc().then(() => showToast("已保存")));
-  $("#mdNewDoc").addEventListener("click", newDoc);
+  $("#mdSaveBtn").addEventListener("click", () => {
+    cancelPendingSave();
+    saveDoc()
+      .then(() => showToast("已保存"))
+      .catch(() => setSaveStatus("保存失败", "is-error"));
+  });
+  $("#mdNewDoc").addEventListener("click", async () => {
+    await flushPendingSave();
+    newDoc();
+  });
+  titleInput.addEventListener("input", () => {
+    dirty = true;
+    setSaveStatus("未保存", "is-dirty");
+    scheduleAutoSave();
+  });
   $("#mdImportBtn").addEventListener("click", () => $("#mdFileInput").click());
   $("#mdFileInput").addEventListener("change", (/** @type {Event & { target: HTMLInputElement }} */ e) => {
     const f = e.target.files?.[0];
@@ -619,6 +662,7 @@ export function mountMarkdownEditorTool(mount) {
     }
     const del = /** @type {HTMLElement|null} */ (e.target.closest("[data-del]"));
     if (del && store) {
+      if (currentId === del.dataset.del) cancelPendingSave();
       await store.remove(/** @type {string} */ (del.dataset.del));
       if (currentId === del.dataset.del) newDoc();
       await refreshDocList();
@@ -642,6 +686,11 @@ export function mountMarkdownEditorTool(mount) {
     }
   };
   document.addEventListener("keydown", onKey);
+
+  const onVisibilityChange = () => {
+    if (document.visibilityState === "hidden") void flushPendingSave();
+  };
+  document.addEventListener("visibilitychange", onVisibilityChange);
 
   // restore requested or latest draft
   (async () => {
@@ -667,10 +716,16 @@ export function mountMarkdownEditorTool(mount) {
     renderAll();
   })();
 
+  mount._onHide = () => {
+    if (root.classList.contains("md-is-fullscreen")) setMode("split");
+    void flushPendingSave();
+  };
+
   mount._cleanup = () => {
     clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (renderTimer));
-    clearTimeout(/** @type {ReturnType<typeof setTimeout>} */ (saveTimer));
+    void flushPendingSave();
     document.removeEventListener("keydown", onKey);
+    document.removeEventListener("visibilitychange", onVisibilityChange);
     document.documentElement.classList.remove("toolmap-md-immersive");
   };
   currentMdCleanup = mount._cleanup;
