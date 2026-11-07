@@ -69,6 +69,7 @@ Toolmap 是一个在浏览器里就能用的小工具台。文本、图片和 PD
 
 - `sherone.app`（不带 toolmap）是个人主页，不放 Toolmap。
 - Cloudflare 的配置在 `wrangler.jsonc`；安全和缓存设置在 `_headers`，要和 `vercel.json` 保持一致。
+- Cloudflare 会自动往页面里插入统计和机器人检测脚本。网站的安全规则会拦住它们，浏览器控制台会出现两条报错，但不影响使用。想去掉的话，可以在 Cloudflare 后台关掉 `sherone.app` 的 Web Analytics 自动注入和 Bot Fight Mode。注意这会影响整个域名。
 
 ### 还可以继续改进
 
